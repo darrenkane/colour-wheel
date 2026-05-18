@@ -114,8 +114,108 @@
   }
   #header-guide { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .guide-item   { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--dim); }
-  #header-sat-filter { display:flex; gap:5px; align-items:center; }
+  #header-sat-filter, #header-val-filter { display:flex; gap:5px; align-items:center; }
   .header-sat-btn { padding:3px 9px; font-size:10px; }
+  .header-icon-btn {
+    padding:3px 8px; font-size:13px; line-height:1;
+    font-family:inherit;
+  }
+
+  /* ── Owned paints manager modal ── */
+  #owned-modal-backdrop {
+    display:none; position:fixed; inset:0; z-index:9500;
+    background:rgba(0,0,0,.55);
+    align-items:center; justify-content:center;
+  }
+  #owned-modal-backdrop.visible { display:flex; }
+  #owned-modal {
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:8px; width:min(560px,92vw); max-height:84vh;
+    display:flex; flex-direction:column; overflow:hidden;
+    box-shadow:0 12px 48px rgba(0,0,0,.6);
+  }
+  #owned-modal-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; border-bottom:1px solid var(--border);
+  }
+  #owned-modal-title {
+    font-family:'Cinzel',serif; font-size:13px; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--gold);
+  }
+  #owned-modal-close {
+    background:none; border:none; color:var(--dim); cursor:pointer;
+    font-size:15px; line-height:1; padding:4px; transition:color .15s;
+  }
+  #owned-modal-close:hover { color:var(--gold); }
+  #owned-modal-controls {
+    display:flex; gap:8px; padding:14px 18px 8px; flex-wrap:wrap;
+    align-items:center;
+  }
+  #owned-search {
+    flex:1; min-width:140px; padding:7px 11px; border-radius:4px;
+    border:1px solid var(--border); background:var(--bg2);
+    color:var(--text); font-family:inherit; font-size:13px;
+  }
+  #owned-search:focus { outline:none; border-color:var(--gold); }
+  #owned-brand-dd-wrap { position:relative; }
+  #owned-brand-dd-btn {
+    display:flex; align-items:center; gap:6px; padding:7px 11px;
+    border-radius:4px; font-size:11px; font-family:'Cinzel',serif;
+    letter-spacing:.05em; cursor:pointer; border:1px solid var(--border);
+    background:var(--bg2); color:var(--dim); transition:all .15s; white-space:nowrap;
+  }
+  #owned-brand-dd-btn:hover, #owned-brand-dd-btn.active { border-color:var(--gold); color:var(--gold); }
+  #owned-brand-dd-menu {
+    position:absolute; top:calc(100% + 3px); left:0; min-width:160px;
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:4px; padding:4px 0; z-index:10;
+    box-shadow:0 6px 20px rgba(0,0,0,.4);
+  }
+  .owned-brand-opt {
+    padding:7px 12px; font-size:12px; cursor:pointer; color:var(--dim);
+    display:flex; justify-content:space-between; gap:10px; transition:all .12s;
+  }
+  .owned-brand-opt:hover { background:var(--tint); color:var(--text); }
+  .owned-brand-opt.on { color:var(--gold); background:var(--tint); }
+  #owned-show-owned-wrap {
+    display:flex; align-items:center; gap:5px; font-size:11px;
+    color:var(--dim); cursor:pointer; user-select:none; white-space:nowrap;
+  }
+  #owned-show-owned-wrap input { cursor:pointer; accent-color:var(--gold); }
+  #owned-modal-count {
+    padding:2px 18px 8px; font-size:10px; color:var(--dimmer);
+    font-family:'Cinzel',serif; letter-spacing:.08em;
+  }
+  #owned-modal-list { overflow-y:auto; padding:0 10px 14px; }
+  .owned-row {
+    display:flex; align-items:center; gap:10px;
+    padding:7px 8px; border-radius:4px; cursor:pointer;
+    transition:background .1s;
+  }
+  .owned-row:hover { background:var(--tint); }
+  .owned-row-swatch {
+    width:22px; height:22px; border-radius:3px; flex-shrink:0;
+    border:1px solid rgba(128,128,128,.3);
+  }
+  .owned-row-info { flex:1; min-width:0; }
+  .owned-row-name {
+    font-size:13px; color:var(--text); white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis;
+  }
+  .owned-row-brand { font-size:10px; color:var(--dim); }
+  .owned-row-check {
+    width:22px; height:22px; flex-shrink:0;
+    border:1.5px solid var(--border); border-radius:4px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:700; color:transparent;
+    transition:all .12s;
+  }
+  .owned-row.is-owned .owned-row-check {
+    background:var(--gold); border-color:var(--gold); color:var(--bg);
+  }
+  .owned-row-empty {
+    padding:24px; text-align:center; color:var(--dimmer); font-size:12px;
+  }
 
   /* Brand multi-select dropdown */
   #brand-dropdown-wrap { position:relative; }
@@ -471,7 +571,17 @@
   #selected::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
   #sel-empty { font-size: 13px; color: var(--dimmer); font-style: italic; text-align: center; padding-top: 20px; }
-  #sel-card { display: none; }
+  #sel-owned-btn {
+    margin-top: 12px; width: 100%;
+    padding: 7px 12px; border-radius: 4px;
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: .08em;
+    cursor: pointer; border: 1px solid var(--border);
+    background: var(--bg2); color: var(--dim); transition: all .15s;
+  }
+  #sel-owned-btn:hover { border-color: var(--gold); color: var(--gold); }
+  #sel-owned-btn.owned {
+    background: var(--gold); border-color: var(--gold); color: var(--bg); font-weight: 600;
+  }
   #sel-swatch {
     width: 100%; height: 60px;
     border-radius: 4px;
@@ -701,6 +811,27 @@
       </div>
     </div>
 
+    <!-- Brightness filter -->
+    <div class="header-filter-group">
+      <div class="header-filter-label">Brightness</div>
+      <div id="header-val-filter">
+        <button class="fbtn header-sat-btn" id="valring-bright" onclick="toggleValRingFilter('bright')">Bright</button>
+        <button class="fbtn header-sat-btn" id="valring-mid"    onclick="toggleValRingFilter('mid')">Mid</button>
+        <button class="fbtn header-sat-btn" id="valring-dark"   onclick="toggleValRingFilter('dark')">Dark</button>
+      </div>
+    </div>
+
+    <!-- Owned filter + collection backup -->
+    <div class="header-filter-group">
+      <div class="header-filter-label">Collection</div>
+      <div style="display:flex;gap:5px;align-items:center">
+        <button class="fbtn header-sat-btn" id="owned-filter-btn" onclick="toggleOwnedOnly()">✓ Owned</button>
+        <button class="fbtn header-icon-btn" onclick="openOwnedManager()" title="Manage owned paints">+</button>
+        <button class="fbtn header-icon-btn" onclick="downloadCollection()" title="Download collection backup">↓</button>
+        <button class="fbtn header-icon-btn" onclick="document.getElementById('collection-file-input').click()" title="Upload collection backup">↑</button>
+      </div>
+    </div>
+
     <div class="h-sub" id="count-label">165 paints</div>
 
     <!-- Burger menu (right side of header) -->
@@ -734,12 +865,19 @@
             <div style="margin-top:5px;font-size:10px;color:var(--dimmer)">No selection shows all types.</div>
           </div>
           <div class="fd-section">
-            <div class="fd-label">Brightness <span class="panel-sublabel">(or click wheel zones)</span></div>
+            <div class="fd-label">Collection <span class="panel-sublabel" id="owned-count-label"></span></div>
+            <div style="font-size:10px;color:var(--dimmer);margin-bottom:2px">File backup</div>
             <div class="filter-row">
-              <button class="fbtn" id="valring-bright" onclick="toggleValRingFilter('bright')">Bright</button>
-              <button class="fbtn" id="valring-mid"    onclick="toggleValRingFilter('mid')">Mid</button>
-              <button class="fbtn" id="valring-dark"   onclick="toggleValRingFilter('dark')">Dark</button>
+              <button class="fbtn" onclick="downloadCollection()">Download</button>
+              <button class="fbtn" onclick="document.getElementById('collection-file-input').click()">Upload</button>
             </div>
+            <div style="font-size:10px;color:var(--dimmer);margin:6px 0 2px">Clipboard code</div>
+            <div class="filter-row">
+              <button class="fbtn" onclick="exportCollection()">Copy</button>
+              <button class="fbtn" onclick="importCollection()">Paste</button>
+            </div>
+            <input type="file" id="collection-file-input" accept=".json,application/json" style="display:none" onchange="uploadCollection(event)">
+            <div id="collection-msg" style="margin-top:6px;font-size:10px;color:var(--dimmer)">Back up or restore your owned paints. Saved to this browser only.</div>
           </div>
         </div>
       </div>
@@ -789,6 +927,7 @@
         <div id="sel-hue-name" style="margin-top:6px"></div>
         <div id="sel-val-band"  style="margin-top:3px"></div>
         <div id="sel-sat-band"  style="margin-top:3px"></div>
+        <button id="sel-owned-btn" onclick="toggleSelectedOwned()">Add to collection</button>
         <!-- Colour scheme: selected + added harmonious colours -->
         <div id="scheme-section" style="display:none">
           <div class="harmony-label">Colour Scheme
@@ -928,7 +1067,7 @@
       <li><a href="#overview">Overview &amp; Shapes</a></li>
       <li><a href="#navigation">Navigating the Wheel</a></li>
       <li><a href="#filters">Filtering Paints</a></li>
-      <li><a href="#selecting">Selecting a Paint</a></li>
+      <li><a href="#selecting">Selecting &amp; Owning Paints</a></li>
       <li><a href="#harmony">Harmony Filters</a></li>
       <li><a href="#scheme">Building a Colour Scheme</a></li>
       <li><a href="#theory">Colour Theory Assumptions</a></li>
@@ -965,60 +1104,69 @@
     <p>Use the <strong>mouse wheel</strong> to zoom in and out, anchored to the cursor position. At high zoom, paint dots scale down so densely-packed clusters separate visually. Hold and <strong>drag</strong> to pan when zoomed in. The <strong>+ / − / ⌂</strong> controls in the top-left of the wheel adjust zoom and reset the view.</p>
 
     <h3>Hover</h3>
-    <p><strong>Hovering</strong> over any paint dot shows a tooltip with the paint name, brand, type, hex code, and Value/Saturation percentages. When multiple paints share the same hex value (and therefore the same position on the wheel), the tooltip lists all of them. Hovering near either dashed value-ring shows a label describing the boundary — <em>Dark · Mid</em> or <em>Mid · Bright</em>.</p>
+    <p><strong>Hovering</strong> over any paint dot shows a tooltip with the paint name, brand, type, hex code, and Value/Saturation percentages. When multiple paints share the same hex value (and therefore the same position on the wheel), the tooltip lists all of them.</p>
+
+    <h3>Value zones</h3>
+    <p>Two dashed rings divide the wheel into three brightness zones — Dark (centre), Mid, and Bright (rim). Hovering inside the wheel highlights the zone under the cursor; clicking an empty area of a zone toggles that brightness filter.</p>
 
     <h3>Rim segments</h3>
-    <p>The rainbow arc around the outside is divided into 24 hue segments. Hovering a segment brightens it; clicking toggles it as a hue filter (see Section 3). The rim is also interactive from the collapsible <strong>Hue Segments</strong> panel in the bottom-right of the wheel.</p>
+    <p>The coloured arc around the outside is divided into 24 hue segments. Hovering a segment brightens it; clicking toggles it as a hue filter (see Section 3). Multiple segments can be active at once.</p>
+
+    <h3>Legend</h3>
+    <p>The <strong>Legend</strong> box in the bottom-left corner of the wheel reveals, on hover, what the radius and angle of the wheel represent.</p>
   </section>
 
   <!-- 3. Filtering -->
   <section id="filters">
     <h2><span class="guide-section-num">3.</span> Filtering Paints</h2>
 
-    <p>All filters follow the same rule: <strong>no buttons selected = no filter applied = everything shown</strong>. Selecting one or more buttons restricts the view to only paints matching those criteria. Multiple selections within a filter group are combined with <strong>OR</strong> logic — selecting Citadel + AK shows both. Different filter groups combine with <strong>AND</strong> — selecting Citadel and Bright value shows only bright Citadel paints.</p>
+    <p>All filters follow the same rule: <strong>no buttons selected = no filter applied = everything shown</strong>. Selecting one or more options restricts the view to only paints matching those criteria. Multiple selections within a group combine with <strong>OR</strong> logic — Citadel + AK shows both. Different groups combine with <strong>AND</strong> — Citadel plus Bright shows only bright Citadel paints.</p>
 
-    <h3>Brand (header legend)</h3>
-    <p>The five brand icons in the header are clickable filters. Click any brand name to show only that brand; click again to deselect. The same filters also appear in the <strong>⚙ Filters</strong> dropdown at the top right. Both stay in sync.</p>
-
-    <div class="guide-filter-demo">
-      <span class="guide-fbtn">Citadel</span>
-      <span class="guide-fbtn on">AK</span>
-      <span class="guide-fbtn">Pro Acryl</span>
-      <span class="guide-fbtn">VMC</span>
-      <span class="guide-fbtn">VGC</span>
-    </div>
-    <p><em>Example above: only AK 3rd Gen paints are shown.</em></p>
-
-    <h3>Exclude Metallics</h3>
-    <p>The <strong>Exclude Metallics</strong> toggle in the filter dropdown removes all metallic-type paints from view across every brand. This filter <strong>persists even when a harmony filter is active</strong> — it is intentionally global and survives filter resets. It is on by default.</p>
-
-    <h3>Citadel Type (Base / Layer / Metallic)</h3>
-    <p>This filter only appears when Citadel is the <strong>sole active brand filter</strong>. It lets you narrow Citadel results to Base, Layer, or Metallic paints specifically. It has no effect on other brands, which use a single "paint" type.</p>
+    <h3>Brand</h3>
+    <p>The <strong>Brand</strong> control in the header is a multi-select dropdown. Open it and tick any combination of the five ranges — Citadel, AK 3rd Gen, Pro Acryl, Vallejo Model Color, Vallejo Game Color. The button shows "All brands", a single brand name, or "N brands" depending on your selection.</p>
 
     <h3>Saturation (Vivid / Mid / Muted)</h3>
-    <p>Filters by <strong>HSL saturation</strong> — how intense or grey the colour appears. Vivid (≥60%), Mid (25–60%), Muted (&lt;25%). Note that saturation is displayed as a data point but does <em>not</em> drive the radial position on the wheel — that is controlled by Value.</p>
+    <p>Filters by <strong>HSL saturation</strong> — how intense or grey the colour appears. Vivid (≥60%), Mid (25–60%), Muted (&lt;25%). Saturation is shown as a data point but does <em>not</em> drive the radial position on the wheel — that is controlled by brightness.</p>
 
-    <h3>Value / Brightness (Bright / Mid / Dark)</h3>
-    <p>Filters by <strong>HSV value</strong> — how bright or dark the colour is. Bright (≥70%), Mid (35–70%), Dark (&lt;35%). This directly corresponds to the paint's radial position on the wheel — Bright paints are near the rim, Dark paints are near the centre.</p>
+    <h3>Brightness (Bright / Mid / Dark)</h3>
+    <p>Filters by <strong>HSV value</strong> — how bright or dark the colour is. Bright (≥70%), Mid (35–70%), Dark (&lt;35%). This is a <strong>single-select</strong> filter: clicking one band replaces any previous choice, and clicking the active band clears it. It directly corresponds to the paint's radial position — Bright near the rim, Dark near the centre. You can also set it by clicking the value zones on the wheel itself.</p>
+
+    <h3>Include: Metallics &amp; Achromatics</h3>
+    <p>The burger menu (≡, top right) has an <strong>Include</strong> section with two toggles. <strong>Metallics</strong> is off by default — metallic paints are hidden until you switch it on. <strong>Achromatics</strong> (neutrals, near-blacks, near-whites) is on by default. These toggles persist even when a harmony is active and survive filter resets.</p>
+
+    <h3>Citadel Type (Base / Layer / Metallic)</h3>
+    <p>Found in the burger menu, this filter only appears when Citadel is the <strong>sole selected brand</strong>. It narrows Citadel results to Base, Layer, or Metallic paints. It has no effect on other brands.</p>
 
     <h3>Hue Segments</h3>
-    <p>Click any of the 24 hue segment labels in the collapsible panel (bottom-right of the canvas), or click directly on the rainbow rim, to restrict the wheel to paints in those hue sectors. Multiple segments can be active simultaneously.</p>
+    <p>Click directly on the coloured rim of the wheel to restrict the view to paints in those hue sectors. Multiple segments can be active simultaneously.</p>
+
+    <h3>Owned</h3>
+    <p>The <strong>✓ Owned</strong> button in the header's Collection group shows only paints you have marked as owned. See Section 4 for how to mark paints and manage your collection.</p>
+
+    <div class="guide-callout">
+      <div class="guide-callout-title">Filters &amp; harmony are unified</div>
+      <p>The Brand, Saturation and Brightness filters are shared between the header and the harmony panel. Changing a filter in one place is immediately reflected in the other, and starting a harmony keeps whatever filters you already had set.</p>
+    </div>
   </section>
 
-  <!-- 4. Selecting a paint -->
+  <!-- 4. Selecting & owning paints -->
   <section id="selecting">
-    <h2><span class="guide-section-num">4.</span> Selecting a Paint</h2>
-    <p><strong>Click</strong> any paint dot on the wheel to select it. The right-hand panel opens and shows:</p>
-    <ul style="margin:10px 0 10px 1.5em;color:var(--dim)">
-      <li>A colour swatch with name, brand, type, and hex code</li>
-      <li>HSL values (Hue, Saturation, Lightness) and HSV Value percentage</li>
-      <li>The paint's Martian hue segment name and its Saturation band label</li>
-    </ul>
-    <p>When multiple paints share the same position (identical hex), clicking <strong>cycles</strong> through them in order. Click empty canvas space to deselect.</p>
+    <h2><span class="guide-section-num">4.</span> Selecting &amp; Owning Paints</h2>
+    <p><strong>Click</strong> any paint dot on the wheel to select it. The right-hand panel shows a colour swatch, the paint name, brand and type, and descriptive Hue / Value / Saturation labels. Hover the swatch to see the exact hex code and HSL/HSV numbers.</p>
+    <p>When multiple paints share the same position (identical hex), clicking <strong>pins a tooltip</strong> listing every paint at that point — click any entry to select it. The selected paint is marked, and the tooltip stays open until you pick one or click away.</p>
+
+    <h3>Marking a paint as owned</h3>
+    <p>The selected-paint panel has an <strong>Add to collection</strong> button. Click it to mark the paint as owned (it shows "✓ In your collection"); click again to un-mark. Your collection is saved in the browser and persists between visits.</p>
+
+    <h3>The collection manager</h3>
+    <p>The <strong>+</strong> button in the header's Collection group opens a manager modal for marking many paints quickly. It has a free-text search that matches paint names, a multi-select brand dropdown, and an "Owned only" toggle. Each row has a checkbox — click anywhere on the row to toggle ownership.</p>
+
+    <h3>Backing up your collection</h3>
+    <p>Because the collection is stored only in this browser, the header's <strong>↓</strong> and <strong>↑</strong> buttons let you download your collection to a JSON file and upload it back later — useful for moving between devices or keeping a backup. The burger menu also offers a clipboard "Copy / Paste" code as a quick alternative. Importing is always additive: it merges with your existing collection and never deletes anything.</p>
 
     <div class="guide-callout">
       <div class="guide-callout-title">Tip</div>
-      <p>Use the search box at the bottom of the panel to jump directly to a paint by name. Partial matches work — typing <em>red</em> will highlight all paints with "red" in the name.</p>
+      <p>Combine the Owned filter with a harmony to see only colour schemes you can actually paint right now with the paints you have.</p>
     </div>
   </section>
 
@@ -1046,15 +1194,15 @@
     </div>
 
     <h3>Sub-category filters within harmony results</h3>
-    <p>The harmony list is filtered by three independent sub-filters: <strong>Brand</strong>, <strong>Saturation</strong>, and <strong>Value</strong>. These combine with AND logic — selecting Citadel and Bright shows only bright Citadel paints in the harmony results. All are unselected by default (show all). The wheel updates in real time to show only the filtered harmony colours, and connecting lines are drawn from the selected paint to all visible matches.</p>
+    <p>The harmony results can be narrowed by <strong>Brand</strong>, <strong>Saturation</strong>, and <strong>Brightness</strong>. These are the <em>same</em> filters as the header controls — changing one updates the other. They combine with AND logic, so selecting Citadel and Bright shows only bright Citadel paints in the harmony. The wheel updates in real time, with connecting lines drawn from the anchor paint to all visible matches.</p>
 
-    <div class="guide-callout guide-callout-warn">
-      <div class="guide-callout-title">Important</div>
-      <p>Activating any harmony filter <strong>resets all top-level filters</strong> (brand, saturation, value, hue) so the harmony pool is drawn from the full 584-paint dataset. The Exclude Metallics toggle is the only filter that survives a harmony activation.</p>
+    <div class="guide-callout">
+      <div class="guide-callout-title">Filters carry into harmony</div>
+      <p>Whatever Brand, Saturation and Brightness filters you have set are kept when you start a harmony — they become its sub-filters. Only the hue filter clears, since the harmony defines which hue segments are relevant.</p>
     </div>
 
     <h3>Achromatic paints and harmony</h3>
-    <p>Paints with very low saturation (neutrals, near-blacks, near-whites) are classified as <strong>achromatic</strong> — they have no meaningful hue position and cluster near the centre of the wheel. When Monochromatic is selected for an achromatic paint, the result is all other achromatic paints. For all other harmony types, the tool uses <strong>hue segment 0 (Red) as a reference point</strong> — this is a practical fallback rather than a theoretically meaningful relationship.</p>
+    <p>Paints with very low saturation (neutrals, near-blacks, near-whites) are classified as <strong>achromatic</strong> — they have no meaningful hue position and cluster near the centre of the wheel. When Monochromatic is selected for an achromatic paint, the result is all other achromatic paints. For all other harmony types, the tool uses <strong>hue segment 0 (Red) as a reference point</strong> — a practical fallback rather than a theoretically meaningful relationship.</p>
   </section>
 
   <!-- 6. Building a scheme -->
@@ -1176,6 +1324,32 @@
   <div id="tip-body"></div>
   <div class="tip-hex"  id="tip-hex"></div>
   <div id="tip-cycle-hint" style="display:none;font-size:9px;color:var(--dimmer);margin-top:6px;letter-spacing:.05em">↻ Click to cycle</div>
+</div>
+
+<!-- Owned paints manager modal -->
+<div id="owned-modal-backdrop" onclick="if(event.target===this)closeOwnedManager()">
+  <div id="owned-modal">
+    <div id="owned-modal-header">
+      <span id="owned-modal-title">Manage Owned Paints</span>
+      <button id="owned-modal-close" onclick="closeOwnedManager()" title="Close">✕</button>
+    </div>
+    <div id="owned-modal-controls">
+      <input type="text" id="owned-search" placeholder="Search paint name…" oninput="renderOwnedManagerList()" autocomplete="off">
+      <div id="owned-brand-dd-wrap">
+        <button id="owned-brand-dd-btn" onclick="toggleOwnedBrandDropdown()">
+          <span id="owned-brand-dd-label">All brands</span>
+          <span style="font-size:9px;opacity:.6">▼</span>
+        </button>
+        <div id="owned-brand-dd-menu" style="display:none"></div>
+      </div>
+      <label id="owned-show-owned-wrap" title="Show only paints already marked owned">
+        <input type="checkbox" id="owned-show-owned" onchange="renderOwnedManagerList()">
+        <span>Owned only</span>
+      </label>
+    </div>
+    <div id="owned-modal-count"></div>
+    <div id="owned-modal-list"></div>
+  </div>
 </div>
 
 <script>
@@ -1930,13 +2104,15 @@ let hoveredRing  = null; // VAL_RINGS entry under cursor
 let activeHarmony = null;
 let showMetallics = false;   // false = hidden by default (button unselected)
 let showAchromatics = true;  // true = shown by default (button selected)
+let ownedOnly = false;       // true = show only paints the user owns
 let darkMode = localStorage.getItem('darkMode') !== 'false'; // dark by default
 let schemeColours = []; // list of paints added to the colour scheme
 let harmonyStegs  = [];
 let harmonyPaintsCache = [];
-let harmonyBrandFilter = new Set(); // empty = no filter = all brands shown
-let harmonyValFilter   = new Set(); // empty = no filter = all value bands shown
-let harmonySatFilter   = new Set(); // empty = no filter = all saturation bands shown
+// Harmony sub-filters are UNIFIED with the header filters — the harmony panel
+// and the header now mutate the same Sets, so changes reflect in both places.
+// activeBrands → activeBrands, activeSatBands → activeSatBands,
+// activeValBands → activeValBands (see references below).
 
 // Saturation bands (HSL saturation)
 const SAT_BANDS = [
@@ -1967,12 +2143,39 @@ function getMartianSegment(p) {
 }
 
 // Pre-compute derived fields after HSL
+// ── Owned paints storage ──────────────────────────────────────
+// Persists which paints the user owns to localStorage. Key = brand:name.
+function paintKey(p) { return p.brand + ':' + p.name; }
+
+let ownedPaints = new Set();
+try {
+  const stored = localStorage.getItem('ownedPaints');
+  if (stored) ownedPaints = new Set(JSON.parse(stored));
+} catch (e) { /* storage unavailable — owned set stays empty */ }
+
+function persistOwned() {
+  try {
+    localStorage.setItem('ownedPaints', JSON.stringify([...ownedPaints]));
+  } catch (e) { /* storage unavailable — silently skip */ }
+}
+
+function isPaintOwned(p) { return ownedPaints.has(paintKey(p)); }
+
+function setPaintOwned(p, owned) {
+  const key = paintKey(p);
+  if (owned) ownedPaints.add(key);
+  else       ownedPaints.delete(key);
+  p.owned = owned;
+  persistOwned();
+}
+
 function derivePaintFields(p) {
   p.hsl     = hexToHsl(p.hex);
   p.value   = hexToHsv(p.hex);   // brightness 0–100
   p.satBand = getSatBand(p.hsl.s);
   p.valBand = getValBand(p.value);
   p.hueSeg  = getMartianSegment(p);
+  p.owned   = ownedPaints.has(paintKey(p));
 }
 
 // Now safe to pre-compute — all dependencies are defined
@@ -1980,6 +2183,8 @@ PAINTS.forEach(p => derivePaintFields(p));
 
 function visiblePaints() {
   return PAINTS.filter(p => {
+    // Owned-only filter
+    if (ownedOnly && !p.owned) return false;
     // Exclude metallics (persists across harmony changes)
     if (!showMetallics && p.type === 'metallic') return false;
     // Exclude achromatics
@@ -2024,6 +2229,7 @@ function paintsForWheel() {
       out.push(...harmonyPaintsCache);
     } else if (harmonyStegs.length > 0) {
       PAINTS.forEach(p => {
+        if (ownedOnly && !p.owned) return;
         if (p.hueSeg !== -1 && harmonyStegs.includes(p.hueSeg)) out.push(p);
       });
     }
@@ -2031,9 +2237,9 @@ function paintsForWheel() {
     // Apply harmony brand + value sub-filters (empty = no filter = show all)
     return deduped.filter(p => {
       if (p === selected) return true; // always show the selected paint
-      if (harmonyBrandFilter.size > 0 && !harmonyBrandFilter.has(p.brand)) return false;
-      if (harmonySatFilter.size   > 0 && !harmonySatFilter.has(p.satBand.key)) return false;
-      if (harmonyValFilter.size   > 0 && !harmonyValFilter.has(p.valBand.key)) return false;
+      if (activeBrands.size > 0 && !activeBrands.has(p.brand)) return false;
+      if (activeSatBands.size   > 0 && !activeSatBands.has(p.satBand.key)) return false;
+      if (activeValBands.size   > 0 && !activeValBands.has(p.valBand.key)) return false;
       return true;
     });
   }
@@ -2073,6 +2279,7 @@ function toggleBrand(brand) {
   else activeBrands.add(brand);
   refreshBrandButtons();
   updateTypeFilterVisibility();
+  if (activeHarmony) renderHarmonyList();
   refreshAfterFilter();
 }
 
@@ -2143,6 +2350,16 @@ function updateTypeFilterVisibility() {
   }
 }
 
+function toggleOwnedOnly() {
+  ownedOnly = !ownedOnly;
+  const btn = document.getElementById('owned-filter-btn');
+  if (btn) btn.classList.toggle('on', ownedOnly);
+  // Re-run active harmony so its results respect the owned filter
+  if (activeHarmony) _runHarmony(activeHarmony);
+  refreshAfterFilter();
+  draw();
+}
+
 function toggleType(type) {
   if (activeTypes.has(type)) activeTypes.delete(type);
   else activeTypes.add(type);
@@ -2161,6 +2378,7 @@ function toggleSatBand(key) {
   if (activeSatBands.has(key)) activeSatBands.delete(key);
   else activeSatBands.add(key);
   refreshSatButtons();
+  if (activeHarmony) renderHarmonyList();
   refreshAfterFilter();
 }
 
@@ -2174,6 +2392,7 @@ function toggleValBand(key) {
     activeValBands.add(key);
   }
   refreshValButtons();
+  if (activeHarmony) renderHarmonyList();
   refreshAfterFilter();
 }
 
@@ -2208,7 +2427,11 @@ function refreshValButtons() {
 function refreshAfterFilter() {
   const visible = visiblePaints();
   document.getElementById('count-label').textContent = visible.length + ' paints';
-  if (selected && !visible.find(p => p.name === selected.name && p.brand === selected.brand)) {
+  // Only deselect the paint if no harmony is active. While a harmony is running,
+  // the selected paint is the anchor and must persist regardless of header
+  // filters — dropping it leaves the harmony machinery referencing a null anchor.
+  if (!activeHarmony &&
+      selected && !visible.find(p => p.name === selected.name && p.brand === selected.brand)) {
     selected = null;
     document.getElementById('sel-card').style.display = 'none';
     document.getElementById('panel-header-label').textContent = 'Select a paint';
@@ -2368,6 +2591,7 @@ function harmonySegments(seg, type, spread) {
 // EXCEPT showMetallics/showAchromatics which persist everywhere.
 function paintsInSegs(segs) {
   return PAINTS.filter(p => {
+    if (ownedOnly && !p.owned) return false;
     if (!showMetallics && p.type === 'metallic') return false;
     return segs.includes(p.hueSeg);
   });
@@ -2399,16 +2623,13 @@ function setHarmony(type) {
     return;
   }
 
-  activeTypes.clear(); activeBrands.clear();
-  activeHues.clear(); activeSatBands.clear(); activeValBands.clear();
-  refreshTypeButtons(); refreshBrandButtons();
-  refreshSatButtons(); refreshValButtons(); refreshHueButtons();
-  updateTypeFilterVisibility();
+  // Header filters (brand / saturation / value / type) are intentionally KEPT —
+  // they carry into the harmony as sub-filters and stay reflected in both places.
+  // Only hue is cleared, since the harmony itself defines the relevant segments.
+  activeHues.clear();
+  refreshHueButtons();
 
   activeHarmony = type;
-  harmonyBrandFilter = new Set(); // reset to "all" (no filter)
-  harmonyValFilter   = new Set(); // reset to "all" (no filter)
-  harmonySatFilter   = new Set(); // reset to "all" (no filter)
   _runHarmony(type);
 }
 
@@ -2428,13 +2649,15 @@ function _runHarmony(type) {
       harmonyStegs = [];
       paints = PAINTS.filter(p =>
         p.hueSeg < 0 &&
-        showMetallics || p.type !== 'metallic' &&
+        (showMetallics || p.type !== 'metallic') &&
+        (!ownedOnly || p.owned) &&
         (p.name !== selected.name || p.brand !== selected.brand));
     } else {
       harmonyStegs = [selected.hueSeg];
       paints = PAINTS.filter(p =>
         p.hueSeg === selected.hueSeg &&
-        showMetallics || p.type !== 'metallic' &&
+        (showMetallics || p.type !== 'metallic') &&
+        (!ownedOnly || p.owned) &&
         (p.name !== selected.name || p.brand !== selected.brand));
     }
   } else if (selected.hueSeg < 0) {
@@ -2503,6 +2726,8 @@ function clearAll() {
   // Clear filters
   activeTypes.clear(); activeBrands.clear();
   activeHues.clear(); activeSatBands.clear(); activeValBands.clear();
+  ownedOnly = false;
+  document.getElementById('owned-filter-btn')?.classList.remove('on');
   refreshTypeButtons(); refreshBrandButtons();
   refreshSatButtons(); refreshValButtons(); refreshHueButtons();
   updateTypeFilterVisibility();
@@ -2531,9 +2756,13 @@ function clearHarmonyHover() {
 }
 
 function toggleHarmonyBrand(brand) {
-  if (harmonyBrandFilter.has(brand)) harmonyBrandFilter.delete(brand);
-  else harmonyBrandFilter.add(brand);
-  renderHarmonyList();
+  // Unified with the header brand filter — update the shared set and both UIs
+  if (activeBrands.has(brand)) activeBrands.delete(brand);
+  else activeBrands.add(brand);
+  refreshBrandButtons();      // header dropdown
+  updateTypeFilterVisibility();
+  if (activeHarmony) renderHarmonyList();
+  refreshAfterFilter();
   draw();
 }
 
@@ -2550,12 +2779,12 @@ function refreshHarmonyBrandDropdown(wrap, changedBrand) {
   wrap.querySelectorAll('.harmony-brand-dd-opt').forEach(opt => {
     const brandName = opt.textContent.trim().split(/\s+\d/)[0];
     const brand = Object.keys(HARMONY_BRAND_NAMES).find(k => HARMONY_BRAND_NAMES[k] === brandName);
-    if (brand) opt.classList.toggle('on', harmonyBrandFilter.has(brand));
+    if (brand) opt.classList.toggle('on', activeBrands.has(brand));
   });
   // Update button label
   const btn = wrap.querySelector('.harmony-brand-dd-btn');
   const presentBrands = HARMONY_BRAND_ORDER.filter(b => harmonyPaintsCache.some(p => p.brand === b));
-  const active = presentBrands.filter(b => harmonyBrandFilter.has(b));
+  const active = presentBrands.filter(b => activeBrands.has(b));
   const labelText = active.length === 0 ? 'All brands'
     : active.length === 1 ? HARMONY_BRAND_NAMES[active[0]]
     : `${active.length} brands`;
@@ -2564,16 +2793,18 @@ function refreshHarmonyBrandDropdown(wrap, changedBrand) {
 }
 
 function toggleHarmonyVal(key) {
-  if (harmonyValFilter.has(key)) harmonyValFilter.delete(key);
-  else harmonyValFilter.add(key);
-  renderHarmonyList();
-  draw();
+  // Unified with the header value filter (single-select)
+  toggleValBand(key);
+  if (activeHarmony) renderHarmonyList();
 }
 
 function toggleHarmonySat(key) {
-  if (harmonySatFilter.has(key)) harmonySatFilter.delete(key);
-  else harmonySatFilter.add(key);
-  renderHarmonyList();
+  // Unified with the header saturation filter
+  if (activeSatBands.has(key)) activeSatBands.delete(key);
+  else activeSatBands.add(key);
+  refreshSatButtons();        // header chips
+  if (activeHarmony) renderHarmonyList();
+  refreshAfterFilter();
   draw();
 }
 
@@ -2594,15 +2825,15 @@ function renderHarmonyList() {
 
   // Apply all three filters simultaneously (AND condition)
   const shown = paints.filter(p => {
-    const brandOk = harmonyBrandFilter.size === 0 || harmonyBrandFilter.has(p.brand);
-    const satOk   = harmonySatFilter.size   === 0 || harmonySatFilter.has(p.satBand.key);
-    const valOk   = harmonyValFilter.size   === 0 || harmonyValFilter.has(p.valBand.key);
+    const brandOk = activeBrands.size === 0 || activeBrands.has(p.brand);
+    const satOk   = activeSatBands.size   === 0 || activeSatBands.has(p.satBand.key);
+    const valOk   = activeValBands.size   === 0 || activeValBands.has(p.valBand.key);
     return brandOk && satOk && valOk;
   });
 
   // ── Brand sub-filter — dropdown ──
   if (presentBrands.length > 1) {
-    const activeHBrands = presentBrands.filter(b => harmonyBrandFilter.has(b));
+    const activeHBrands = presentBrands.filter(b => activeBrands.has(b));
     const labelText = activeHBrands.length === 0
       ? 'All brands'
       : activeHBrands.length === 1
@@ -2616,11 +2847,11 @@ function renderHarmonyList() {
       </button>
       <div class="harmony-brand-dd-menu" style="display:none">`;
     presentBrands.forEach(b => {
-      const on    = harmonyBrandFilter.has(b);
+      const on    = activeBrands.has(b);
       const count = paints.filter(p =>
         p.brand === b &&
-        (harmonySatFilter.size === 0 || harmonySatFilter.has(p.satBand.key)) &&
-        (harmonyValFilter.size === 0  || harmonyValFilter.has(p.valBand.key))
+        (activeSatBands.size === 0 || activeSatBands.has(p.satBand.key)) &&
+        (activeValBands.size === 0  || activeValBands.has(p.valBand.key))
       ).length;
       html += `<div class="harmony-brand-dd-opt${on?' on':''}" onclick="toggleHarmonyBrand('${b}');refreshHarmonyBrandDropdown(this.closest('.harmony-brand-dd-wrap'),'${b}')">
         ${HARMONY_BRAND_NAMES[b]} <span class="hbrand-count">${count}</span></div>`;
@@ -2633,11 +2864,11 @@ function renderHarmonyList() {
     html += '<div class="harmony-sub-header">Saturation</div>';
     html += '<div class="harmony-brand-chips">';
     presentSats.forEach(b => {
-      const on    = harmonySatFilter.has(b.key);
+      const on    = activeSatBands.has(b.key);
       const count = paints.filter(p =>
         p.satBand.key === b.key &&
-        (harmonyBrandFilter.size === 0 || harmonyBrandFilter.has(p.brand)) &&
-        (harmonyValFilter.size   === 0 || harmonyValFilter.has(p.valBand.key))
+        (activeBrands.size === 0 || activeBrands.has(p.brand)) &&
+        (activeValBands.size   === 0 || activeValBands.has(p.valBand.key))
       ).length;
       html += `<button class="hbrand-chip${on?' on':''}" onclick="toggleHarmonySat('${b.key}')">${b.label} <span class="hbrand-count">${count}</span></button>`;
     });
@@ -2649,11 +2880,11 @@ function renderHarmonyList() {
     html += '<div class="harmony-sub-header">Value</div>';
     html += '<div class="harmony-brand-chips">';
     presentVals.forEach(b => {
-      const on    = harmonyValFilter.has(b.key);
+      const on    = activeValBands.has(b.key);
       const count = paints.filter(p =>
         p.valBand.key === b.key &&
-        (harmonyBrandFilter.size === 0 || harmonyBrandFilter.has(p.brand)) &&
-        (harmonySatFilter.size   === 0 || harmonySatFilter.has(p.satBand.key))
+        (activeBrands.size === 0 || activeBrands.has(p.brand)) &&
+        (activeSatBands.size   === 0 || activeSatBands.has(p.satBand.key))
       ).length;
       html += `<button class="hbrand-chip${on?' on':''}" onclick="toggleHarmonyVal('${b.key}')">${b.label} <span class="hbrand-count">${count}</span></button>`;
     });
@@ -2682,7 +2913,7 @@ function renderHarmonyList() {
     const hueName = hueKey >= 0 ? MARTIAN_HUE_NAMES_SHORT[hueKey] : 'Neutral';
     html += `<div class="harmony-group-label" style="margin-top:10px">${hueName}</div>`;
     HARMONY_BRAND_ORDER.forEach(b => {
-      if (harmonyBrandFilter.size > 0 && !harmonyBrandFilter.has(b)) return;
+      if (activeBrands.size > 0 && !activeBrands.has(b)) return;
       const brandGroup = byHue[hueKey].filter(p => p.brand === b)
         .sort((a, bP) => bP.value - a.value); // descending value
       if (brandGroup.length === 0) return;
@@ -3260,7 +3491,325 @@ function selectPaint(paint) {
   const satEl = document.getElementById('sel-sat-band');
   satEl.textContent = `Saturation: ${paint.satBand.label}`;
   satEl.style.color = 'var(--dim)';
+
+  // Owned button state
+  refreshOwnedButton();
 }
+
+function refreshOwnedButton() {
+  const btn = document.getElementById('sel-owned-btn');
+  if (!btn || !selected) return;
+  const owned = isPaintOwned(selected);
+  btn.classList.toggle('owned', owned);
+  btn.textContent = owned ? '✓ In your collection' : 'Add to collection';
+}
+
+function toggleSelectedOwned() {
+  if (!selected) return;
+  setPaintOwned(selected, !isPaintOwned(selected));
+  refreshOwnedButton();
+  updateOwnedCountLabel();
+  // If the owned filter is active, the wheel/list may need to update
+  if (ownedOnly) {
+    if (activeHarmony) _runHarmony(activeHarmony);
+    refreshAfterFilter();
+  }
+  draw();
+}
+
+// ── Collection export / import ────────────────────────────────
+function updateOwnedCountLabel() {
+  const el = document.getElementById('owned-count-label');
+  if (el) el.textContent = ownedPaints.size ? `(${ownedPaints.size} owned)` : '';
+}
+
+function setCollectionMsg(text, isError) {
+  const el = document.getElementById('collection-msg');
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = isError ? '#d08070' : 'var(--gold)';
+  // Revert to the default hint after a few seconds
+  clearTimeout(setCollectionMsg._t);
+  setCollectionMsg._t = setTimeout(() => {
+    el.textContent = 'Back up or restore your owned paints. Saved to this browser only.';
+    el.style.color = 'var(--dimmer)';
+  }, 5000);
+}
+
+function exportCollection() {
+  if (ownedPaints.size === 0) {
+    setCollectionMsg('No owned paints to export yet.', true);
+    return;
+  }
+  // Payload: versioned JSON, then base64-encoded for a compact pasteable code
+  const payload = { v: 1, owned: [...ownedPaints] };
+  let code;
+  try {
+    code = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  } catch (e) {
+    setCollectionMsg('Could not generate export code.', true);
+    return;
+  }
+  // Try the async clipboard API, fall back to a prompt the user can copy from
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(
+      () => setCollectionMsg(`Copied ${ownedPaints.size} paints to clipboard.`, false),
+      () => window.prompt('Copy your collection code:', code)
+    );
+  } else {
+    window.prompt('Copy your collection code:', code);
+  }
+}
+
+function importCollection() {
+  const code = window.prompt('Paste your collection code to restore owned paints:');
+  if (code === null) return; // cancelled
+  const trimmed = code.trim();
+  if (!trimmed) { setCollectionMsg('No code entered.', true); return; }
+
+  let payload;
+  try {
+    payload = JSON.parse(decodeURIComponent(escape(atob(trimmed))));
+  } catch (e) {
+    setCollectionMsg('Invalid collection code.', true);
+    return;
+  }
+  applyImportedPayload(payload);
+}
+
+// Shared merge logic for both clipboard-paste and file-upload imports.
+function applyImportedPayload(payload) {
+  if (!payload || !Array.isArray(payload.owned)) {
+    setCollectionMsg('Collection data is not valid.', true);
+    return;
+  }
+  // Only accept keys that match real paints in the dataset
+  const validKeys = new Set(PAINTS.map(p => paintKey(p)));
+  const accepted = payload.owned.filter(k => typeof k === 'string' && validKeys.has(k));
+  const skipped  = payload.owned.length - accepted.length;
+
+  // Merge with the existing collection (import is additive, never destructive)
+  const before = ownedPaints.size;
+  accepted.forEach(k => ownedPaints.add(k));
+  persistOwned();
+
+  // Re-derive the owned flag on every paint
+  PAINTS.forEach(p => { p.owned = ownedPaints.has(paintKey(p)); });
+
+  const added = ownedPaints.size - before;
+  updateOwnedCountLabel();
+  refreshOwnedButton();
+  if (activeHarmony) _runHarmony(activeHarmony);
+  refreshAfterFilter();
+  draw();
+
+  let msg = `Imported — ${added} new, ${ownedPaints.size} total.`;
+  if (skipped > 0) msg += ` ${skipped} unrecognised entries skipped.`;
+  setCollectionMsg(msg, false);
+}
+
+// ── Collection file download / upload ─────────────────────────
+function downloadCollection() {
+  if (ownedPaints.size === 0) {
+    setCollectionMsg('No owned paints to export yet.', true);
+    return;
+  }
+  const payload = { v: 1, exported: new Date().toISOString(), owned: [...ownedPaints] };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `colour-wheel-collection-${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  setCollectionMsg(`Downloaded ${ownedPaints.size} paints.`, false);
+}
+
+function uploadCollection(event) {
+  const file = event.target.files && event.target.files[0];
+  // Reset the input so re-uploading the same file still fires onchange
+  event.target.value = '';
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    let payload;
+    try {
+      payload = JSON.parse(reader.result);
+    } catch (e) {
+      setCollectionMsg('That file is not a valid collection file.', true);
+      return;
+    }
+    applyImportedPayload(payload);
+  };
+  reader.onerror = () => setCollectionMsg('Could not read the file.', true);
+  reader.readAsText(file);
+}
+
+// ── Owned paints manager modal ────────────────────────────────
+const OWNED_MGR_BRAND_NAMES = {
+  citadel:'Citadel', ak:'AK 3rd Gen', proacryl:'Pro Acryl',
+  vmc:'Vallejo Model Color', vgc:'Vallejo Game Color',
+};
+const OWNED_MGR_BRAND_ORDER = ['citadel','ak','proacryl','vmc','vgc'];
+const ownedMgrBrandFilter = new Set();
+
+function openOwnedManager() {
+  document.getElementById('owned-modal-backdrop').classList.add('visible');
+  document.getElementById('owned-search').value = '';
+  document.getElementById('owned-show-owned').checked = false;
+  buildOwnedBrandDropdown();
+  renderOwnedManagerList();
+  setTimeout(() => document.getElementById('owned-search').focus(), 50);
+}
+
+function closeOwnedManager() {
+  document.getElementById('owned-modal-backdrop').classList.remove('visible');
+  document.getElementById('owned-brand-dd-menu').style.display = 'none';
+}
+
+function buildOwnedBrandDropdown() {
+  const menu = document.getElementById('owned-brand-dd-menu');
+  menu.innerHTML = OWNED_MGR_BRAND_ORDER.map(b => {
+    const count = PAINTS.filter(p => p.brand === b).length;
+    const on = ownedMgrBrandFilter.has(b);
+    return `<div class="owned-brand-opt${on?' on':''}" onclick="toggleOwnedMgrBrand('${b}')">
+      <span>${OWNED_MGR_BRAND_NAMES[b]}</span><span style="opacity:.6">${count}</span></div>`;
+  }).join('');
+  updateOwnedBrandLabel();
+}
+
+function toggleOwnedBrandDropdown() {
+  const menu = document.getElementById('owned-brand-dd-menu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleOwnedMgrBrand(brand) {
+  if (ownedMgrBrandFilter.has(brand)) ownedMgrBrandFilter.delete(brand);
+  else ownedMgrBrandFilter.add(brand);
+  buildOwnedBrandDropdown();
+  renderOwnedManagerList();
+}
+
+function updateOwnedBrandLabel() {
+  const label = document.getElementById('owned-brand-dd-label');
+  const btn = document.getElementById('owned-brand-dd-btn');
+  const active = OWNED_MGR_BRAND_ORDER.filter(b => ownedMgrBrandFilter.has(b));
+  if (active.length === 0) {
+    label.textContent = 'All brands';
+    btn.classList.remove('active');
+  } else if (active.length === 1) {
+    label.textContent = OWNED_MGR_BRAND_NAMES[active[0]];
+    btn.classList.add('active');
+  } else {
+    label.textContent = `${active.length} brands`;
+    btn.classList.add('active');
+  }
+}
+
+function renderOwnedManagerList() {
+  const query = document.getElementById('owned-search').value.trim().toLowerCase();
+  const ownedOnlyView = document.getElementById('owned-show-owned').checked;
+  const listEl = document.getElementById('owned-modal-list');
+  const countEl = document.getElementById('owned-modal-count');
+
+  let results = PAINTS.filter(p => {
+    if (ownedMgrBrandFilter.size > 0 && !ownedMgrBrandFilter.has(p.brand)) return false;
+    if (ownedOnlyView && !p.owned) return false;
+    if (query) {
+      const hay = (p.name + ' ' + (p.code || '')).toLowerCase();
+      if (!hay.includes(query)) return false;
+    }
+    return true;
+  });
+  // Sort: brand order, then name
+  results.sort((a, b) => {
+    const bi = OWNED_MGR_BRAND_ORDER.indexOf(a.brand) - OWNED_MGR_BRAND_ORDER.indexOf(b.brand);
+    if (bi !== 0) return bi;
+    return a.name.localeCompare(b.name);
+  });
+
+  const ownedShown = results.filter(p => p.owned).length;
+  countEl.textContent = `${results.length} paints · ${ownedShown} owned · ${ownedPaints.size} owned total`;
+
+  if (results.length === 0) {
+    listEl.innerHTML = '<div class="owned-row-empty">No paints match your search.</div>';
+    return;
+  }
+
+  // Cap rendering for performance; prompt to narrow search if too many
+  const MAX = 300;
+  const shown = results.slice(0, MAX);
+  listEl.innerHTML = shown.map(p => {
+    const key = paintKey(p).replace(/"/g, '&quot;');
+    const brandLabel = OWNED_MGR_BRAND_NAMES[p.brand] || p.brand;
+    const sub = p.brand === 'citadel'
+      ? `${brandLabel} · ${p.type.charAt(0).toUpperCase()+p.type.slice(1)}`
+      : brandLabel + (p.code ? ` · ${p.code}` : '');
+    return `<div class="owned-row${p.owned?' is-owned':''}" data-key="${key}" onclick="toggleOwnedFromManager(this)">
+      <div class="owned-row-swatch" style="background:${p.hex}"></div>
+      <div class="owned-row-info">
+        <div class="owned-row-name">${p.name}</div>
+        <div class="owned-row-brand">${sub}</div>
+      </div>
+      <div class="owned-row-check">${p.owned ? '✓' : ''}</div>
+    </div>`;
+  }).join('');
+  if (results.length > MAX) {
+    listEl.innerHTML += `<div class="owned-row-empty">Showing first ${MAX} of ${results.length}. Refine your search to see more.</div>`;
+  }
+}
+
+function toggleOwnedFromManager(rowEl) {
+  const key = rowEl.getAttribute('data-key');
+  const paint = PAINTS.find(p => paintKey(p) === key);
+  if (!paint) return;
+  setPaintOwned(paint, !isPaintOwned(paint));
+  // Update the row in place
+  rowEl.classList.toggle('is-owned', paint.owned);
+  rowEl.querySelector('.owned-row-check').textContent = paint.owned ? '✓' : '';
+  // Update count line
+  const countEl = document.getElementById('owned-modal-count');
+  const ownedOnlyView = document.getElementById('owned-show-owned').checked;
+  if (ownedOnlyView && !paint.owned) {
+    // Row no longer matches the owned-only view — re-render
+    renderOwnedManagerList();
+  } else {
+    const rows = document.querySelectorAll('#owned-modal-list .owned-row');
+    const ownedShown = [...rows].filter(r => r.classList.contains('is-owned')).length;
+    const total = rows.length;
+    countEl.textContent = `${total} paints · ${ownedShown} owned · ${ownedPaints.size} owned total`;
+  }
+  // Keep the rest of the app in sync
+  updateOwnedCountLabel();
+  if (selected && paintKey(selected) === key) refreshOwnedButton();
+  if (ownedOnly) {
+    if (activeHarmony) _runHarmony(activeHarmony);
+    refreshAfterFilter();
+  }
+  draw();
+}
+
+// Close the brand dropdown when clicking elsewhere in the modal
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('owned-brand-dd-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const menu = document.getElementById('owned-brand-dd-menu');
+    if (menu) menu.style.display = 'none';
+  }
+});
+
+// Escape key closes the modal
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' &&
+      document.getElementById('owned-modal-backdrop').classList.contains('visible')) {
+    closeOwnedManager();
+  }
+});
 
 // ── Tooltip ──────────────────────────────────────────────────
 const tip = document.getElementById('tip');
@@ -3643,6 +4192,7 @@ openPanel(); // open by default
 document.getElementById('fb-exclude-metallic')?.classList.toggle('on', showMetallics);
 document.getElementById('fb-exclude-achromatic')?.classList.toggle('on', showAchromatics);
 refreshValRingButtons();
+updateOwnedCountLabel();
 document.getElementById('count-label').textContent = visiblePaints().length + ' paints';
 resize(); // sets W, H, CX, CY, R, then calls draw()
 // Apply dark/light mode after first draw (darkMode var may be defined later in script)
