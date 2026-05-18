@@ -1,0 +1,3690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Citadel Colour Wheel</title>
+<script>if(localStorage.getItem('darkMode')!=='false')document.documentElement.classList.add('dark');</script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  :root { --tint: rgba(26,58,122,0.08); }
+  html.dark { --tint: rgba(100,170,220,0.08); }
+
+  :root {
+    /* Light mode */
+    --bg:        #e8e8e8;   /* light grey background */
+    --bg2:       #dcdcdc;   /* slightly darker surface */
+    --panel:     #e2e2e2;   /* right panel */
+    --border:    #b8b8b8;   /* mid grey border */
+    --gold:      #1a3a7a;   /* dark blue accent */
+    --gold2:     #2a4a8a;
+    --text:      #1a1a1a;   /* near-black */
+    --dim:       #4a4a4a;   /* secondary text */
+    --dimmer:    #888888;   /* tertiary / disabled */
+    --canvas-bg: #ebebeb;
+    --ring-color: rgba(0,0,0,0.45);     /* value ring — visible on light canvas */
+    --ring-fill:  rgba(0,0,0,0.06);     /* value zone highlight */
+    --sector-fill-opacity: 0.12;
+    --label-alpha: 0.85;
+  }
+
+  html.dark {
+    /* Dark mode — warm dark grey, subtle blue tint per Material Design guidelines */
+    --bg:        #1c1c1e;   /* dark grey, slight blue-grey tint */
+    --bg2:       #252528;   /* elevated surface */
+    --panel:     #1f1f22;   /* right panel */
+    --border:    #38383c;   /* subtle border */
+    --gold:      #82b4d8;   /* muted sky blue accent */
+    --gold2:     #a0c8e8;
+    --text:      #e2e2e2;   /* off-white body text */
+    --dim:       #909090;   /* secondary text */
+    --dimmer:    #505050;   /* tertiary / disabled */
+    --canvas-bg: #141416;
+    --ring-color: rgba(255,255,255,0.35);
+    --ring-fill:  rgba(255,255,255,0.05);
+    --sector-fill-opacity: 0.09;
+    --label-alpha: 0.75;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'EB Garamond', Georgia, serif;
+    overflow: hidden;
+  }
+
+  /* ── Layout ── */
+  #app {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 1fr auto;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ── Header ── */
+  header {
+    grid-column: 1 / -1;
+    padding: 14px 24px 12px;
+    background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    overflow: visible;
+    z-index: 60;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: .03;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(45deg, var(--gold) 0, var(--gold) 1px, transparent 0, transparent 50%);
+    background-size: 10px 10px;
+  }
+  .h-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: .4em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+  .h-title {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: .04em;
+  }
+  .h-sub {
+    font-size: 13px;
+    color: var(--dim);
+    font-style: italic;
+    margin-left: auto;
+  }
+
+  /* ── Header filter groups ── */
+  .header-filter-group { display:flex; flex-direction:column; gap:3px; }
+  .header-filter-label {
+    font-family:'Cinzel',serif; font-size:8px; letter-spacing:.35em;
+    text-transform:uppercase; color:var(--dimmer);
+  }
+  #header-guide { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .guide-item   { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--dim); }
+  #header-sat-filter { display:flex; gap:5px; align-items:center; }
+  .header-sat-btn { padding:3px 9px; font-size:10px; }
+
+  /* Brand multi-select dropdown */
+  #brand-dropdown-wrap { position:relative; }
+  #brand-toggle-btn {
+    display:flex; align-items:center; gap:6px; padding:4px 10px; border-radius:3px;
+    font-size:11px; font-family:'Cinzel',serif; letter-spacing:.06em;
+    cursor:pointer; border:1px solid var(--border); background:var(--bg2);
+    color:var(--dim); transition:all .15s; white-space:nowrap;
+  }
+  #brand-toggle-btn:hover, #brand-toggle-btn.active { border-color:var(--gold); color:var(--gold); }
+  #brand-dropdown {
+    position:fixed; background:var(--panel); border:1px solid var(--border);
+    border-radius:4px; padding:4px 0; min-width:165px;
+    z-index:9999; box-shadow:0 6px 20px rgba(0,0,0,.4);
+  }
+  .brand-opt {
+    display:flex; align-items:center; gap:8px; padding:7px 12px;
+    cursor:pointer; font-size:12px; color:var(--dim); transition:all .12s;
+  }
+  .brand-opt:hover { background:var(--tint); color:var(--text); }
+  .brand-opt.on { color:var(--gold); background:var(--tint); }
+  .brand-opt svg { opacity:.55; transition:opacity .12s; }
+  .brand-opt.on svg { opacity:1; }
+  .legend-brand {
+    cursor:pointer; padding:3px 6px; border-radius:3px;
+    border:1px solid transparent; transition:all .15s;
+  }
+  .legend-brand:hover { border-color:var(--border); color:var(--text); }
+  .legend-brand.on { border-color:var(--gold); color:var(--text); background:var(--tint); }
+  .guide-sep    { width:1px; height:14px; background:var(--border); }
+
+  /* ── Burger menu ── */
+  #filter-dropdown-wrap { margin-left:auto; position:relative; }
+  #filter-toggle-btn {
+    display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px;
+    width:34px; height:34px; border-radius:4px; padding:0;
+    border:1px solid var(--border); background:var(--bg2);
+    cursor:pointer; transition:all .15s; flex-shrink:0;
+  }
+  #filter-toggle-btn:hover { border-color:var(--gold); }
+  #filter-toggle-btn:hover .burger-line { background:var(--gold); }
+  .burger-line { display:block; width:16px; height:2px; background:var(--dim); border-radius:1px; transition:background .15s; }
+  #filter-dropdown {
+    position:fixed; background:var(--panel); border:1px solid var(--border);
+    border-radius:4px; padding:0; min-width:200px;
+    z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,.85);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  .fd-nav { display:flex; border-bottom:1px solid var(--border); }
+  .fd-nav-btn {
+    flex:1; padding:10px 8px; font-size:11px;
+    font-family:'Cinzel',serif; letter-spacing:.1em; text-align:center;
+    cursor:pointer; border:none; background:none; color:var(--dim); transition:all .15s;
+    border-right:1px solid var(--border);
+  }
+  .fd-nav-btn:last-child { border-right:none; }
+  .fd-nav-btn:hover { background:var(--tint); color:var(--gold); }
+  .fd-body { display:flex; flex-direction:column; gap:12px; padding:12px; }
+  .fd-section { display:flex; flex-direction:column; gap:6px; }
+  .fd-label { font-family:'Cinzel',serif; font-size:9px; letter-spacing:.3em; text-transform:uppercase; color:var(--gold); }
+
+  /* ── Filter buttons ── */
+  .filter-row { display:flex; gap:6px; flex-wrap:wrap; }
+  .fbtn {
+    padding:5px 12px; border-radius:3px; font-size:11px;
+    font-family:'Cinzel',serif; letter-spacing:.08em;
+    cursor:pointer; border:1px solid var(--border);
+    background:var(--bg2); color:var(--dim); transition:all .15s;
+  }
+  .fbtn:hover { border-color:var(--gold); color:var(--gold); }
+  .fbtn.on { background:var(--gold); border-color:var(--gold); color:var(--bg); font-weight:600; }
+
+  /* ── Hover legend (bottom-left of canvas) ── */
+  #wheel-key { position:absolute; bottom:14px; left:14px; z-index:20; pointer-events:all; }
+  #wheel-key-trigger {
+    font-family:'Cinzel',serif; font-size:9px; letter-spacing:.3em; text-transform:uppercase;
+    color:var(--gold); background:var(--bg2); border:1px solid var(--border);
+    border-radius:4px; padding:5px 10px; cursor:default; user-select:none; white-space:nowrap;
+  }
+  #wheel-key-content {
+    display:none; position:absolute; bottom:calc(100% + 6px); left:0;
+    background:var(--bg); border:1px solid var(--border);
+    border-radius:4px; padding:8px 11px; font-size:11px; color:var(--dim);
+    line-height:1.7; pointer-events:none; white-space:nowrap; min-width:280px;
+  }
+  #wheel-key:hover #wheel-key-content { display:block; }
+  .key-row { display:flex; gap:4px; align-items:baseline; font-size:11px; color:var(--dim); }
+  .key-term { font-family:'Cinzel',serif; font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--gold); margin-right:2px; }
+
+  /* ── Clear all button (top-right of canvas) ── */
+  #clear-all-btn {
+    position:absolute; top:14px; right:14px; z-index:20;
+    padding:5px 12px; border-radius:3px; font-size:10px;
+    font-family:'Cinzel',serif; letter-spacing:.08em; text-transform:uppercase;
+    cursor:pointer; border:1px solid var(--border);
+    background:var(--bg2); color:var(--dimmer); transition:all .15s;
+  }
+  #clear-all-btn:hover { border-color:var(--gold); color:var(--gold); }
+
+  /* ── Zoom controls (top-left of canvas) ── */
+  #zoom-controls {
+    position:absolute; top:14px; left:14px;
+    display:flex; flex-direction:column; gap:4px;
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:4px; padding:6px; z-index:20;
+  }
+  .zbtn {
+    width:26px; height:26px; border-radius:3px;
+    border:1px solid var(--border); background:var(--bg2);
+    color:var(--dim); cursor:pointer; font-size:14px;
+    font-family:'Cinzel',serif; line-height:1;
+    transition:all .12s; padding:0;
+  }
+  .zbtn:hover { border-color:var(--gold); color:var(--gold); }
+  .zoom-label { font-family:'Cinzel',serif; font-size:9px; letter-spacing:.1em; color:var(--gold); text-align:center; margin-top:2px; }
+
+  /* ── Clear all button (top-right of canvas) ── */
+  #clear-all-btn {
+    position:absolute; top:14px; right:14px; z-index:20;
+    padding:5px 12px; border-radius:3px; font-size:10px;
+    font-family:'Cinzel',serif; letter-spacing:.08em; text-transform:uppercase;
+    cursor:pointer; border:1px solid var(--border);
+    background:var(--bg2); color:var(--dimmer); transition:all .15s;
+  }
+  #clear-all-btn:hover { border-color:var(--gold); color:var(--gold); }
+
+  /* ── Hue segment overlay (bottom-right, collapsible) ── */
+  #hue-overlay {
+    position:absolute; bottom:14px; right:14px;
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:4px; padding:8px 10px;
+    z-index:20; max-width:200px;
+  }
+  #hue-overlay-toggle {
+    font-family:'Cinzel',serif; font-size:9px; letter-spacing:.25em;
+    text-transform:uppercase; color:var(--gold);
+    cursor:pointer; display:flex; align-items:center; gap:4px;
+    user-select:none; white-space:nowrap;
+  }
+  #hue-overlay-toggle:hover { color:var(--text); }
+  #hue-filters-wrap { transition:max-height 0.25s ease; }
+
+  /* ── Harmony buttons ── */
+  #harmony-btns { display:flex; gap:5px; flex-wrap:wrap; margin:10px 0 6px; }
+  .hbtn-harmony {
+    padding:4px 9px; border-radius:3px; font-size:10px;
+    font-family:'Cinzel',serif; letter-spacing:.06em;
+    cursor:pointer; border:1px solid var(--border);
+    background:var(--bg2); color:var(--dim); transition:all .15s;
+  }
+  .hbtn-harmony:hover { border-color:var(--gold); color:var(--gold); }
+  .hbtn-harmony.active { background:rgba(var(--tint-rgb,100,170,220),0.15); border-color:var(--gold); color:var(--gold); }
+  #harmony-spread { display:flex; align-items:center; gap:5px; margin:-2px 0 6px; }
+  .spread-label  { font-size:10px; color:var(--dimmer); font-family:'EB Garamond',serif; }
+  .spread-btn    {
+    padding:2px 8px; border-radius:3px; font-size:10px;
+    font-family:'Cinzel',serif; cursor:pointer;
+    border:1px solid var(--border); background:var(--bg2); color:var(--dimmer); transition:all .12s;
+  }
+  .spread-btn:hover  { border-color:var(--gold); color:var(--gold); }
+  .spread-btn.active { background:rgba(var(--tint-rgb,100,170,220),0.15); border-color:var(--gold); color:var(--gold); }
+  .harmony-label { font-family:'Cinzel',serif; font-size:9px; letter-spacing:.3em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; margin-top:8px; }
+  #scheme-swatches { display:flex; gap:4px; margin:6px 0 8px; flex-wrap:wrap; }
+  .scheme-swatch {
+    position:relative; width:32px; height:32px; border-radius:3px;
+    cursor:pointer; flex-shrink:0;
+    title: '';
+  }
+  .scheme-swatch .swatch-remove {
+    display:none; position:absolute; top:-5px; right:-5px;
+    width:14px; height:14px; border-radius:50%;
+    background:rgba(0,0,0,.7); color:#fff; font-size:9px;
+    line-height:14px; text-align:center; cursor:pointer;
+  }
+  .scheme-swatch:hover .swatch-remove { display:block; }
+  #scheme-list { display:flex; flex-direction:column; gap:3px; }
+  .scheme-addable:hover { background:var(--tint); border-radius:3px; cursor:pointer; }
+  .scheme-addable:hover::after { content:' +'; color:var(--gold); font-size:10px; }
+  .harmony-list  { display:flex; flex-direction:column; gap:4px; }
+  .harmony-brand-chips { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px; }
+  /* Harmony brand dropdown */
+  .harmony-brand-dd-wrap { position:relative; margin-bottom:4px; }
+  .harmony-brand-dd-btn {
+    display:flex; align-items:center; justify-content:space-between; gap:6px;
+    width:100%; padding:5px 9px; border-radius:3px; font-size:11px;
+    font-family:'Cinzel',serif; letter-spacing:.06em;
+    cursor:pointer; border:1px solid var(--border); background:var(--bg2);
+    color:var(--dim); transition:all .15s; text-align:left;
+  }
+  .harmony-brand-dd-btn:hover, .harmony-brand-dd-btn.active { border-color:var(--gold); color:var(--gold); }
+  .harmony-brand-dd-menu {
+    position:absolute; top:calc(100% + 3px); left:0; right:0;
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:3px; z-index:200; box-shadow:0 4px 14px rgba(0,0,0,.3);
+  }
+  .harmony-brand-dd-opt {
+    padding:6px 10px; font-size:11px; cursor:pointer;
+    color:var(--dim); display:flex; justify-content:space-between;
+    transition:background .1s;
+  }
+  .harmony-brand-dd-opt:hover { background:var(--tint); color:var(--text); }
+  .harmony-brand-dd-opt.on { color:var(--gold); background:var(--tint); }
+  .harmony-sub-header {
+    font-family:'Cinzel',serif; font-size:8px; letter-spacing:.3em;
+    text-transform:uppercase; color:var(--gold);
+    margin:8px 0 3px;
+  }
+  .harmony-sub-header:first-child { margin-top:0; }
+  .hbrand-chip {
+    padding:3px 7px; border-radius:3px; font-size:9px;
+    font-family:'Cinzel',serif; letter-spacing:.04em;
+    cursor:pointer; border:1px solid var(--border);
+    background:var(--bg2); color:var(--dimmer); transition:all .12s;
+  }
+  .hbrand-chip:hover { border-color:var(--gold); color:var(--gold); }
+  .hbrand-chip.on { background:var(--tint); border-color:var(--gold); color:var(--gold); }
+  .hbrand-count { opacity:.6; margin-left:2px; }
+  .harmony-group-label {
+    font-family:'Cinzel',serif; font-size:8px; letter-spacing:.25em;
+    text-transform:uppercase; color:var(--dim);
+    margin:8px 0 2px; padding-bottom:2px;
+    border-bottom:1px solid var(--border);
+  }
+  .harmony-group-label:first-child { margin-top:0; }
+  .harmony-brand-row {
+    font-size: 9px; color: var(--dimmer); font-family: 'Cinzel', serif;
+    letter-spacing: .15em; text-transform: uppercase;
+    margin: 4px 0 2px 2px;
+  }
+  .nb-meta { font-size:9px; color:var(--dimmer); font-family:monospace; flex-shrink:0; }
+  .panel-sublabel { font-family:'EB Garamond',serif; letter-spacing:0; font-size:10px; color:var(--dimmer); text-transform:none; margin-left:4px; }
+
+  /* ── Canvas area ── */
+  #canvas-wrap {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── Tooltip ── */
+  #tip {
+    position: fixed;
+    pointer-events: auto; /* always interactive so close button works */
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--text);
+    display: none;
+    z-index: 100;
+    max-width: 230px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.6);
+    position: fixed; /* keep fixed for positioning */
+  }
+  #tip .tip-swatch {
+    width: 100%;
+    height: 28px;
+    border-radius: 3px;
+    margin-bottom: 7px;
+    border: 1px solid rgba(255,255,255,.1);
+  }
+  #tip .tip-name { font-family: 'Cinzel', serif; font-size: 12px; color: var(--text); margin-bottom: 2px; }
+  #tip .tip-type { font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--dim); }
+  #tip .tip-hex  { font-size: 11px; color: var(--dim); margin-top: 6px; font-family: monospace; }
+  #tip .tip-entry { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  #tip .tip-entry:last-child { border-bottom: none; }
+  #tip .tip-entry:first-child { padding-top: 0; }
+  #tip .tip-entry-selectable:hover { background:var(--tint); border-radius:3px; padding-left:4px; margin-left:-4px; }
+  #tip .tip-count { font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+
+  /* ── Info panel ── */
+  #panel {
+    border-left: 1px solid var(--border);
+    background: var(--panel);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 280px;
+    transition: width 0.2s ease;
+  }
+  #panel.collapsed { width: 32px; }
+  #panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer; flex-shrink: 0;
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .25em;
+    text-transform: uppercase; color: var(--gold);
+    user-select: none; white-space: nowrap; overflow: hidden;
+  }
+  #panel-header:hover { color: var(--text); }
+  #panel-header-label { transition: opacity 0.15s; }
+  #panel.collapsed #panel-header-label { opacity: 0; }
+  #panel-arrow { font-size: 9px; opacity: .6; flex-shrink: 0; }
+  #panel-body { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .panel-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-label {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: .35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+
+  /* Legend rings */
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-ring { width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,0.4); flex-shrink:0; }
+
+  /* Hue guide */
+  .hue-guide {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--dim);
+  }
+  .hue-item { display: flex; align-items: center; gap: 5px; }
+  .hbtn { cursor:pointer; padding:2px 4px; border-radius:3px; transition:background .12s, color .12s; }
+  .hbtn:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+  .hbtn.on { background:rgba(255,255,255,0.1); color:var(--text); outline:1px solid var(--gold); outline-offset:-1px; }
+  .hue-pip { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Selected paint */
+  #selected {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+  }
+  #selected::-webkit-scrollbar { width: 4px; }
+  #selected::-webkit-scrollbar-track { background: transparent; }
+  #selected::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  #sel-empty { font-size: 13px; color: var(--dimmer); font-style: italic; text-align: center; padding-top: 20px; }
+  #sel-card { display: none; }
+  #sel-swatch {
+    width: 100%; height: 60px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,.08);
+    margin-bottom: 10px;
+    cursor: help;
+  }
+  #sel-name { font-family: 'Cinzel', serif; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  #sel-type { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; }
+  #sel-hex  { font-family: monospace; font-size: 12px; color: var(--dim); margin-bottom: 12px; }
+  .sel-hsl  { font-size: 11px; color: var(--dimmer); }
+
+  /* neighbours */
+  #neighbours { margin-top: 12px; }
+  .nb-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .3em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .nb-list { display: flex; flex-direction: column; gap: 5px; }
+  .nb-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text);
+    cursor: pointer; padding: 3px 0;
+  }
+  .nb-item:hover .nb-name { color: var(--gold); }
+  .nb-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(255,255,255,.1); }
+  .nb-name { flex: 1; }
+  .nb-dist { font-size: 10px; color: var(--dimmer); }
+
+  /* Search bar at bottom */
+  #search-wrap {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+  }
+  #search {
+    width: 100%;
+    padding: 7px 10px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: #e8e0d4;
+    font-size: 13px;
+    font-family: 'EB Garamond', serif;
+    outline: none;
+  }
+  #search:focus { border-color: var(--gold); }
+  #search::placeholder { color: var(--dimmer); }
+
+  /* ── User guide overlay ── */
+  #guide-btn {
+    margin-left: 10px; padding: 5px 13px;
+    border-radius: 3px; font-size: 11px;
+    font-family: 'Cinzel', serif; letter-spacing: .08em;
+    cursor: pointer; border: 1px solid var(--border);
+    background: var(--bg2); color: var(--dim); transition: all .15s;
+    flex-shrink: 0;
+  }
+  #guide-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+  #guide-overlay, .guide-overlay-base {
+    display: none;
+    position: fixed; inset: 0; z-index: 9000;
+    background: var(--bg);
+    overflow-y: auto;
+  }
+  #guide-overlay.visible, .guide-overlay-base.visible { display: block; }
+
+  #guide-topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  #guide-topbar-title {
+    font-family: 'Cinzel', serif; font-size: 12px;
+    letter-spacing: .3em; text-transform: uppercase; color: var(--gold);
+  }
+  #guide-back-top {
+    padding: 5px 14px; border-radius: 3px; font-size: 11px;
+    font-family: 'Cinzel', serif; letter-spacing: .08em;
+    cursor: pointer; border: 1px solid var(--border);
+    background: var(--bg2); color: var(--dim); transition: all .15s;
+  }
+  #guide-back-top:hover { border-color: var(--gold); color: var(--gold); }
+
+  #guide-back-float {
+    position: fixed; bottom: 28px; right: 28px; z-index: 9100;
+    padding: 10px 18px; border-radius: 30px; font-size: 12px;
+    font-family: 'Cinzel', serif; letter-spacing: .1em;
+    cursor: pointer; border: 1px solid var(--border);
+    background: var(--panel); color: var(--gold);
+    box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    transition: all .15s; display: none;
+  }
+  #guide-back-float.visible { display: block; }
+  #guide-back-float:hover { background: var(--gold); color: var(--bg); }
+
+  /* Guide content re-scoped to avoid conflicts with wheel CSS */
+  #guide-content {
+    max-width: 780px; margin: 0 auto;
+    padding: 48px 32px 120px;
+  }
+  #guide-content h1 {
+    font-family: 'Cinzel', serif; font-size: 2.2rem; font-weight: 400;
+    color: var(--accent); letter-spacing: .03em; line-height: 1.2;
+    margin-bottom: 14px;
+  }
+  #guide-content h2 {
+    font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 400;
+    color: var(--accent); letter-spacing: .05em;
+    margin: 48px 0 6px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  #guide-content h3 {
+    font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 400;
+    color: var(--gold); letter-spacing: .08em; text-transform: uppercase;
+    margin: 28px 0 10px;
+  }
+  #guide-content p { margin-bottom: 1em; line-height: 1.75; color: var(--text); }
+  #guide-content p:last-child { margin-bottom: 0; }
+  #guide-content strong { color: var(--accent); font-weight: 500; }
+  #guide-content em { color: var(--dim); }
+  #guide-content a { color: var(--gold); }
+  #guide-content code {
+    font-family: 'Courier New', monospace; font-size: .85em;
+    background: var(--tint); border: 1px solid var(--border);
+    border-radius: 3px; padding: 1px 5px; color: var(--accent);
+  }
+  #guide-content ul, #guide-content ol { margin: 10px 0 10px 1.5em; color: var(--dim); }
+  #guide-content nav {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 22px 26px; margin-bottom: 40px;
+  }
+  #guide-content nav ol { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 32px; font-size: 14px; }
+  #guide-content nav a { color: var(--dim); text-decoration: none; transition: color .15s; }
+  #guide-content nav a:hover { color: var(--accent); }
+  .guide-callout {
+    border-left: 3px solid var(--gold); background: var(--tint);
+    border-radius: 0 5px 5px 0; padding: 14px 18px; margin: 20px 0; font-size: .95rem;
+  }
+  .guide-callout-warn { border-color: #e0b878; background: rgba(224,184,120,0.05); }
+  .guide-callout-theory { border-color: #6090a0; background: rgba(96,144,160,0.06); }
+  .guide-callout-title {
+    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .35em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
+  }
+  .guide-callout-warn .guide-callout-title { color: #e0b878; }
+  .guide-callout-theory .guide-callout-title { color: #7ab0c8; }
+  .guide-callout p { margin-bottom: 6px; color: var(--dim); }
+  .guide-steps { counter-reset: gstep; margin: 16px 0; }
+  .guide-step { display: flex; gap: 14px; margin-bottom: 16px; align-items: flex-start; }
+  .guide-step-num {
+    counter-increment: gstep; width: 26px; height: 26px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--bg2);
+    font-family: 'Cinzel', serif; font-size: 11px; color: var(--gold);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
+  }
+  .guide-step-num::before { content: counter(gstep); }
+  .guide-step-body { flex: 1; }
+  .guide-step-body strong { display: block; margin-bottom: 3px; }
+  .guide-key-grid { display: grid; grid-template-columns: auto 1fr; gap: 8px 20px; font-size: .92rem; margin: 16px 0; }
+  .guide-key-term { font-family: 'Cinzel', serif; font-size: .78rem; letter-spacing: .05em; color: var(--gold); white-space: nowrap; padding-top: 2px; }
+  .guide-key-def { color: var(--dim); }
+  .guide-shape-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: .9rem; color: var(--dim); }
+  .guide-filter-demo { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+  .guide-fbtn { padding: 4px 12px; border-radius: 3px; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: .06em; border: 1px solid var(--border); background: var(--bg2); color: var(--dimmer); display: inline-block; }
+  .guide-fbtn.on { background: var(--gold); border-color: var(--gold); color: var(--bg); font-weight: 600; }
+  .guide-eyebrow { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .4em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .guide-subtitle { font-size: 1rem; color: var(--dim); font-style: italic; max-width: 520px; margin-bottom: 32px; }
+  .guide-nav-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .4em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+  .guide-section-num { color: var(--dimmer); margin-right: 10px; font-size: 1rem; }
+  #guide-content footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); font-size: .82rem; color: var(--dimmer); text-align: center; font-style: italic; }
+  @media (max-width: 600px) {
+    #guide-content h1 { font-size: 1.7rem; }
+    #guide-content nav ol { grid-template-columns: 1fr; }
+    #guide-content { padding: 36px 18px 100px; }
+  }
+
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div>
+      <div class="h-eyebrow">Miniature Painting</div>
+      <div class="h-title">Colour Wheel</div>
+    </div>
+
+    <!-- Brand multi-select dropdown -->
+    <div class="header-filter-group">
+      <div class="header-filter-label">Brand</div>
+      <div id="brand-dropdown-wrap">
+        <button id="brand-toggle-btn" onclick="toggleBrandDropdown()">
+          <span id="brand-btn-label">All brands</span>
+          <span id="brand-arrow" style="font-size:9px;opacity:.6">▼</span>
+        </button>
+        <div id="brand-dropdown" style="display:none">
+          <div class="brand-opt" id="lg-citadel" onclick="toggleBrand('citadel')">
+            <svg width="11" height="11" viewBox="0 0 14 14" style="flex-shrink:0"><circle cx="7" cy="7" r="5" fill="var(--dim)"/></svg>
+            <span>Citadel</span>
+          </div>
+          <div class="brand-opt" id="lg-ak" onclick="toggleBrand('ak')">
+            <svg width="11" height="11" viewBox="0 0 14 14" style="flex-shrink:0"><polygon points="7,1 13,7 7,13 1,7" fill="var(--dim)"/></svg>
+            <span>AK 3rd Gen</span>
+          </div>
+          <div class="brand-opt" id="lg-proacryl" onclick="toggleBrand('proacryl')">
+            <svg width="11" height="11" viewBox="0 0 14 14" style="flex-shrink:0"><rect x="2" y="2" width="10" height="10" fill="var(--dim)"/></svg>
+            <span>Pro Acryl</span>
+          </div>
+          <div class="brand-opt" id="lg-vmc" onclick="toggleBrand('vmc')">
+            <svg width="11" height="11" viewBox="0 0 14 14" style="flex-shrink:0"><polygon points="7,1 13,13 1,13" fill="var(--dim)"/></svg>
+            <span>Vallejo MC</span>
+          </div>
+          <div class="brand-opt" id="lg-vgc" onclick="toggleBrand('vgc')">
+            <svg width="11" height="11" viewBox="0 0 14 14" style="flex-shrink:0"><polygon points="7,13 13,1 1,1" fill="var(--dim)"/></svg>
+            <span>Vallejo GC</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saturation filter -->
+    <div class="header-filter-group">
+      <div class="header-filter-label">Saturation</div>
+      <div id="header-sat-filter">
+        <button class="fbtn header-sat-btn" id="sb-vivid"  onclick="toggleSatBand('vivid')">Vivid</button>
+        <button class="fbtn header-sat-btn" id="sb-mid"    onclick="toggleSatBand('mid')">Mid</button>
+        <button class="fbtn header-sat-btn" id="sb-muted"  onclick="toggleSatBand('muted')">Muted</button>
+      </div>
+    </div>
+
+    <div class="h-sub" id="count-label">165 paints</div>
+
+    <!-- Burger menu (right side of header) -->
+    <div id="filter-dropdown-wrap">
+      <button id="filter-toggle-btn" onclick="toggleFilterDropdown()" title="Menu" aria-label="Menu">
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+        <span class="burger-line"></span>
+      </button>
+      <div id="filter-dropdown" style="display:none">
+        <div class="fd-nav">
+          <button class="fd-nav-btn" onclick="toggleFilterDropdown(); showGuide()">Guide</button>
+          <button class="fd-nav-btn" onclick="toggleFilterDropdown(); showSources()">Sources</button>
+          <button class="fd-nav-btn" id="darkmode-btn" onclick="toggleDarkMode()" title="Toggle dark / light mode">☀</button>
+        </div>
+        <div class="fd-body">
+          <div class="fd-section">
+            <div class="fd-label">Include</div>
+            <div class="filter-row">
+              <button class="fbtn" id="fb-exclude-metallic" onclick="toggleExcludeMetallic()">Metallics</button>
+              <button class="fbtn" id="fb-exclude-achromatic" onclick="toggleExcludeAchromatic()">Achromatics</button>
+            </div>
+          </div>
+          <div class="fd-section" id="type-filter-section" style="display:none">
+            <div class="fd-label">Citadel Type</div>
+            <div class="filter-row">
+              <button class="fbtn" id="f-base"     onclick="toggleType('base')">Base</button>
+              <button class="fbtn" id="f-layer"    onclick="toggleType('layer')">Layer</button>
+              <button class="fbtn" id="f-metallic" onclick="toggleType('metallic')">Metallic</button>
+            </div>
+            <div style="margin-top:5px;font-size:10px;color:var(--dimmer)">No selection shows all types.</div>
+          </div>
+          <div class="fd-section">
+            <div class="fd-label">Brightness <span class="panel-sublabel">(or click wheel zones)</span></div>
+            <div class="filter-row">
+              <button class="fbtn" id="valring-bright" onclick="toggleValRingFilter('bright')">Bright</button>
+              <button class="fbtn" id="valring-mid"    onclick="toggleValRingFilter('mid')">Mid</button>
+              <button class="fbtn" id="valring-dark"   onclick="toggleValRingFilter('dark')">Dark</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Canvas + overlays -->
+  <div id="canvas-wrap">
+    <canvas id="wheel"></canvas>
+
+    <!-- Clear all button — top right of canvas -->
+    <button id="clear-all-btn" onclick="clearAll()" title="Clear all filters and selection">✕ Clear All</button>
+
+    <!-- Zoom controls — top left of canvas -->
+    <div id="zoom-controls">
+      <button class="zbtn" onclick="setZoom(zoom * 1.4)" title="Zoom in">＋</button>
+      <button class="zbtn" onclick="setZoom(zoom / 1.4)" title="Zoom out">−</button>
+      <button class="zbtn" onclick="resetView()" title="Reset view">⌂</button>
+      <div class="zoom-label" id="zoom-label">100%</div>
+    </div>
+
+    <!-- Legend hover box — bottom left of canvas -->
+    <div id="wheel-key">
+      <div id="wheel-key-trigger">Legend</div>
+      <div id="wheel-key-content">
+        <div class="key-row"><span class="key-term">Radius</span> = value — dark at centre, bright at edge</div>
+        <div class="key-row"><span class="key-term">Angle</span> = hue — 24 Martian segments, Red at top</div>
+      </div>
+    </div>
+
+    <!-- Hue segment panel — collapsible overlay, bottom-right of canvas -->
+  </div>
+
+  <!-- Right panel -->
+  <div id="panel">
+    <div id="panel-header" onclick="togglePanel()">
+      <span id="panel-header-label">Select a paint</span>
+      <span id="panel-arrow">▶</span>
+    </div>
+    <div id="panel-body">
+    <div id="selected">
+      <div id="sel-empty" style="display:none"></div>
+      <div id="sel-card">
+        <div id="sel-swatch" title=""></div>
+        <div id="sel-name"></div>
+        <div id="sel-type"></div>
+        <div id="sel-hue-name" style="margin-top:6px"></div>
+        <div id="sel-val-band"  style="margin-top:3px"></div>
+        <div id="sel-sat-band"  style="margin-top:3px"></div>
+        <!-- Colour scheme: selected + added harmonious colours -->
+        <div id="scheme-section" style="display:none">
+          <div class="harmony-label">Colour Scheme
+            <button onclick="clearScheme()" style="float:right;background:none;border:none;color:var(--dimmer);cursor:pointer;font-size:10px;font-family:inherit;padding:0" title="Clear scheme">✕ Clear</button>
+          </div>
+          <div id="scheme-swatches"></div>
+          <div id="scheme-list"></div>
+        </div>
+        <!-- Colour harmony -->
+        <div id="harmony-btns">
+          <button class="hbtn-harmony" id="hb-mono"          onclick="setHarmony('mono')">Monochromatic</button>
+          <button class="hbtn-harmony" id="hb-analogous"     onclick="setHarmony('analogous')">Analogous</button>
+          <button class="hbtn-harmony" id="hb-comp"          onclick="setHarmony('complementary')">Complementary</button>
+          <button class="hbtn-harmony" id="hb-split"         onclick="setHarmony('split')">Split-Comp</button>
+          <button class="hbtn-harmony" id="hb-triadic"       onclick="setHarmony('triadic')">Triadic</button>
+          <button class="hbtn-harmony" id="hb-tetra"         onclick="setHarmony('tetradic')">Tetradic</button>
+          <button class="hbtn-harmony" id="hb-square"        onclick="setHarmony('square')">Square</button>
+        </div>
+        <!-- Sub-options for spread-based harmonies -->
+        <div id="harmony-spread" style="display:none">
+          <span class="spread-label" id="spread-label">Spread:</span>
+          <button class="spread-btn active" id="sp-1" onclick="setSpread(1)">±1</button>
+          <button class="spread-btn"        id="sp-2" onclick="setSpread(2)">±2</button>
+          <button class="spread-btn"        id="sp-3" onclick="setSpread(3)">±3</button>
+        </div>
+        <div id="harmony-section" style="display:none">
+          <div class="harmony-label" id="harmony-title"></div>
+          <div class="harmony-list" id="harmony-list"></div>
+        </div>
+      </div>
+    </div>
+    <div id="search-wrap">
+      <input id="search" type="search" placeholder="Search paints…" oninput="onSearch(this.value)">
+    </div>
+    </div><!-- end panel-body -->
+  </div>
+</div>
+
+<!-- Sources Overlay -->
+<div id="sources-overlay" class="guide-overlay-base">
+  <div id="guide-topbar">
+    <span id="guide-topbar-title">Sources &amp; Acknowledgements</span>
+    <button id="guide-back-top" onclick="hideSources()">← Back to Wheel</button>
+  </div>
+  <div id="guide-content" style="max-width:680px">
+    <div class="guide-eyebrow">Miniature Painting Colour Wheel</div>
+    <h1>Sources &amp; Acknowledgements</h1>
+    <p class="guide-subtitle">Thank you to everyone who documented paint data online. This tool would not be possible without the miniature painting community's collective knowledge.</p>
+
+    <h2>Citadel Colours</h2>
+    <h3>Bolter &amp; Chainsword Community Reference</h3>
+    <p>The primary hex reference for all 152 Citadel paints. The Bolter &amp; Chainsword forum has maintained a long-running community thread where painters photograph and digitise Citadel paints and compile agreed hex values. This is the most comprehensive community-verified Citadel colour reference available.</p>
+    <p><em>bolterandchainsword.com</em></p>
+
+    <h3>Codex Chromatica</h3>
+    <p>Cross-referenced against the Bolter &amp; Chainsword values, particularly for newer paints not yet in community threads.</p>
+
+    <h3>Paintpad.app</h3>
+    <p>Additional cross-referencing of Citadel paint hex values and type classification (Base, Layer, Metallic).</p>
+    <p><em>paintpad.app</em></p>
+
+    <h2>AK Interactive 3rd Generation Acrylics</h2>
+    <h3>Scalemates</h3>
+    <p>The primary source for AK Interactive 3rd Gen hex values (AK11001–AK11212). Scalemates is a scale modelling database with independently photographed and digitised paint swatches for most major brands.</p>
+    <p><em>scalemates.com</em></p>
+
+    <h3>Scribd — AK Interactive 3rd Gen Colour Chart</h3>
+    <p>The community-shared Scribd document provided confirmation of specific hex values including Rubber Black (#2A2619) and Smoke Black (#2C2C22) that were verified against the official AK Interactive colour chart.</p>
+    <p><em>scribd.com/document/809117879/AK-Interactive-3rd-Generation-Acrylics-v0</em></p>
+
+    <h3>AK Masters / AK Interactive Official</h3>
+    <p>The official AK Interactive paint equivalence chart (Tamiya, Vallejo cross-references) was used to validate colour placement and confirm the classification of metallic paints.</p>
+    <p><em>ak-interactive.com · ak-masters.com</em></p>
+
+    <h2>Vallejo Model Color &amp; Game Color</h2>
+    <h3>Scalemates</h3>
+    <p>Primary source for Vallejo Model Color and Game Color hex values. Swatches are from published Vallejo colour charts and photographed paint comparisons.</p>
+    <p><em>scalemates.com</em></p>
+
+    <h3>Vallejo Official Paint Charts</h3>
+    <p>The official Vallejo published colour charts were used to verify metallic classifications and cross-reference with community-measured values.</p>
+    <p><em>acrylicosvallejo.com</em></p>
+
+    <h2>Monument Hobbies Pro Acryl</h2>
+    <h3>Scalemates</h3>
+    <p>Primary source for the 65 Pro Acryl paint hex values from the Monument Hobbies 22ml line.</p>
+    <p><em>scalemates.com</em></p>
+
+    <h2>Colour Theory</h2>
+    <h3>Warren Mars — The Martian Colour Wheel</h3>
+    <p>The perceptual hue remapping used throughout this tool is based on Warren Mars' Martian Colour Wheel, which adjusts standard HSL hue spacing to better reflect human perceptual experience. The 24-segment mapping with named hue sectors (Red, Orange, Turmeric, Yellow Cheese, etc.) is taken directly from his published work.</p>
+    <p><em>warrenmars.com</em></p>
+
+    <h3>Munsell Colour System</h3>
+    <p>The decision to use HSV Value as the radial axis (dark at centre, bright at edge) is inspired by the Munsell colour model, which organises colour space with Value on the vertical axis — mirroring how miniature painters think about shadow-to-highlight transitions.</p>
+
+    <h2>Army Painter Warpaints Fanatic</h2>
+    <h3>Army Painter Official</h3>
+    <p>The official Army Painter Fanatic→Citadel conversion chart PDF was used as a data source. However, an error in extracting the data (using Citadel match names instead of Fanatic names) meant the Fanatic data was removed from the current version pending a reliable name+hex source. The Fanatic brand filter remains disabled until this can be corrected.</p>
+    <p><em>thearmypainter.com</em></p>
+
+    <h3>Mech9 Warpaints Fanatic Colour Chart</h3>
+    <p>Provided the complete list of 216 Fanatic colour names with product codes (WP3001P–WP3216P), which will be used for the future Fanatic data integration.</p>
+    <p><em>mech9.com</em></p>
+
+    <h2>A note on accuracy</h2>
+    <p>All hex values represent paints as photographed and digitised by community members or through manufacturer documentation. They are not spectrophotometer readings. Colour appearance in real life will vary based on primer, lighting, paint layer thickness, and viewing angle. Use this tool as a reference for comparing paints relative to each other, not as absolute colour measurements.</p>
+
+    <footer>Miniature Painting Colour Wheel · Sources · Built with appreciation for the miniature painting community.</footer>
+  </div>
+</div>
+<button id="sources-back-float" onclick="hideSources()" style="display:none;position:fixed;bottom:28px;right:28px;z-index:9100;padding:10px 18px;border-radius:30px;font-size:12px;font-family:'Cinzel',serif;letter-spacing:.1em;cursor:pointer;border:1px solid var(--gold);background:var(--panel);color:var(--gold);box-shadow:0 4px 20px rgba(0,0,0,.5);transition:all .15s;">← Colour Wheel</button>
+
+<!-- User Guide Overlay -->
+<div id="guide-overlay">
+  <div id="guide-topbar">
+    <span id="guide-topbar-title">User Guide</span>
+    <button id="guide-back-top" onclick="hideGuide()">← Back to Wheel</button>
+  </div>
+  <div id="guide-content">
+    <div class="container">
+
+
+  <div style="background:var(--tint);border:1px solid var(--border);border-radius:5px;padding:14px 18px;margin-bottom:32px;font-size:.95rem;text-align:center;color:var(--dim);font-style:italic;">
+    This is just for fun — it may have inaccuracies. Enjoy.
+  </div>
+
+  <header class="guide-site-header">
+    <div class="guide-eyebrow">Miniature Painting Colour Wheel</div>
+    <h1>User Guide</h1>
+    <p class="guide-subtitle">How to navigate the wheel, build colour schemes, and understand the colour theory assumptions baked into the tool.</p>
+  </header>
+
+  <nav>
+    <div class="guide-nav-label">Contents</div>
+    <ol>
+      <li><a href="#overview">Overview &amp; Shapes</a></li>
+      <li><a href="#navigation">Navigating the Wheel</a></li>
+      <li><a href="#filters">Filtering Paints</a></li>
+      <li><a href="#selecting">Selecting a Paint</a></li>
+      <li><a href="#harmony">Harmony Filters</a></li>
+      <li><a href="#scheme">Building a Colour Scheme</a></li>
+      <li><a href="#theory">Colour Theory Assumptions</a></li>
+      <li><a href="#nuances">Known Nuances &amp; Limitations</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1. Overview -->
+  <section id="overview">
+    <h2><span class="guide-section-num">1.</span> Overview</h2>
+    <p>The Miniature Painting Colour Wheel plots <strong>584 paints</strong> across five ranges — Citadel, AK Interactive 3rd Gen, Pro Acryl, Vallejo Model Color, and Vallejo Game Color — onto a single interactive canvas. Each paint's position is determined by two properties of its hex colour value:</p>
+
+    <div class="guide-key-grid">
+      <div class="guide-key-term">Angle</div>
+      <div class="guide-key-def">The paint's <strong>hue</strong>, mapped to the 24-segment Martian colour wheel. Red sits at the top; segments run clockwise through Orange, Yellow, Green, Cyan, Blue, Violet, and Magenta before returning to Red.</div>
+      <div class="guide-key-term">Radius</div>
+      <div class="guide-key-def">The paint's <strong>value</strong> (HSV brightness). Dark paints sit near the centre; bright paints sit near the outer rim. Two dashed rings mark the Dark/Mid and Mid/Bright boundaries.</div>
+    </div>
+
+    <p>Each brand is drawn with a distinct shape so you can identify it at a glance:</p>
+
+    <div class="guide-shape-row"><div class="guide-shape-icon"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#c8a06b"/></svg></div><strong>Circle</strong> — Citadel</div>
+    <div class="guide-shape-row"><div class="guide-shape-icon"><svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,1 11,6 6,11 1,6" fill="#58C1CD"/></svg></div><strong>Diamond</strong> — AK Interactive 3rd Gen</div>
+    <div class="guide-shape-row"><div class="guide-shape-icon"><svg width="12" height="12" viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" fill="#C8252F"/></svg></div><strong>Square</strong> — Pro Acryl</div>
+    <div class="guide-shape-row"><div class="guide-shape-icon"><svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,1 11,11 1,11" fill="#2050A0"/></svg></div><strong>Triangle ▲</strong> — Vallejo Model Color</div>
+    <div class="guide-shape-row"><div class="guide-shape-icon"><svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,11 11,1 1,1" fill="#2FA56C"/></svg></div><strong>Triangle ▽</strong> — Vallejo Game Color</div>
+  </section>
+
+  <!-- 2. Navigating the wheel -->
+  <section id="navigation">
+    <h2><span class="guide-section-num">2.</span> Navigating the Wheel</h2>
+
+    <h3>Zoom &amp; Pan</h3>
+    <p>Use the <strong>mouse wheel</strong> to zoom in and out, anchored to the cursor position. At high zoom, paint dots scale down so densely-packed clusters separate visually. Hold and <strong>drag</strong> to pan when zoomed in. The <strong>+ / − / ⌂</strong> controls in the top-left of the wheel adjust zoom and reset the view.</p>
+
+    <h3>Hover</h3>
+    <p><strong>Hovering</strong> over any paint dot shows a tooltip with the paint name, brand, type, hex code, and Value/Saturation percentages. When multiple paints share the same hex value (and therefore the same position on the wheel), the tooltip lists all of them. Hovering near either dashed value-ring shows a label describing the boundary — <em>Dark · Mid</em> or <em>Mid · Bright</em>.</p>
+
+    <h3>Rim segments</h3>
+    <p>The rainbow arc around the outside is divided into 24 hue segments. Hovering a segment brightens it; clicking toggles it as a hue filter (see Section 3). The rim is also interactive from the collapsible <strong>Hue Segments</strong> panel in the bottom-right of the wheel.</p>
+  </section>
+
+  <!-- 3. Filtering -->
+  <section id="filters">
+    <h2><span class="guide-section-num">3.</span> Filtering Paints</h2>
+
+    <p>All filters follow the same rule: <strong>no buttons selected = no filter applied = everything shown</strong>. Selecting one or more buttons restricts the view to only paints matching those criteria. Multiple selections within a filter group are combined with <strong>OR</strong> logic — selecting Citadel + AK shows both. Different filter groups combine with <strong>AND</strong> — selecting Citadel and Bright value shows only bright Citadel paints.</p>
+
+    <h3>Brand (header legend)</h3>
+    <p>The five brand icons in the header are clickable filters. Click any brand name to show only that brand; click again to deselect. The same filters also appear in the <strong>⚙ Filters</strong> dropdown at the top right. Both stay in sync.</p>
+
+    <div class="guide-filter-demo">
+      <span class="guide-fbtn">Citadel</span>
+      <span class="guide-fbtn on">AK</span>
+      <span class="guide-fbtn">Pro Acryl</span>
+      <span class="guide-fbtn">VMC</span>
+      <span class="guide-fbtn">VGC</span>
+    </div>
+    <p><em>Example above: only AK 3rd Gen paints are shown.</em></p>
+
+    <h3>Exclude Metallics</h3>
+    <p>The <strong>Exclude Metallics</strong> toggle in the filter dropdown removes all metallic-type paints from view across every brand. This filter <strong>persists even when a harmony filter is active</strong> — it is intentionally global and survives filter resets. It is on by default.</p>
+
+    <h3>Citadel Type (Base / Layer / Metallic)</h3>
+    <p>This filter only appears when Citadel is the <strong>sole active brand filter</strong>. It lets you narrow Citadel results to Base, Layer, or Metallic paints specifically. It has no effect on other brands, which use a single "paint" type.</p>
+
+    <h3>Saturation (Vivid / Mid / Muted)</h3>
+    <p>Filters by <strong>HSL saturation</strong> — how intense or grey the colour appears. Vivid (≥60%), Mid (25–60%), Muted (&lt;25%). Note that saturation is displayed as a data point but does <em>not</em> drive the radial position on the wheel — that is controlled by Value.</p>
+
+    <h3>Value / Brightness (Bright / Mid / Dark)</h3>
+    <p>Filters by <strong>HSV value</strong> — how bright or dark the colour is. Bright (≥70%), Mid (35–70%), Dark (&lt;35%). This directly corresponds to the paint's radial position on the wheel — Bright paints are near the rim, Dark paints are near the centre.</p>
+
+    <h3>Hue Segments</h3>
+    <p>Click any of the 24 hue segment labels in the collapsible panel (bottom-right of the canvas), or click directly on the rainbow rim, to restrict the wheel to paints in those hue sectors. Multiple segments can be active simultaneously.</p>
+  </section>
+
+  <!-- 4. Selecting a paint -->
+  <section id="selecting">
+    <h2><span class="guide-section-num">4.</span> Selecting a Paint</h2>
+    <p><strong>Click</strong> any paint dot on the wheel to select it. The right-hand panel opens and shows:</p>
+    <ul style="margin:10px 0 10px 1.5em;color:var(--dim)">
+      <li>A colour swatch with name, brand, type, and hex code</li>
+      <li>HSL values (Hue, Saturation, Lightness) and HSV Value percentage</li>
+      <li>The paint's Martian hue segment name and its Saturation band label</li>
+    </ul>
+    <p>When multiple paints share the same position (identical hex), clicking <strong>cycles</strong> through them in order. Click empty canvas space to deselect.</p>
+
+    <div class="guide-callout">
+      <div class="guide-callout-title">Tip</div>
+      <p>Use the search box at the bottom of the panel to jump directly to a paint by name. Partial matches work — typing <em>red</em> will highlight all paints with "red" in the name.</p>
+    </div>
+  </section>
+
+  <!-- 5. Harmony -->
+  <section id="harmony">
+    <h2><span class="guide-section-num">5.</span> Harmony Filters</h2>
+
+    <p>Once a paint is selected, eight harmony relationships become available. Each highlights one or more hue segments on the wheel and populates a list of matching paints from those segments.</p>
+
+    <div class="guide-key-grid">
+      <div class="guide-key-term">Monochromatic</div>
+      <div class="guide-key-def">Same hue segment as the selected paint — other paints that share the same base hue.</div>
+      <div class="guide-key-term">Analogous</div>
+      <div class="guide-key-def">Adjacent hue segments (±1, ±2, or ±3 either side). Controls the "spread" of how wide the neighbourhood is.</div>
+      <div class="guide-key-term">Complementary</div>
+      <div class="guide-key-def">The segment directly opposite on the wheel (+12 segments, or 180°).</div>
+      <div class="guide-key-term">Split-Comp</div>
+      <div class="guide-key-def">The segments flanking the complement (±1, ±2, or ±3 from the opposite point). A softer alternative to straight complementary.</div>
+      <div class="guide-key-term">Triadic</div>
+      <div class="guide-key-def">Two segments equally spaced at 120° intervals (+8 and +16).</div>
+      <div class="guide-key-term">Tetradic</div>
+      <div class="guide-key-def">Two segments forming a rectangle (+6 and +18). Gives four colours total including the selected and its complement.</div>
+      <div class="guide-key-term">Square</div>
+      <div class="guide-key-def">Three segments evenly spaced at 90° intervals (+6, +12, +18). Four colours total at equal spacing.</div>
+    </div>
+
+    <h3>Sub-category filters within harmony results</h3>
+    <p>The harmony list is filtered by three independent sub-filters: <strong>Brand</strong>, <strong>Saturation</strong>, and <strong>Value</strong>. These combine with AND logic — selecting Citadel and Bright shows only bright Citadel paints in the harmony results. All are unselected by default (show all). The wheel updates in real time to show only the filtered harmony colours, and connecting lines are drawn from the selected paint to all visible matches.</p>
+
+    <div class="guide-callout guide-callout-warn">
+      <div class="guide-callout-title">Important</div>
+      <p>Activating any harmony filter <strong>resets all top-level filters</strong> (brand, saturation, value, hue) so the harmony pool is drawn from the full 584-paint dataset. The Exclude Metallics toggle is the only filter that survives a harmony activation.</p>
+    </div>
+
+    <h3>Achromatic paints and harmony</h3>
+    <p>Paints with very low saturation (neutrals, near-blacks, near-whites) are classified as <strong>achromatic</strong> — they have no meaningful hue position and cluster near the centre of the wheel. When Monochromatic is selected for an achromatic paint, the result is all other achromatic paints. For all other harmony types, the tool uses <strong>hue segment 0 (Red) as a reference point</strong> — this is a practical fallback rather than a theoretically meaningful relationship.</p>
+  </section>
+
+  <!-- 6. Building a scheme -->
+  <section id="scheme">
+    <h2><span class="guide-section-num">6.</span> Building a Colour Scheme</h2>
+
+    <p>The wheel is designed to help you assemble a working paint scheme — a set of colours across base, mid, and highlight tones in harmonically related hues.</p>
+
+    <div class="guide-steps">
+      <div class="guide-step">
+        <div class="guide-step-num"></div>
+        <div class="guide-step-body">
+          <strong>Select your anchor colour</strong>
+          Click the paint you want to build a scheme around. This becomes the <em>anchor</em> — it appears at the top of the Colour Scheme panel with a gold outline in the swatch strip.
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-num"></div>
+        <div class="guide-step-body">
+          <strong>Choose a harmony type</strong>
+          Pick the colour relationship you want — Complementary for maximum contrast, Analogous for a cohesive natural blend, Triadic for a vibrant three-colour composition, and so on.
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-num"></div>
+        <div class="guide-step-body">
+          <strong>Narrow by value</strong>
+          Use the Value sub-filter in the harmony panel to focus on Dark, Mid, or Bright paints. For a typical miniature scheme you want one dark (shadow), one mid (base), and one bright (highlight) from each hue family.
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-num"></div>
+        <div class="guide-step-body">
+          <strong>Add paints to the scheme</strong>
+          Hover a paint in the harmony list to see it glow on the wheel. Click it to add it to your Colour Scheme panel. You can also click paint dots directly on the wheel while a harmony is active — they are added to the scheme rather than selected as a new anchor.
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-num"></div>
+        <div class="guide-step-body">
+          <strong>Review and refine</strong>
+          The Colour Scheme panel shows a swatch strip for a quick visual read of how the colours sit together. Each entry shows the paint name, brand, and a Bright/Mid/Dark + Vivid/Mid/Muted description. Remove any paint with the ✕ button, or clear the whole scheme to start again.
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-callout">
+      <div class="guide-callout-title">Tip — cross-brand matching</div>
+      <p>The harmony system works across all brands simultaneously. You might find a Citadel base coat, a Vallejo mid-tone, and a Pro Acryl highlight all sitting in harmonically related segments — the wheel makes these cross-brand relationships visible in a way a printed chart cannot.</p>
+    </div>
+  </section>
+
+  <!-- 7. Colour theory assumptions -->
+  <section id="theory">
+    <h2><span class="guide-section-num">7.</span> Colour Theory Assumptions</h2>
+
+    <div class="guide-callout guide-callout-theory">
+      <div class="guide-callout-title">Background</div>
+      <p>The wheel is built on a set of deliberate colour theory choices. Understanding these helps you interpret the results correctly and know when to trust the tool and when to use your own judgement.</p>
+    </div>
+
+    <h3>The Martian Colour Wheel</h3>
+    <p>Standard computer colour models (HSL, RGB) space hues at equal angular intervals. But human perception is not linear — we have more perceptual resolution in some hue regions than others, and the transition between colours does not feel equally spaced. Warren Mars' <strong>Martian Colour Wheel</strong> corrects for this by remapping hue angles to match perceptual spacing. The 24 named segments (Red, Orange, Turmeric, Yellow Cheese, Yellow … through to Red Plum) are spaced to feel like equal perceptual steps rather than equal mathematical intervals.</p>
+    <p>The most significant correction is around <strong>blue</strong>, which is expanded on the Martian wheel (more segments cover the blue-violet range), and <strong>yellow-green</strong>, which is compressed (the step from yellow to green feels shorter perceptually than the HSL degree count implies). This means complementary relationships on this wheel should feel more natural and workable than those derived from a standard 180° HSL flip.</p>
+
+    <h3>Value as the radial axis</h3>
+    <p>The wheel uses <strong>HSV Value</strong> (brightness) for the radial axis — dark colours at the centre, bright colours at the rim. This is the Munsell convention and maps directly to how miniature painters think about colour: you lay down a dark base, build up to a mid-tone, then add highlights. Reading the wheel from centre to edge corresponds to reading a paint scheme from shadow to highlight.</p>
+    <p>Saturation is displayed as a data attribute and is available as a filter, but it does not affect position on the wheel. Two paints at the same radius may have very different saturation — a vivid scarlet and a grey-pink can sit at the same distance from the centre if they share the same brightness.</p>
+
+    <h3>Harmony relationships are hue-only</h3>
+    <p>The harmony system operates entirely in hue-segment space. Complementary means <em>12 segments away on the hue ring</em>. It does not consider value or saturation when selecting which segments to highlight. A very dark navy blue and a vivid sky blue both fall in the same segment and are treated as equivalent harmonically. Whether they work together in practice depends on your value and saturation matching — which is why the sub-filters in the harmony results exist.</p>
+
+    <h3>Hex values as ground truth</h3>
+    <p>All colour calculations derive from the <strong>hex colour codes</strong> assigned to each paint. These come from the Bolter &amp; Chainsword community reference, Scalemates, and manufacturer documentation. They represent the paint as photographed and digitised — not as it will appear on a miniature under specific lighting, over a given primer, or after a wash or varnish. Treat them as a <em>relative reference</em> for comparing paints to each other, not as an absolute colour measurement.</p>
+  </section>
+
+  <!-- 8. Nuances -->
+  <section id="nuances">
+    <h2><span class="guide-section-num">8.</span> Known Nuances &amp; Limitations</h2>
+
+    <h3>The achromatic classification problem</h3>
+    <p>A paint is classified as <strong>achromatic</strong> (no hue, placed at the centre) when its HSL saturation falls below 12%. This threshold works well for pure greys, blacks, and whites. However, <strong>HSL saturation collapses near the extremes of lightness</strong> — a very dark brownish-red like Rhinox Hide may read as low-saturation in HSL terms, even though it has clear reddish-brown character to the eye.</p>
+    <p>The result is that some dark paints with real hue content are misclassified as achromatic. They land at the wheel's centre rather than in their correct hue sector, and their complementary or analogous suggestions will not reflect their actual hue. <strong>If a paint lands at the centre but appears to have a visible hue, treat its harmony suggestions with caution.</strong></p>
+
+    <div class="guide-callout guide-callout-warn">
+      <div class="guide-callout-title">Affected Paints</div>
+      <p>Deeply dark paints from any brand — very dark browns, near-blacks with a hint of colour, some charcoals and dark greens — are most likely to be misclassified. If you select one and the wheel places it at the centre, its harmony results are suggestions based on a neutral reference (hue 0 / Red) rather than its actual colour character.</p>
+    </div>
+
+    <h3>Saturation and value are independent on the wheel</h3>
+    <p>Two paints in the same hue segment at the same radius can have wildly different saturation. A muted dusty blue and a vivid electric blue may sit at almost the same position if they share a similar brightness. The Value filter helps you narrow by brightness, and the Saturation filter helps you narrow by intensity — use both together for the most useful results.</p>
+
+    <h3>Harmony is not paint mixing</h3>
+    <p>The harmony relationships shown are based on colour wheel theory developed for pigments and light — they describe which hues tend to look pleasing together aesthetically. They do <em>not</em> predict what colour you will get by mixing two paints together, nor do they account for paint-specific properties like transparency, metallicity, or texture. A complementary pair in theory may still clash in practice depending on how the paints are applied.</p>
+
+    <h3>Cross-brand hex accuracy</h3>
+    <p>Citadel hex values are sourced from the community-verified Bolter &amp; Chainsword reference and cross-checked against Codex Chromatica. AK Interactive values are sourced from Scalemates with spot-checks against the official colour chart. Vallejo and Pro Acryl values are derived from published swatches and cross-references rather than spectrophotometer readings — they are representative rather than spectrometer-accurate. <strong>Expect minor positional drift</strong> of a few degrees or a few percent radius for some non-Citadel paints.</p>
+
+    <h3>The 24-segment quantisation</h3>
+    <p>Hue harmony works in whole segments — each segment spans 15° of hue arc. A paint at 14° and a paint at 16° are in adjacent segments and will never appear as Monochromatic matches, even though they are only 2° apart. Similarly, the "Complementary" of a warm orange-red might technically be a cool blue-teal, but the nearest whole segment may lean slightly in one direction or the other. The Martian remapping reduces this quantisation distortion, but it does not eliminate it entirely.</p>
+
+    <h3>Metallics and the wheel</h3>
+    <p>Metallic paints present particular challenges for colour-wheel analysis. Their visual appearance is heavily influenced by the metallic flake texture, reflectance properties, and viewing angle — none of which are captured in a hex code. The hex value of a metallic paint represents its photographed average colour, not its full reflective character. Metallic harmony suggestions are based on this average hex and should be treated as loose guidelines only. This is why metallics are excluded by default.</p>
+  </section>
+
+  <footer>
+    Miniature Painting Colour Wheel · User Guide · Colour data sourced from Bolter &amp; Chainsword, Scalemates, and manufacturer references.
+  </footer>
+
+</div>
+  </div>
+</div>
+
+<!-- Floating back-to-wheel button (shown when guide is open) -->
+<button id="guide-back-float" onclick="hideGuide()">← Colour Wheel</button>
+
+<div id="tip">
+  <div class="tip-swatch" id="tip-swatch"></div>
+  <div id="tip-body"></div>
+  <div class="tip-hex"  id="tip-hex"></div>
+  <div id="tip-cycle-hint" style="display:none;font-size:9px;color:var(--dimmer);margin-top:6px;letter-spacing:.05em">↻ Click to cycle</div>
+</div>
+
+<script>
+// ── Paint data ──────────────────────────────────────────────
+const PAINTS = [
+  {name:"Abaddon Black",           type:"base",  hex:"#231F20", brand:"citadel"},
+  {name:"Averland Sunset",         type:"base",  hex:"#FCB825", brand:"citadel"},
+  {name:"Balthasar Gold",          type:"metallic", hex:"#87542F", brand:"citadel"},
+  {name:"Barak-Nar Burgundy",      type:"base",  hex:"#5C1A35", brand:"citadel"},
+  {name:"Bugman's Glow",           type:"base",  hex:"#845045", brand:"citadel"},
+  {name:"Caledor Sky",             type:"base",  hex:"#396F9E", brand:"citadel"},
+  {name:"Caliban Green",           type:"base",  hex:"#00401E", brand:"citadel"},
+  {name:"Castellan Green",         type:"base",  hex:"#304921", brand:"citadel"},
+  {name:"Catachan Flesh",          type:"base",  hex:"#6B3E30", brand:"citadel"},
+  {name:"Celestra Grey",           type:"base",  hex:"#90A8A8", brand:"citadel"},
+  {name:"Ceramite White",          type:"base",  hex:"#FFFFFF", brand:"citadel"},
+  {name:"Corax White",             type:"base",  hex:"#FFFFFF", brand:"citadel"},
+  {name:"Corvus Black",            type:"base",  hex:"#1A1A1E", brand:"citadel"},
+  {name:"Daemonette Hide",         type:"base",  hex:"#696685", brand:"citadel"},
+  {name:"Death Guard Green",       type:"base",  hex:"#848A66", brand:"citadel"},
+  {name:"Death Korps Drab",        type:"base",  hex:"#5A5040", brand:"citadel"},
+  {name:"Deathworld Forest",       type:"base",  hex:"#5C6730", brand:"citadel"},
+  {name:"Dryad Bark",              type:"base",  hex:"#34312C", brand:"citadel"},
+  {name:"Gal Vorbak Red",          type:"base",  hex:"#5C1B2E", brand:"citadel"},
+  {name:"Grey Knights Steel",      type:"metallic", hex:"#8A9EA8", brand:"citadel"},
+  {name:"Grey Seer",               type:"base",  hex:"#C8C8C0", brand:"citadel"},
+  {name:"Hobgrot Hide",            type:"base",  hex:"#8A7A30", brand:"citadel"},
+  {name:"Incubi Darkness",         type:"base",  hex:"#0B4849", brand:"citadel"},
+  {name:"Ionrach Skin",            type:"base",  hex:"#7AA08A", brand:"citadel"},
+  {name:"Iron Hands Steel",        type:"metallic", hex:"#717B80", brand:"citadel"},
+  {name:"Iron Warriors",           type:"metallic", hex:"#6A6E72", brand:"citadel"},
+  {name:"Jokaero Orange",          type:"base",  hex:"#EE3823", brand:"citadel"},
+  {name:"Kantor Blue",             type:"base",  hex:"#002051", brand:"citadel"},
+  {name:"Khorne Red",              type:"base",  hex:"#6A0002", brand:"citadel"},
+  {name:"Leadbelcher",             type:"metallic", hex:"#475659", brand:"citadel"},
+  {name:"Lupercal Green",          type:"base",  hex:"#2A4A40", brand:"citadel"},
+  {name:"Macragge Blue",           type:"base",  hex:"#0D407F", brand:"citadel"},
+  {name:"Mechanicus Standard Grey",type:"base",  hex:"#3D4B4E", brand:"citadel"},
+  {name:"Mephiston Red",           type:"base",  hex:"#991115", brand:"citadel"},
+  {name:"Morghast Bone",           type:"base",  hex:"#C8B878", brand:"citadel"},
+  {name:"Mournfang Brown",         type:"base",  hex:"#650A09", brand:"citadel"},
+  {name:"Naggaroth Night",         type:"base",  hex:"#3E3355", brand:"citadel"},
+  {name:"Night Lords Blue",        type:"base",  hex:"#1A3060", brand:"citadel"},
+  {name:"Nocturne Green",          type:"base",  hex:"#1A3025", brand:"citadel"},
+  {name:"Orruk Flesh",             type:"base",  hex:"#6A8A50", brand:"citadel"},
+  {name:"Phoenician Purple",       type:"base",  hex:"#5A1A6A", brand:"citadel"},
+  {name:"Rakarth Flesh",           type:"base",  hex:"#A29E92", brand:"citadel"},
+  {name:"Ratskin Flesh",           type:"base",  hex:"#AE6B4E", brand:"citadel"},
+  {name:"Retributor Armour",       type:"metallic", hex:"#C39E81", brand:"citadel"},
+  {name:"Rhinox Hide",             type:"base",  hex:"#493435", brand:"citadel"},
+  {name:"Runelord Brass",          type:"metallic", hex:"#B6A89A", brand:"citadel"},
+  {name:"Screamer Pink",           type:"base",  hex:"#7C1645", brand:"citadel"},
+  {name:"Screaming Bell",          type:"base",  hex:"#C16F45", brand:"citadel"},
+  {name:"Steel Legion Drab",       type:"base",  hex:"#5E5134", brand:"citadel"},
+  {name:"Stegadon Scale Green",    type:"base",  hex:"#074863", brand:"citadel"},
+  {name:"The Fang",                type:"base",  hex:"#436276", brand:"citadel"},
+  {name:"Thondia Brown",           type:"base",  hex:"#5C3D28", brand:"citadel"},
+  {name:"Thousand Sons Blue",      type:"base",  hex:"#18ABCC", brand:"citadel"},
+  {name:"Waaagh! Flesh",           type:"base",  hex:"#1F5429", brand:"citadel"},
+  {name:"Warplock Bronze",         type:"metallic", hex:"#927D7B", brand:"citadel"},
+  {name:"Wraithbone",              type:"base",  hex:"#EDE0C4", brand:"citadel"},
+  {name:"XV-88",                   type:"base",  hex:"#72491E", brand:"citadel"},
+  {name:"Zandri Dust",             type:"base",  hex:"#9E915C", brand:"citadel"},
+  {name:"Administratum Grey",      type:"layer", hex:"#949B94", brand:"citadel"},
+  {name:"Ahriman Blue",            type:"layer", hex:"#00A5B9", brand:"citadel"},
+  {name:"Alaitoc Blue",            type:"layer", hex:"#295788", brand:"citadel"},
+  {name:"Altdorf Guard Blue",      type:"layer", hex:"#1F56A8", brand:"citadel"},
+  {name:"Auric Armour Gold",       type:"metallic", hex:"#E9C278", brand:"citadel"},
+  {name:"Baharroth Blue",          type:"layer", hex:"#78C4C7", brand:"citadel"},
+  {name:"Balor Brown",             type:"layer", hex:"#8B5910", brand:"citadel"},
+  {name:"Baneblade Brown",         type:"layer", hex:"#927F6E", brand:"citadel"},
+  {name:"Bestigor Flesh",          type:"layer", hex:"#D28B57", brand:"citadel"},
+  {name:"Bloodreaver Flesh",       type:"layer", hex:"#C06050", brand:"citadel"},
+  {name:"Blue Horror",             type:"layer", hex:"#A2BAD2", brand:"citadel"},
+  {name:"Brass Scorpion",          type:"metallic", hex:"#B7895F", brand:"citadel"},
+  {name:"Cadian Fleshtone",        type:"layer", hex:"#C87958", brand:"citadel"},
+  {name:"Calgar Blue",             type:"layer", hex:"#4273B8", brand:"citadel"},
+  {name:"Canoptek Alloy",          type:"metallic", hex:"#A0C890", brand:"citadel"},
+  {name:"Castellax Bronze",        type:"metallic", hex:"#B08040", brand:"citadel"},
+  {name:"Dark Reaper",             type:"layer", hex:"#3C5051", brand:"citadel"},
+  {name:"Dawnstone",               type:"layer", hex:"#70756E", brand:"citadel"},
+  {name:"Deathclaw Brown",         type:"layer", hex:"#B36853", brand:"citadel"},
+  {name:"Dechala Lilac",           type:"layer", hex:"#B59ECC", brand:"citadel"},
+  {name:"Deepkin Flesh",           type:"layer", hex:"#D2D4C7", brand:"citadel"},
+  {name:"Doombull Brown",          type:"layer", hex:"#5D000A", brand:"citadel"},
+  {name:"Dorn Yellow",             type:"layer", hex:"#E3D28C", brand:"citadel"},
+  {name:"Elysian Green",           type:"layer", hex:"#758E3A", brand:"citadel"},
+  {name:"Emperor's Children",      type:"layer", hex:"#B94278", brand:"citadel"},
+  {name:"Eshin Grey",              type:"layer", hex:"#4A4F53", brand:"citadel"},
+  {name:"Evil Sunz Scarlet",       type:"layer", hex:"#C21920", brand:"citadel"},
+  {name:"Fenrisian Grey",          type:"layer", hex:"#709CB7", brand:"citadel"},
+  {name:"Fire Dragon Bright",      type:"layer", hex:"#F58651", brand:"citadel"},
+  {name:"Flash Gitz Yellow",       type:"layer", hex:"#FFF200", brand:"citadel"},
+  {name:"Flayed One Flesh",        type:"layer", hex:"#CBB48B", brand:"citadel"},
+  {name:"Fulgrim Pink",            type:"layer", hex:"#F4AFCC", brand:"citadel"},
+  {name:"Fulgurite Copper",        type:"metallic", hex:"#BA8F6D", brand:"citadel"},
+  {name:"Gauss Blaster Green",     type:"layer", hex:"#84C2A9", brand:"citadel"},
+  {name:"Gehenna's Gold",          type:"metallic", hex:"#D49761", brand:"citadel"},
+  {name:"Genestealer Purple",      type:"layer", hex:"#7761AA", brand:"citadel"},
+  {name:"Gorthor Brown",           type:"layer", hex:"#654641", brand:"citadel"},
+  {name:"Hashut Copper",           type:"metallic", hex:"#C69169", brand:"citadel"},
+  {name:"Hoeth Blue",              type:"layer", hex:"#4C7FB4", brand:"citadel"},
+  {name:"Ironbreaker",             type:"metallic", hex:"#94999D", brand:"citadel"},
+  {name:"Kabalite Green",          type:"layer", hex:"#028D66", brand:"citadel"},
+  {name:"Kakophoni Purple",        type:"layer", hex:"#9060A0", brand:"citadel"},
+  {name:"Karak Stone",             type:"layer", hex:"#BB9662", brand:"citadel"},
+  {name:"Kislev Flesh",            type:"layer", hex:"#D6A876", brand:"citadel"},
+  {name:"Knight-Questor Flesh",    type:"layer", hex:"#D4A882", brand:"citadel"},
+  {name:"Krieg Khaki",             type:"layer", hex:"#B7AD78", brand:"citadel"},
+  {name:"Liberator Gold",          type:"metallic", hex:"#D5C4AA", brand:"citadel"},
+  {name:"Loren Forest",            type:"layer", hex:"#51702D", brand:"citadel"},
+  {name:"Lothern Blue",            type:"layer", hex:"#33A2CF", brand:"citadel"},
+  {name:"Lugganath Orange",        type:"layer", hex:"#F89E86", brand:"citadel"},
+  {name:"Moot Green",              type:"layer", hex:"#52B246", brand:"citadel"},
+  {name:"Nurgling Green",          type:"layer", hex:"#849B63", brand:"citadel"},
+  {name:"Ogryn Camo",              type:"layer", hex:"#9EA94B", brand:"citadel"},
+  {name:"Pallid Wych Flesh",       type:"layer", hex:"#CDCEBE", brand:"citadel"},
+  {name:"Phalanx Yellow",          type:"layer", hex:"#F0C830", brand:"citadel"},
+  {name:"Pink Horror",             type:"layer", hex:"#91305D", brand:"citadel"},
+  {name:"Runefang Steel",          type:"metallic", hex:"#C3CACE", brand:"citadel"},
+  {name:"Runelord Brass",          type:"metallic", hex:"#B6A89A", brand:"citadel"},
+  {name:"Russ Grey",               type:"layer", hex:"#547588", brand:"citadel"},
+  {name:"Screaming Skull",         type:"layer", hex:"#D3D4A4", brand:"citadel"},
+  {name:"Skarsnik Green",          type:"layer", hex:"#5F9370", brand:"citadel"},
+  {name:"Skavenblight Dinge",      type:"layer", hex:"#47413B", brand:"citadel"},
+  {name:"Skrag Brown",             type:"layer", hex:"#8F490E", brand:"citadel"},
+  {name:"Skullcrusher Brass",      type:"metallic", hex:"#E8B26E", brand:"citadel"},
+  {name:"Slaanesh Grey",           type:"layer", hex:"#8D8B97", brand:"citadel"},
+  {name:"Sons of Horus Green",     type:"layer", hex:"#3A7060", brand:"citadel"},
+  {name:"Sotek Green",             type:"layer", hex:"#0B6874", brand:"citadel"},
+  {name:"Squig Orange",            type:"layer", hex:"#AA4D44", brand:"citadel"},
+  {name:"Stormhost Silver",        type:"metallic", hex:"#BBC7CA", brand:"citadel"},
+  {name:"Stormvermin Fur",         type:"layer", hex:"#726B65", brand:"citadel"},
+  {name:"Straken Green",           type:"layer", hex:"#628226", brand:"citadel"},
+  {name:"Sybarite Green",          type:"layer", hex:"#2FA56C", brand:"citadel"},
+  {name:"Sycorax Bronze",          type:"metallic", hex:"#C9B090", brand:"citadel"},
+  {name:"Tallarn Sand",            type:"layer", hex:"#A47610", brand:"citadel"},
+  {name:"Tau Light Ochre",         type:"layer", hex:"#C06E1C", brand:"citadel"},
+  {name:"Teclis Blue",             type:"layer", hex:"#317EC1", brand:"citadel"},
+  {name:"Temple Guard Blue",       type:"layer", hex:"#349A8D", brand:"citadel"},
+  {name:"Thunderhawk Blue",        type:"layer", hex:"#417374", brand:"citadel"},
+  {name:"Troll Slayer Orange",     type:"layer", hex:"#F46D2D", brand:"citadel"},
+  {name:"Tuskgor Fur",             type:"layer", hex:"#893636", brand:"citadel"},
+  {name:"Ulthuan Grey",            type:"layer", hex:"#C7E0D9", brand:"citadel"},
+  {name:"Ungor Flesh",             type:"layer", hex:"#D5A766", brand:"citadel"},
+  {name:"Ushabti Bone",            type:"layer", hex:"#BCB882", brand:"citadel"},
+  {name:"Vulkan Green",            type:"layer", hex:"#2A5C3A", brand:"citadel"},
+  {name:"Warboss Green",           type:"layer", hex:"#3E8059", brand:"citadel"},
+  {name:"Warpfiend Grey",          type:"layer", hex:"#6C6B75", brand:"citadel"},
+  {name:"Warpstone Glow",          type:"layer", hex:"#1F7332", brand:"citadel"},
+  {name:"Wazdakka Red",            type:"layer", hex:"#8D0A0B", brand:"citadel"},
+  {name:"White Scar",              type:"layer", hex:"#FFFFFF", brand:"citadel"},
+  {name:"Wild Rider Red",          type:"layer", hex:"#EA3028", brand:"citadel"},
+  {name:"Word Bearers Red",        type:"layer", hex:"#7A1A1A", brand:"citadel"},
+  {name:"Xereus Purple",           type:"layer", hex:"#4A1F5E", brand:"citadel"},
+  {name:"Yriel Yellow",            type:"layer", hex:"#FED900", brand:"citadel"},
+  {name:"Zamesi Desert",           type:"layer", hex:"#DDA027", brand:"citadel"},
+
+  // ── AK Interactive 3rd Generation Acrylics ──────────────────
+  // Hex values sourced from Scalemates, Scribd document, and cross-referenced
+  // against official AK equivalence chart (Tamiya/Vallejo comparisons)
+  // type:"paint" used for all AK paints (no base/layer distinction)
+
+  // ── Whites & Greys ──
+  {name:"White",              type:"paint", hex:"#FFFFFF",   brand:"ak", code:"AK11001"},
+  {name:"Offwhite",           type:"paint", hex:"#F0EDE0",   brand:"ak", code:"AK11002"},
+  {name:"White Grey",         type:"paint", hex:"#D8D8D0",   brand:"ak", code:"AK11003"},
+  {name:"Ivory",              type:"paint", hex:"#E8E0C0",   brand:"ak", code:"AK11004"},
+  {name:"Greenish White",     type:"paint", hex:"#DCE8D8",   brand:"ak", code:"AK11005"},
+  {name:"Silver Grey",        type:"paint", hex:"#C4C8C0",   brand:"ak", code:"AK11006"},
+  {name:"Rock Grey",          type:"paint", hex:"#9E9E96",   brand:"ak", code:"AK11007"},
+  {name:"Grimy Grey",         type:"paint", hex:"#7C7C70",   brand:"ak", code:"AK11008"},
+  {name:"Warm Grey",          type:"paint", hex:"#8C8880",   brand:"ak", code:"AK11009"},
+  {name:"Medium Grey",        type:"paint", hex:"#787878",   brand:"ak", code:"AK11010"},
+  {name:"Blue-Grey",          type:"paint", hex:"#6E7880",   brand:"ak", code:"AK11011"},
+  {name:"Sky Grey",           type:"paint", hex:"#A0AAAA",   brand:"ak", code:"AK11012"},
+  {name:"Pale Grey",          type:"paint", hex:"#C0C4C4",   brand:"ak", code:"AK11013"},
+  {name:"Medium Sea Grey",    type:"paint", hex:"#848C8C",   brand:"ak", code:"AK11014"},
+  {name:"Dark Sea Grey",      type:"paint", hex:"#606870",   brand:"ak", code:"AK11015"},
+  {name:"Grey-Green",         type:"paint", hex:"#6C7060",   brand:"ak", code:"AK11016"},
+  {name:"Reddish Grey",       type:"paint", hex:"#847C78",   brand:"ak", code:"AK11017"},
+  {name:"Neutral Grey",       type:"paint", hex:"#6C6C6C",   brand:"ak", code:"AK11018"},
+  {name:"Graphite",           type:"paint", hex:"#404040",   brand:"ak", code:"AK11019"},
+  {name:"English Grey",       type:"paint", hex:"#585850",   brand:"ak", code:"AK11020"},
+  {name:"Basalt Grey",        type:"paint", hex:"#4C5058",   brand:"ak", code:"AK11021"},
+  {name:"Dark Grey",          type:"paint", hex:"#404040",   brand:"ak", code:"AK11022"},
+  {name:"Lead Grey",          type:"paint", hex:"#585860",   brand:"ak", code:"AK11023"},
+  {name:"Ash Grey",           type:"paint", hex:"#606060",   brand:"ak", code:"AK11024"},
+  {name:"German Grey",        type:"paint", hex:"#383840",   brand:"ak", code:"AK11025"},
+  {name:"Tenebrous Grey",     type:"paint", hex:"#2C2C34",   brand:"ak", code:"AK11026"},
+  {name:"Rubber Black",       type:"paint", hex:"#2A2619",   brand:"ak", code:"AK11027"},
+  {name:"Smoke Black",        type:"paint", hex:"#2C2C22",   brand:"ak", code:"AK11028"},
+  {name:"Black",              type:"paint", hex:"#141414",   brand:"ak", code:"AK11029"},
+
+  // ── Yellows & Sands ──
+  {name:"Beige",              type:"paint", hex:"#DDD0A8",   brand:"ak", code:"AK11030"},
+  {name:"Buff",               type:"paint", hex:"#C8B878",   brand:"ak", code:"AK11031"},
+  {name:"Pale Sand",          type:"paint", hex:"#D8C898",   brand:"ak", code:"AK11032"},
+  {name:"Dark Sand",          type:"paint", hex:"#B8A060",   brand:"ak", code:"AK11033"},
+  {name:"Medium Sand",        type:"paint", hex:"#C4A860",   brand:"ak", code:"AK11034"},
+  {name:"Sand Yellow",        type:"paint", hex:"#C8A840",   brand:"ak", code:"AK11035"},
+  {name:"Ice Yellow",         type:"paint", hex:"#E8E090",   brand:"ak", code:"AK11036"},
+  {name:"Pastel Yellow",      type:"paint", hex:"#F0E8C0",   brand:"ak", code:"AK11037"},
+  {name:"Pale Yellow",        type:"paint", hex:"#EEE090",   brand:"ak", code:"AK11038"},
+  {name:"Purulent Yellow",    type:"paint", hex:"#C8C050",   brand:"ak", code:"AK11039"},
+  {name:"Sahara Yellow",      type:"paint", hex:"#D0A030",   brand:"ak", code:"AK11040"},
+  {name:"Golden Yellow",      type:"paint", hex:"#E0C030",   brand:"ak", code:"AK11041"},
+  {name:"Volcanic Yellow",    type:"paint", hex:"#E8C010",   brand:"ak", code:"AK11042"},
+  {name:"Dirty Yellow",       type:"paint", hex:"#B8A030",   brand:"ak", code:"AK11043"},
+  {name:"Yellow",             type:"paint", hex:"#FFD800",   brand:"ak", code:"AK11044"},
+  {name:"Deep Yellow",        type:"paint", hex:"#F0B800",   brand:"ak", code:"AK11045"},
+  {name:"Radiant Yellow",     type:"paint", hex:"#FFE020",   brand:"ak", code:"AK11046"},
+  {name:"Lemon Yellow",       type:"paint", hex:"#F8E800",   brand:"ak", code:"AK11047"},
+  {name:"Laser Yellow",       type:"paint", hex:"#FFE840",   brand:"ak", code:"AK11048"},
+  {name:"Fluorescent Yellow", type:"paint", hex:"#F8F000",   brand:"ak", code:"AK11049"},
+
+  // ── Flesh Tones ──
+  {name:"Light Flesh",        type:"paint", hex:"#F4D0B0",   brand:"ak", code:"AK11050"},
+  {name:"Luminous Flesh",     type:"paint", hex:"#F8C898",   brand:"ak", code:"AK11051"},
+  {name:"Basic Skin Tone",    type:"paint", hex:"#E8B090",   brand:"ak", code:"AK11052"},
+  {name:"Radiant Flesh",      type:"paint", hex:"#ECA870",   brand:"ak", code:"AK11053"},
+  {name:"Medium Flesh Tone",  type:"paint", hex:"#D89060",   brand:"ak", code:"AK11054"},
+  {name:"Sunny Skin Tone",    type:"paint", hex:"#DCA060",   brand:"ak", code:"AK11055"},
+  {name:"Dark Flesh",         type:"paint", hex:"#A06040",   brand:"ak", code:"AK11056"},
+  {name:"Vampiric Flesh",     type:"paint", hex:"#D8C8B0",   brand:"ak", code:"AK11057"},
+  {name:"Decomposed Flesh",   type:"paint", hex:"#C8D0A0",   brand:"ak", code:"AK11058"},
+
+  // ── Pinks & Purples ──
+  {name:"Pastel Pink",        type:"paint", hex:"#F8D0D8",   brand:"ak", code:"AK11059"},
+  {name:"Sickly Pink",        type:"paint", hex:"#F0B0C0",   brand:"ak", code:"AK11060"},
+  {name:"Salmon",             type:"paint", hex:"#F0A080",   brand:"ak", code:"AK11061"},
+  {name:"Old Rose",           type:"paint", hex:"#D08080",   brand:"ak", code:"AK11062"},
+  {name:"Brown Rose",         type:"paint", hex:"#B06060",   brand:"ak", code:"AK11063"},
+  {name:"Beige Red",          type:"paint", hex:"#C89070",   brand:"ak", code:"AK11064"},
+  {name:"Intense Pink",       type:"paint", hex:"#E83080",   brand:"ak", code:"AK11065"},
+  {name:"Laser Magenta",      type:"paint", hex:"#F020A0",   brand:"ak", code:"AK11066"},
+  {name:"Magenta",            type:"paint", hex:"#C01880",   brand:"ak", code:"AK11067"},
+  {name:"Fluorescent Magenta",type:"paint", hex:"#F000C0",   brand:"ak", code:"AK11068"},
+  {name:"Pastel Violet",      type:"paint", hex:"#D0B8E8",   brand:"ak", code:"AK11069"},
+  {name:"Blue Violet",        type:"paint", hex:"#7060C0",   brand:"ak", code:"AK11070"},
+  {name:"Lilac",              type:"paint", hex:"#A080C0",   brand:"ak", code:"AK11071"},
+  {name:"Deep Violet",        type:"paint", hex:"#5020A0",   brand:"ak", code:"AK11072"},
+  {name:"Purple",             type:"paint", hex:"#800080",   brand:"ak", code:"AK11073"},
+  {name:"Deep Purple",        type:"paint", hex:"#400060",   brand:"ak", code:"AK11074"},
+  {name:"Violet Red",         type:"paint", hex:"#A02060",   brand:"ak", code:"AK11075"},
+  {name:"Pastel Peach",       type:"paint", hex:"#F4D0C0",   brand:"ak", code:"AK11076"},
+
+  // ── Oranges ──
+  {name:"Light Orange",       type:"paint", hex:"#F0A060",   brand:"ak", code:"AK11077"},
+  {name:"Medium Orange",      type:"paint", hex:"#E88020",   brand:"ak", code:"AK11078"},
+  {name:"Burn Orange",        type:"paint", hex:"#D06010",   brand:"ak", code:"AK11079"},
+  {name:"Deep Orange",        type:"paint", hex:"#E04000",   brand:"ak", code:"AK11080"},
+  {name:"Fluorescent Orange", type:"paint", hex:"#FF6000",   brand:"ak", code:"AK11081"},
+  {name:"Luminous Orange",    type:"paint", hex:"#FF7000",   brand:"ak", code:"AK11082"},
+
+  // ── Reds ──
+  {name:"Dead Red",           type:"paint", hex:"#8C2020",   brand:"ak", code:"AK11083"},
+  {name:"Ruby",               type:"paint", hex:"#A01030",   brand:"ak", code:"AK11084"},
+  {name:"Cadmium Red",        type:"paint", hex:"#E9582C",   brand:"ak", code:"AK11085"},
+  {name:"Amaranth Red",       type:"paint", hex:"#B81840",   brand:"ak", code:"AK11086"},
+  {name:"Scarlet Red",        type:"paint", hex:"#CC1820",   brand:"ak", code:"AK11087"},
+  {name:"Deep Red",           type:"paint", hex:"#A00010",   brand:"ak", code:"AK11088"},
+  {name:"Blood Red",          type:"paint", hex:"#900010",   brand:"ak", code:"AK11089"},
+  {name:"Vermillion",         type:"paint", hex:"#D02010",   brand:"ak", code:"AK11090"},
+  {name:"Carmine",            type:"paint", hex:"#A00020",   brand:"ak", code:"AK11091"},
+  {name:"Matt Red",           type:"paint", hex:"#C01020",   brand:"ak", code:"AK11092"},
+  {name:"Brick Red",          type:"paint", hex:"#A03020",   brand:"ak", code:"AK11093"},
+  {name:"Bordeaux Red",       type:"paint", hex:"#700020",   brand:"ak", code:"AK11094"},
+  {name:"Dirty Red",          type:"paint", hex:"#803030",   brand:"ak", code:"AK11095"},
+  {name:"Wine Red",           type:"paint", hex:"#601030",   brand:"ak", code:"AK11096"},
+  {name:"Burnt Red",          type:"paint", hex:"#701010",   brand:"ak", code:"AK11097"},
+  {name:"Black Red",          type:"paint", hex:"#3C0810",   brand:"ak", code:"AK11098"},
+
+  // ── Browns ──
+  {name:"Ocher Orange",       type:"paint", hex:"#C07030",   brand:"ak", code:"AK11099"},
+  {name:"Light Brown",        type:"paint", hex:"#A06030",   brand:"ak", code:"AK11100"},
+  {name:"Orange Brown",       type:"paint", hex:"#904020",   brand:"ak", code:"AK11101"},
+  {name:"Deep Brown",         type:"paint", hex:"#502010",   brand:"ak", code:"AK11102"},
+  {name:"Medium Rust",        type:"paint", hex:"#A04020",   brand:"ak", code:"AK11103"},
+  {name:"Saddle Brown",       type:"paint", hex:"#704020",   brand:"ak", code:"AK11104"},
+  {name:"Light Rust",         type:"paint", hex:"#C06030",   brand:"ak", code:"AK11105"},
+  {name:"Mahogany Brown",     type:"paint", hex:"#602010",   brand:"ak", code:"AK11106"},
+  {name:"Dark Rust",          type:"paint", hex:"#602010",   brand:"ak", code:"AK11107"},
+  {name:"Hull Red",           type:"paint", hex:"#501818",   brand:"ak", code:"AK11108"},
+  {name:"Dark Brown",         type:"paint", hex:"#382010",   brand:"ak", code:"AK11109"},
+  {name:"Leather Brown",      type:"paint", hex:"#705030",   brand:"ak", code:"AK11110"},
+  {name:"Burnt Umber",        type:"paint", hex:"#482010",   brand:"ak", code:"AK11111"},
+  {name:"Grim Brown",         type:"paint", hex:"#504030",   brand:"ak", code:"AK11112"},
+  {name:"Chocolate",          type:"paint", hex:"#402010",   brand:"ak", code:"AK11113"},
+  {name:"Deck Tan",           type:"paint", hex:"#C0A860",   brand:"ak", code:"AK11114"},
+  {name:"Light Earth",        type:"paint", hex:"#A88050",   brand:"ak", code:"AK11115"},
+  {name:"Tan Yellow",         type:"paint", hex:"#C09840",   brand:"ak", code:"AK11116"},
+  {name:"Golden Brown",       type:"paint", hex:"#906020",   brand:"ak", code:"AK11117"},
+  {name:"Ochre",              type:"paint", hex:"#B08020",   brand:"ak", code:"AK11118"},
+  {name:"Cork",               type:"paint", hex:"#A07840",   brand:"ak", code:"AK11119"},
+  {name:"Mud Brown",          type:"paint", hex:"#705030",   brand:"ak", code:"AK11120"},
+  {name:"Tan Earth",          type:"paint", hex:"#906040",   brand:"ak", code:"AK11121"},
+  {name:"Green Ochre",        type:"paint", hex:"#8C8040",   brand:"ak", code:"AK11122"},
+  {name:"Japanese Brown",     type:"paint", hex:"#784020",   brand:"ak", code:"AK11123"},
+  {name:"Middle Stone",       type:"paint", hex:"#A08840",   brand:"ak", code:"AK11124"},
+  {name:"Grey-Brown",         type:"paint", hex:"#706858",   brand:"ak", code:"AK11125"},
+  {name:"Green-Brown",        type:"paint", hex:"#586040",   brand:"ak", code:"AK11126"},
+  {name:"British Khaki",      type:"paint", hex:"#888060",   brand:"ak", code:"AK11127"},
+
+  // ── Greens ──
+  {name:"Luminous Green",     type:"paint", hex:"#50E050",   brand:"ak", code:"AK11128"},
+  {name:"Fluorescent Green",  type:"paint", hex:"#40FF40",   brand:"ak", code:"AK11129"},
+  {name:"Pistachio",          type:"paint", hex:"#B0D080",   brand:"ak", code:"AK11130"},
+  {name:"Pastel Green",       type:"paint", hex:"#C0E0B8",   brand:"ak", code:"AK11131"},
+  {name:"Green-Grey",         type:"paint", hex:"#808870",   brand:"ak", code:"AK11132"},
+  {name:"Dark Green-Grey",    type:"paint", hex:"#505848",   brand:"ak", code:"AK11133"},
+  {name:"Green Sky",          type:"paint", hex:"#88A870",   brand:"ak", code:"AK11134"},
+  {name:"Faded Green",        type:"paint", hex:"#7A9060",   brand:"ak", code:"AK11135"},
+  {name:"Frog Green",         type:"paint", hex:"#50A040",   brand:"ak", code:"AK11136"},
+  {name:"Lime Green",         type:"paint", hex:"#68C030",   brand:"ak", code:"AK11137"},
+  {name:"Interior Yellow Green",type:"paint",hex:"#A0C060",  brand:"ak", code:"AK11138"},
+  {name:"Golden Olive",       type:"paint", hex:"#808020",   brand:"ak", code:"AK11139"},
+  {name:"Grass Green",        type:"paint", hex:"#408030",   brand:"ak", code:"AK11140"},
+  {name:"Light Green",        type:"paint", hex:"#50A040",   brand:"ak", code:"AK11141"},
+  {name:"Deep Green",         type:"paint", hex:"#186020",   brand:"ak", code:"AK11142"},
+  {name:"Mint Green",         type:"paint", hex:"#70C090",   brand:"ak", code:"AK11143"},
+  {name:"Emerald",            type:"paint", hex:"#008050",   brand:"ak", code:"AK11144"},
+  {name:"Lizard Green",       type:"paint", hex:"#306030",   brand:"ak", code:"AK11145"},
+  {name:"Dark Green",         type:"paint", hex:"#185020",   brand:"ak", code:"AK11146"},
+  {name:"Olive Green",        type:"paint", hex:"#506030",   brand:"ak", code:"AK11147"},
+  {name:"Medium Olive Green", type:"paint", hex:"#586040",   brand:"ak", code:"AK11148"},
+  {name:"Intermediate Green", type:"paint", hex:"#406030",   brand:"ak", code:"AK11149"},
+  {name:"Gunship Green",      type:"paint", hex:"#304828",   brand:"ak", code:"AK11150"},
+  {name:"Brownish Green",     type:"paint", hex:"#486040",   brand:"ak", code:"AK11151"},
+  {name:"Alga Green",         type:"paint", hex:"#386848",   brand:"ak", code:"AK11152"},
+  {name:"Extra Dark Green",   type:"paint", hex:"#203820",   brand:"ak", code:"AK11153"},
+  {name:"German Field Grey",  type:"paint", hex:"#4A5840",   brand:"ak", code:"AK11154"},
+  {name:"Command Green",      type:"paint", hex:"#3C5030",   brand:"ak", code:"AK11155"},
+  {name:"Camouflage Green",   type:"paint", hex:"#405038",   brand:"ak", code:"AK11156"},
+  {name:"US Dark Green",      type:"paint", hex:"#283C20",   brand:"ak", code:"AK11157"},
+  {name:"Reflective Green",   type:"paint", hex:"#385830",   brand:"ak", code:"AK11158"},
+  {name:"Russian Green",      type:"paint", hex:"#304828",   brand:"ak", code:"AK11159"},
+  {name:"Black Green",        type:"paint", hex:"#182818",   brand:"ak", code:"AK11160"},
+
+  // ── Blues ──
+  {name:"Pale Blue",          type:"paint", hex:"#A8C8E0",   brand:"ak", code:"AK11161"},
+  {name:"Spectrum Blue",      type:"paint", hex:"#4880C0",   brand:"ak", code:"AK11162"},
+  {name:"Intermediate Blue",  type:"paint", hex:"#4070A0",   brand:"ak", code:"AK11163"},
+  {name:"Dark Blue-Grey",     type:"paint", hex:"#404858",   brand:"ak", code:"AK11164"},
+  {name:"Grey-Blue",          type:"paint", hex:"#507090",   brand:"ak", code:"AK11165"},
+  {name:"French Blue",        type:"paint", hex:"#305880",   brand:"ak", code:"AK11166"},
+  {name:"Anthracite Grey",    type:"paint", hex:"#303840",   brand:"ak", code:"AK11167"},
+  {name:"Pastel Blue",        type:"paint", hex:"#A8C8E8",   brand:"ak", code:"AK11168"},
+  {name:"Blue-Green",         type:"paint", hex:"#207868",   brand:"ak", code:"AK11169"},
+  {name:"Aquatic Turquoise",  type:"paint", hex:"#20A0A0",   brand:"ak", code:"AK11170"},
+  {name:"Turquoise",          type:"paint", hex:"#00A090",   brand:"ak", code:"AK11171"},
+  {name:"Archaic Turquoise",  type:"paint", hex:"#008878",   brand:"ak", code:"AK11172"},
+  {name:"Ocean Blue",         type:"paint", hex:"#204870",   brand:"ak", code:"AK11173"},
+  {name:"Snow Blue",          type:"paint", hex:"#A0C0D8",   brand:"ak", code:"AK11174"},
+  {name:"Sky Blue",           type:"paint", hex:"#5090C0",   brand:"ak", code:"AK11175"},
+  {name:"Deep Sky Blue",      type:"paint", hex:"#2068A8",   brand:"ak", code:"AK11176"},
+  {name:"Ducat Blue",         type:"paint", hex:"#2050A0",   brand:"ak", code:"AK11177"},
+  {name:"Fluorescent Blue",   type:"paint", hex:"#0060FF",   brand:"ak", code:"AK11178"},
+  {name:"Ultramarine",        type:"paint", hex:"#1020A0",   brand:"ak", code:"AK11179"},
+  {name:"Imperial Blue",      type:"paint", hex:"#102060",   brand:"ak", code:"AK11180"},
+  {name:"Dark Blue",          type:"paint", hex:"#102050",   brand:"ak", code:"AK11181"},
+  {name:"Deep Blue",          type:"paint", hex:"#0C1860",   brand:"ak", code:"AK11182"},
+  {name:"Amethyst Blue",      type:"paint", hex:"#2020A0",   brand:"ak", code:"AK11183"},
+  {name:"Medium Blue",        type:"paint", hex:"#2848A0",   brand:"ak", code:"AK11184"},
+  {name:"Star Blue",          type:"paint", hex:"#304898",   brand:"ak", code:"AK11185"},
+  {name:"Light Prussian Blue",type:"paint", hex:"#204070",   brand:"ak", code:"AK11186"},
+  {name:"Strong Dark Blue",   type:"paint", hex:"#102040",   brand:"ak", code:"AK11187"},
+  {name:"Oxford",             type:"paint", hex:"#203060",   brand:"ak", code:"AK11188"},
+  {name:"Dark Prussian Blue", type:"paint", hex:"#101838",   brand:"ak", code:"AK11189"},
+  {name:"Dark Sea Blue",      type:"paint", hex:"#101830",   brand:"ak", code:"AK11190"},
+
+  // ── Metallics ──
+  {name:"Gold",               type:"metallic", hex:"#C89830",   brand:"ak", code:"AK11191"},
+  {name:"Old Gold",           type:"metallic", hex:"#A07830",   brand:"ak", code:"AK11192"},
+  {name:"Rusty Gold",         type:"metallic", hex:"#907030",   brand:"ak", code:"AK11193"},
+  {name:"Brass",              type:"metallic", hex:"#A08028",   brand:"ak", code:"AK11194"},
+  {name:"Rusty Brass",        type:"metallic", hex:"#806020",   brand:"ak", code:"AK11195"},
+  {name:"Bronze",             type:"metallic", hex:"#886040",   brand:"ak", code:"AK11196"},
+  {name:"Copper",             type:"metallic", hex:"#B06040",   brand:"ak", code:"AK11197"},
+  {name:"Burnt Tin",          type:"metallic", hex:"#707070",   brand:"ak", code:"AK11198"},
+  {name:"Metallic Blue",      type:"metallic", hex:"#204870",   brand:"ak", code:"AK11199"},
+  {name:"Astral Beryllium",   type:"metallic", hex:"#607880",   brand:"ak", code:"AK11200"},
+  {name:"Cobalt Blue",        type:"metallic", hex:"#304898",   brand:"ak", code:"AK11201"},
+  {name:"Anodized Violet",    type:"metallic", hex:"#503880",   brand:"ak", code:"AK11202"},
+  {name:"Foundry Red",        type:"metallic", hex:"#803028",   brand:"ak", code:"AK11203"},
+  {name:"Emerald Metallic Green",type:"metallic",hex:"#186848", brand:"ak", code:"AK11204"},
+  {name:"Metallic Green",     type:"metallic", hex:"#306040",   brand:"ak", code:"AK11205"},
+  {name:"Pearl",              type:"metallic", hex:"#E0E0D8",   brand:"ak", code:"AK11206"},
+  {name:"Aluminium",          type:"metallic", hex:"#C0C0C0",   brand:"ak", code:"AK11207"},
+  {name:"Dark Aluminium",     type:"metallic", hex:"#909090",   brand:"ak", code:"AK11208"},
+  {name:"Silver",             type:"metallic", hex:"#D8D8D8",   brand:"ak", code:"AK11209"},
+  {name:"Natural Steel",      type:"metallic", hex:"#A0A0A0",   brand:"ak", code:"AK11210"},
+  {name:"Oily Steel",         type:"metallic", hex:"#808088",   brand:"ak", code:"AK11211"},
+  {name:"Gun Metal",          type:"metallic", hex:"#606870",   brand:"ak", code:"AK11212"},
+
+  // ── Intense (High-pigment) ──
+  // Note: Deep Violet (AK11072) and Deep Purple (AK11074) already listed above
+
+
+  // ── Monument Hobbies Pro Acryl ──
+  {name:"Bold Titanium White", type:"paint", hex:"#F5F5F0", brand:"proacryl", code:"MPA-001"},
+  {name:"Coal Black", type:"paint", hex:"#1E1E1E", brand:"proacryl", code:"MPA-002"},
+  {name:"Bold Pyrrole Red", type:"paint", hex:"#C8252F", brand:"proacryl", code:"MPA-003"},
+  {name:"Green", type:"paint", hex:"#1F8C5C", brand:"proacryl", code:"MPA-004"},
+  {name:"Blue", type:"paint", hex:"#2055A8", brand:"proacryl", code:"MPA-005"},
+  {name:"Golden Yellow", type:"paint", hex:"#F0A820", brand:"proacryl", code:"MPA-006"},
+  {name:"Orange", type:"paint", hex:"#EE6020", brand:"proacryl", code:"MPA-007"},
+  {name:"Burnt Red", type:"paint", hex:"#8A2820", brand:"proacryl", code:"MPA-008"},
+  {name:"Mahogany", type:"paint", hex:"#5A2820", brand:"proacryl", code:"MPA-009"},
+  {name:"Purple", type:"paint", hex:"#4A2080", brand:"proacryl", code:"MPA-010"},
+  {name:"Magenta", type:"paint", hex:"#C0185C", brand:"proacryl", code:"MPA-011"},
+  {name:"Sky Blue", type:"paint", hex:"#5095C0", brand:"proacryl", code:"MPA-012"},
+  {name:"Faded Ultramarine", type:"paint", hex:"#4060A0", brand:"proacryl", code:"MPA-013"},
+  {name:"Dark Grey Blue", type:"paint", hex:"#405068", brand:"proacryl", code:"MPA-014"},
+  {name:"Bright Warm Grey", type:"paint", hex:"#9C9690", brand:"proacryl", code:"MPA-015"},
+  {name:"Dark Warm Grey", type:"paint", hex:"#5E564E", brand:"proacryl", code:"MPA-016"},
+  {name:"Golden Brown", type:"paint", hex:"#8C5820", brand:"proacryl", code:"MPA-017"},
+  {name:"Light Umber", type:"paint", hex:"#7A5028", brand:"proacryl", code:"MPA-018"},
+  {name:"Dark Umber", type:"paint", hex:"#3E2818", brand:"proacryl", code:"MPA-019"},
+  {name:"Camo Green", type:"paint", hex:"#5A6840", brand:"proacryl", code:"MPA-020"},
+  {name:"Jade", type:"paint", hex:"#70A88C", brand:"proacryl", code:"MPA-021"},
+  {name:"Bright Ivory", type:"paint", hex:"#F0E5C8", brand:"proacryl", code:"MPA-022"},
+  {name:"Ivory", type:"paint", hex:"#DCC890", brand:"proacryl", code:"MPA-023"},
+  {name:"Tan Flesh", type:"paint", hex:"#C89878", brand:"proacryl", code:"MPA-024"},
+  {name:"Silver", type:"metallic", hex:"#C8C8C8", brand:"proacryl", code:"MPA-025"},
+  {name:"Light Bronze", type:"metallic", hex:"#B89060", brand:"proacryl", code:"MPA-026"},
+  {name:"Copper", type:"metallic", hex:"#B05828", brand:"proacryl", code:"MPA-027"},
+  {name:"Rich Gold", type:"metallic", hex:"#A88040", brand:"proacryl", code:"MPA-028"},
+  {name:"White Gold", type:"metallic", hex:"#D8C088", brand:"proacryl", code:"MPA-029"},
+  {name:"Dark Silver", type:"metallic", hex:"#808080", brand:"proacryl", code:"MPA-030"},
+  {name:"Bright Gold", type:"metallic", hex:"#C0A040", brand:"proacryl", code:"MPA-031"},
+  {name:"Bronze", type:"metallic", hex:"#886040", brand:"proacryl", code:"MPA-032"},
+  {name:"Dark Blue", type:"paint", hex:"#182850", brand:"proacryl", code:"MPA-033"},
+  {name:"Dark Purple", type:"paint", hex:"#3C1858", brand:"proacryl", code:"MPA-034"},
+  {name:"Dark Camo Green", type:"paint", hex:"#3A4828", brand:"proacryl", code:"MPA-035"},
+  {name:"Burnt Orange", type:"paint", hex:"#C04820", brand:"proacryl", code:"MPA-036"},
+  {name:"Yellow Orche", type:"paint", hex:"#C8A848", brand:"proacryl", code:"MPA-037"},
+  {name:"Bright Yellow Green", type:"paint", hex:"#A8C040", brand:"proacryl", code:"MPA-038"},
+  {name:"Black Brown", type:"paint", hex:"#281810", brand:"proacryl", code:"MPA-039"},
+  {name:"Olive Flesh", type:"paint", hex:"#98885C", brand:"proacryl", code:"MPA-040"},
+  {name:"Shadow Flesh", type:"paint", hex:"#78483C", brand:"proacryl", code:"MPA-041"},
+  {name:"Pale Pink", type:"paint", hex:"#F0C8C8", brand:"proacryl", code:"MPA-042"},
+  {name:"Dark Neutral Grey", type:"paint", hex:"#606060", brand:"proacryl", code:"MPA-043"},
+  {name:"Bright Neutral Grey", type:"paint", hex:"#B0B0B0", brand:"proacryl", code:"MPA-044"},
+  {name:"Turquoise", type:"paint", hex:"#20A095", brand:"proacryl", code:"MPA-045"},
+  {name:"Grey Blue", type:"paint", hex:"#607480", brand:"proacryl", code:"MPA-046"},
+  {name:"Blue Black", type:"paint", hex:"#182028", brand:"proacryl", code:"MPA-047"},
+  {name:"Black Green", type:"paint", hex:"#182818", brand:"proacryl", code:"MPA-048"},
+  {name:"Bright Pale Green", type:"paint", hex:"#A0C898", brand:"proacryl", code:"MPA-049"},
+  {name:"Burnt Sienna", type:"paint", hex:"#8C3820", brand:"proacryl", code:"MPA-050"},
+  {name:"Pale Yellow", type:"paint", hex:"#F0E090", brand:"proacryl", code:"MPA-051"},
+  {name:"Khaki", type:"paint", hex:"#B8A878", brand:"proacryl", code:"MPA-052"},
+  {name:"Dark Golden Brown", type:"paint", hex:"#604018", brand:"proacryl", code:"MPA-053"},
+  {name:"Faded Plum", type:"paint", hex:"#684858", brand:"proacryl", code:"MPA-054"},
+  {name:"Yellow Green", type:"paint", hex:"#94B048", brand:"proacryl", code:"MPA-055"},
+  {name:"Faded Green", type:"paint", hex:"#6E8050", brand:"proacryl", code:"MPA-056"},
+  {name:"Bright Jade", type:"paint", hex:"#60B098", brand:"proacryl", code:"MPA-057"},
+  {name:"Dark Flesh", type:"paint", hex:"#8A4C38", brand:"proacryl", code:"MPA-058"},
+  {name:"Burgundy", type:"paint", hex:"#5A1820", brand:"proacryl", code:"MPA-059"},
+  {name:"Plum", type:"paint", hex:"#583050", brand:"proacryl", code:"MPA-060"},
+  {name:"Pink", type:"paint", hex:"#E08098", brand:"proacryl", code:"MPA-061"},
+  {name:"Warm Yellow", type:"paint", hex:"#F0C040", brand:"proacryl", code:"MPA-062"},
+  {name:"Warm Flesh", type:"paint", hex:"#D89878", brand:"proacryl", code:"MPA-063"},
+  {name:"Warm Grey", type:"paint", hex:"#98807A", brand:"proacryl", code:"MPA-064"},
+  {name:"Neutral Grey", type:"paint", hex:"#808080", brand:"proacryl", code:"MPA-065"},
+
+  // ── Vallejo Model Color ──
+  {name:"White", type:"paint", hex:"#FFFFFF", brand:"vmc"},
+  {name:"Off White", type:"paint", hex:"#ECE3D0", brand:"vmc"},
+  {name:"Light Grey", type:"paint", hex:"#B8B8B8", brand:"vmc"},
+  {name:"Sky Grey", type:"paint", hex:"#C0C8C8", brand:"vmc"},
+  {name:"Cold Grey", type:"paint", hex:"#9CA0A4", brand:"vmc"},
+  {name:"Stone Grey", type:"paint", hex:"#9C9590", brand:"vmc"},
+  {name:"Neutral Grey", type:"paint", hex:"#808080", brand:"vmc"},
+  {name:"Basalt Grey", type:"paint", hex:"#4C4C4C", brand:"vmc"},
+  {name:"German Grey", type:"paint", hex:"#383840", brand:"vmc"},
+  {name:"Black Grey", type:"paint", hex:"#20242A", brand:"vmc"},
+  {name:"Black", type:"paint", hex:"#0A0A0A", brand:"vmc"},
+  {name:"Ivory", type:"paint", hex:"#EFE2C0", brand:"vmc"},
+  {name:"Pale Sand", type:"paint", hex:"#DCC890", brand:"vmc"},
+  {name:"Iraqi Sand", type:"paint", hex:"#C8B280", brand:"vmc"},
+  {name:"Dark Sand", type:"paint", hex:"#B89860", brand:"vmc"},
+  {name:"Buff", type:"paint", hex:"#C8A862", brand:"vmc"},
+  {name:"Khaki", type:"paint", hex:"#888050", brand:"vmc"},
+  {name:"Khaki Grey", type:"paint", hex:"#807868", brand:"vmc"},
+  {name:"US Tan Earth", type:"paint", hex:"#9C7848", brand:"vmc"},
+  {name:"Beige Brown", type:"paint", hex:"#8C6840", brand:"vmc"},
+  {name:"Flat Earth", type:"paint", hex:"#6C4828", brand:"vmc"},
+  {name:"Burnt Umber", type:"paint", hex:"#482018", brand:"vmc"},
+  {name:"Mahogany Brown", type:"paint", hex:"#5C2418", brand:"vmc"},
+  {name:"Chocolate Brown", type:"paint", hex:"#402010", brand:"vmc"},
+  {name:"Hull Red", type:"paint", hex:"#5A1818", brand:"vmc"},
+  {name:"Cavalry Brown", type:"paint", hex:"#8C1818", brand:"vmc"},
+  {name:"Flat Red", type:"paint", hex:"#B82020", brand:"vmc"},
+  {name:"Carmine Red", type:"paint", hex:"#9A0820", brand:"vmc"},
+  {name:"Scarlet Red", type:"paint", hex:"#C81820", brand:"vmc"},
+  {name:"Vermillion", type:"paint", hex:"#D02010", brand:"vmc"},
+  {name:"Light Orange", type:"paint", hex:"#F08828", brand:"vmc"},
+  {name:"Orange Red", type:"paint", hex:"#E84020", brand:"vmc"},
+  {name:"Light Vermillion", type:"paint", hex:"#DC4818", brand:"vmc"},
+  {name:"Hot Orange", type:"paint", hex:"#F06020", brand:"vmc"},
+  {name:"Flat Yellow", type:"paint", hex:"#F8D020", brand:"vmc"},
+  {name:"Gold Yellow", type:"paint", hex:"#F0B820", brand:"vmc"},
+  {name:"Sunblast Yellow", type:"paint", hex:"#FFE040", brand:"vmc"},
+  {name:"Lemon Yellow", type:"paint", hex:"#F8E000", brand:"vmc"},
+  {name:"Light Yellow", type:"paint", hex:"#F0E090", brand:"vmc"},
+  {name:"Deep Yellow", type:"paint", hex:"#F0A820", brand:"vmc"},
+  {name:"Yellow Olive", type:"paint", hex:"#8C7838", brand:"vmc"},
+  {name:"Olive Green", type:"paint", hex:"#586830", brand:"vmc"},
+  {name:"Russian Uniform", type:"paint", hex:"#606848", brand:"vmc"},
+  {name:"Dark Yellow", type:"paint", hex:"#B89460", brand:"vmc"},
+  {name:"Yellow Green", type:"paint", hex:"#A0B040", brand:"vmc"},
+  {name:"Park Green Flat", type:"paint", hex:"#385C30", brand:"vmc"},
+  {name:"Light Green", type:"paint", hex:"#60A040", brand:"vmc"},
+  {name:"Dark Green", type:"paint", hex:"#204828", brand:"vmc"},
+  {name:"Sap Green", type:"paint", hex:"#486030", brand:"vmc"},
+  {name:"Intermediate Green", type:"paint", hex:"#486838", brand:"vmc"},
+  {name:"Camouflage Green", type:"paint", hex:"#606848", brand:"vmc"},
+  {name:"Pastel Green", type:"paint", hex:"#A0C898", brand:"vmc"},
+  {name:"Emerald", type:"paint", hex:"#008040", brand:"vmc"},
+  {name:"Gunship Green", type:"paint", hex:"#405038", brand:"vmc"},
+  {name:"Field Blue", type:"paint", hex:"#586878", brand:"vmc"},
+  {name:"Andrea Blue", type:"paint", hex:"#1850A0", brand:"vmc"},
+  {name:"Dark Blue", type:"paint", hex:"#183868", brand:"vmc"},
+  {name:"Prussian Blue", type:"paint", hex:"#0C1840", brand:"vmc"},
+  {name:"Ultramarine", type:"paint", hex:"#203080", brand:"vmc"},
+  {name:"Royal Blue", type:"paint", hex:"#2050A0", brand:"vmc"},
+  {name:"Magic Blue", type:"paint", hex:"#2068C0", brand:"vmc"},
+  {name:"Electric Blue", type:"paint", hex:"#2890C8", brand:"vmc"},
+  {name:"Sky Blue", type:"paint", hex:"#70A8D0", brand:"vmc"},
+  {name:"Pale Blue", type:"paint", hex:"#A8C0D0", brand:"vmc"},
+  {name:"Turquoise", type:"paint", hex:"#008090", brand:"vmc"},
+  {name:"Sombre Grey", type:"paint", hex:"#5A6068", brand:"vmc"},
+  {name:"Royal Purple", type:"paint", hex:"#4A1858", brand:"vmc"},
+  {name:"Hexed Lichen", type:"paint", hex:"#604078", brand:"vmc"},
+  {name:"Squid Pink", type:"paint", hex:"#C04068", brand:"vmc"},
+  {name:"Sunny Skin Tone", type:"paint", hex:"#D89060", brand:"vmc"},
+  {name:"Salmon Rose", type:"paint", hex:"#F0A890", brand:"vmc"},
+  {name:"Medium Flesh Tone", type:"paint", hex:"#C88060", brand:"vmc"},
+  {name:"Basic Skin Tone", type:"paint", hex:"#D8A080", brand:"vmc"},
+  {name:"Light Flesh", type:"paint", hex:"#F4D0B0", brand:"vmc"},
+  {name:"Brown Sand", type:"paint", hex:"#9C7848", brand:"vmc"},
+  {name:"Flat Brown", type:"paint", hex:"#7C4828", brand:"vmc"},
+  {name:"Old Gold", type:"metallic", hex:"#A88040", brand:"vmc"},
+  {name:"Brass", type:"metallic", hex:"#B89028", brand:"vmc"},
+  {name:"Bronze", type:"metallic", hex:"#886040", brand:"vmc"},
+  {name:"Gunmetal Grey", type:"metallic", hex:"#707880", brand:"vmc"},
+  {name:"Silver", type:"metallic", hex:"#C0C0C0", brand:"vmc"},
+  {name:"Chainmail Silver", type:"metallic", hex:"#A0A0A0", brand:"vmc"},
+
+  // ── Vallejo Game Color ──
+  {name:"Dead White", type:"paint", hex:"#F5F5F0", brand:"vgc"},
+  {name:"White Primer", type:"paint", hex:"#FFFFFF", brand:"vgc"},
+  {name:"Light Flesh", type:"paint", hex:"#F4D0B0", brand:"vgc"},
+  {name:"Elf Skintone", type:"paint", hex:"#E8B898", brand:"vgc"},
+  {name:"Bald Moon Yellow", type:"paint", hex:"#F8E840", brand:"vgc"},
+  {name:"Sunblast Yellow", type:"paint", hex:"#FED900", brand:"vgc"},
+  {name:"Gold Yellow", type:"paint", hex:"#F0B820", brand:"vgc"},
+  {name:"Orange Fire", type:"paint", hex:"#F08830", brand:"vgc"},
+  {name:"Hot Orange", type:"paint", hex:"#F46D2D", brand:"vgc"},
+  {name:"Bloody Red", type:"paint", hex:"#E83020", brand:"vgc"},
+  {name:"Scarlett Red", type:"paint", hex:"#C21920", brand:"vgc"},
+  {name:"Cavalry Brown", type:"paint", hex:"#8C1818", brand:"vgc"},
+  {name:"Warlord Purple", type:"paint", hex:"#8E1858", brand:"vgc"},
+  {name:"Hexed Lichen", type:"paint", hex:"#604078", brand:"vgc"},
+  {name:"Royal Purple", type:"paint", hex:"#401860", brand:"vgc"},
+  {name:"Nauseating Blue", type:"paint", hex:"#604898", brand:"vgc"},
+  {name:"Stormy Blue", type:"paint", hex:"#30506C", brand:"vgc"},
+  {name:"Dark Prussian Blue", type:"paint", hex:"#0E1838", brand:"vgc"},
+  {name:"Imperial Blue", type:"paint", hex:"#002051", brand:"vgc"},
+  {name:"Magic Blue", type:"paint", hex:"#2068C0", brand:"vgc"},
+  {name:"Ultramarine Blue", type:"paint", hex:"#1F56A8", brand:"vgc"},
+  {name:"Lightning Bolt Blue", type:"paint", hex:"#2890C8", brand:"vgc"},
+  {name:"Falcon Turquoise", type:"paint", hex:"#0B6874", brand:"vgc"},
+  {name:"Foul Green", type:"paint", hex:"#385C30", brand:"vgc"},
+  {name:"Jade Green", type:"paint", hex:"#488C68", brand:"vgc"},
+  {name:"Scurf Green", type:"paint", hex:"#207050", brand:"vgc"},
+  {name:"Dark Green", type:"paint", hex:"#00401E", brand:"vgc"},
+  {name:"Intermediate Green", type:"paint", hex:"#3E8059", brand:"vgc"},
+  {name:"Sick Green", type:"paint", hex:"#84A050", brand:"vgc"},
+  {name:"Goblin Green", type:"paint", hex:"#2FA56C", brand:"vgc"},
+  {name:"Scorpy Green", type:"paint", hex:"#008040", brand:"vgc"},
+  {name:"Livery Green", type:"paint", hex:"#486030", brand:"vgc"},
+  {name:"Escorpena Green", type:"paint", hex:"#385030", brand:"vgc"},
+  {name:"Camouflage Green", type:"paint", hex:"#606848", brand:"vgc"},
+  {name:"Earth", type:"paint", hex:"#907040", brand:"vgc"},
+  {name:"Bonewhite", type:"paint", hex:"#DCC890", brand:"vgc"},
+  {name:"Khaki", type:"paint", hex:"#B8A878", brand:"vgc"},
+  {name:"Dwarf Skin", type:"paint", hex:"#C68068", brand:"vgc"},
+  {name:"Tan", type:"paint", hex:"#C88040", brand:"vgc"},
+  {name:"Bronze Fleshtone", type:"paint", hex:"#B07058", brand:"vgc"},
+  {name:"Filthy Brown", type:"paint", hex:"#BF6E1D", brand:"vgc"},
+  {name:"Cobra Leather", type:"paint", hex:"#8C5828", brand:"vgc"},
+  {name:"Charred Brown", type:"paint", hex:"#5A2818", brand:"vgc"},
+  {name:"Beasty Brown", type:"paint", hex:"#604028", brand:"vgc"},
+  {name:"Parasite Brown", type:"paint", hex:"#402018", brand:"vgc"},
+  {name:"Plague Brown", type:"paint", hex:"#9C6838", brand:"vgc"},
+  {name:"Earth Brown", type:"paint", hex:"#604828", brand:"vgc"},
+  {name:"Heavy Brown", type:"paint", hex:"#402818", brand:"vgc"},
+  {name:"Skull White", type:"paint", hex:"#F5F5F0", brand:"vgc"},
+  {name:"Wolf Grey", type:"paint", hex:"#A0A8B0", brand:"vgc"},
+  {name:"Ghost Grey", type:"paint", hex:"#B0B8C0", brand:"vgc"},
+  {name:"Stonewall Grey", type:"paint", hex:"#808880", brand:"vgc"},
+  {name:"Cold Grey", type:"paint", hex:"#6C7480", brand:"vgc"},
+  {name:"Sombre Grey", type:"paint", hex:"#5A6068", brand:"vgc"},
+  {name:"Wolf Grey Dark", type:"paint", hex:"#404850", brand:"vgc"},
+  {name:"Black", type:"paint", hex:"#0A0A0A", brand:"vgc"},
+  {name:"Brassy Brass", type:"metallic", hex:"#B89028", brand:"vgc"},
+  {name:"Polished Gold", type:"metallic", hex:"#C0A040", brand:"vgc"},
+  {name:"Glorious Gold", type:"metallic", hex:"#A88040", brand:"vgc"},
+  {name:"Tinny Tin", type:"metallic", hex:"#907040", brand:"vgc"},
+  {name:"Hammered Copper", type:"metallic", hex:"#B05828", brand:"vgc"},
+  {name:"Bright Bronze", type:"metallic", hex:"#B07840", brand:"vgc"},
+  {name:"Gunmetal Metal", type:"metallic", hex:"#707880", brand:"vgc"},
+  {name:"Chainmail Silver", type:"metallic", hex:"#A0A0A0", brand:"vgc"},
+  {name:"Silver", type:"metallic", hex:"#C0C0C0", brand:"vgc"},
+  {name:"Plate Mail Metal", type:"metallic", hex:"#94999D", brand:"vgc"},
+  {name:"Heavy Charcoal", type:"paint", hex:"#302828", brand:"vgc"},
+  {name:"Heavy Skintone", type:"paint", hex:"#C88860", brand:"vgc"},
+  {name:"Heavy Bluegrey", type:"paint", hex:"#5C7080", brand:"vgc"},
+  {name:"Heavy Bluegreen", type:"paint", hex:"#356060", brand:"vgc"},
+  {name:"Heavy Warmgrey", type:"paint", hex:"#8A7868", brand:"vgc"},
+  {name:"Heavy Khaki", type:"paint", hex:"#807058", brand:"vgc"},
+  {name:"Heavy Brown", type:"paint", hex:"#402818", brand:"vgc"},
+];
+
+// ── Colour math ─────────────────────────────────────────────
+function hexToRgb(hex) {
+  return [
+    parseInt(hex.slice(1,3),16),
+    parseInt(hex.slice(3,5),16),
+    parseInt(hex.slice(5,7),16)
+  ];
+}
+
+function hexToHsl(hex) {
+  let [r,g,b] = hexToRgb(hex).map(v=>v/255);
+  const max=Math.max(r,g,b), min=Math.min(r,g,b);
+  let h=0, s=0;
+  const l=(max+min)/2;
+  if (max!==min) {
+    const d=max-min;
+    s = l>.5 ? d/(2-max-min) : d/(max+min);
+    if (max===r)      h=((g-b)/d+(g<b?6:0))/6;
+    else if (max===g) h=((b-r)/d+2)/6;
+    else              h=((r-g)/d+4)/6;
+  }
+  return { h:h*360, s:s*100, l:l*100 };
+}
+
+// HSV value = max(r,g,b)/255 — represents the brightness component
+// used by colour wheels like Munsell and the Martian wheel for the
+// radial axis.
+function hexToHsv(hex) {
+  const [r,g,b] = hexToRgb(hex);
+  return Math.max(r,g,b) / 255 * 100; // 0–100
+}
+
+// Perceptual colour distance in RGB
+function colourDist(hexA, hexB) {
+  const [r1,g1,b1]=hexToRgb(hexA), [r2,g2,b2]=hexToRgb(hexB);
+  return Math.sqrt((r1-r2)**2+(g1-g2)**2+(b1-b2)**2);
+}
+
+// ── Martian Colour Wheel: 24-hue perceptual mapping ──────────
+// Each entry: [hslHue, martianWheelDeg]
+// hslHue = HSL/HSB hue of the primary exemplar from warrenmars.com
+// martianWheelDeg = position on the 360° wheel (0=top=Red, clockwise)
+// The 24 hues are evenly spaced at 15° each on the Martian wheel.
+// HSL hues are NOT evenly spaced — this corrects for perceptual distortions
+// and the Abney effect around blue, and the compression of green-yellow.
+const MARTIAN_HUES = [
+  // [hslPrimary, martianMidpoint] — primary exemplar HSL hue maps to segment midpoint.
+  // Segment boundaries fall at the HSL midpoint between adjacent primaries.
+  // Sources: Warren Mars warrenmars.com (Red=HSB0, Orange=HSB30, Turmeric=HSB44, ...)
+  // Wrap sentinel: covers HSL 352.5°-360° which wraps into the lower Red sector
+  [-15,  -7.5],  // Red (wrap-around — HSL 345°-360° treated as -15° to 0°)
+  [  0,   7.5],  // Red
+  [ 30,  22.5],  // Orange
+  [ 44,  37.5],  // Turmeric
+  [ 52,  52.5],  // Yellow Cheese
+  [ 60,  67.5],  // Yellow
+  [ 75,  82.5],  // Green Grape
+  [ 84,  97.5],  // Chartreuse
+  [ 97, 112.5],  // Green Pea
+  [120, 127.5],  // Green
+  [140, 142.5],  // Clover
+  [152, 157.5],  // Emerald
+  [165, 172.5],  // Malachite
+  [180, 187.5],  // Cyan
+  [195, 202.5],  // Turquoise
+  [210, 217.5],  // Azure
+  [222, 232.5],  // Royal Blue
+  [240, 247.5],  // Blue
+  [255, 262.5],  // Dioxazine
+  [273, 277.5],  // Violet
+  [283, 292.5],  // Aniline
+  [300, 307.5],  // Magenta
+  [315, 322.5],  // Pink
+  [330, 337.5],  // Prickly Pear
+  [345, 352.5],  // Red Plum
+  [375, 367.5],  // sentinel — keeps Red-Plum→wrap interpolation valid
+];
+
+// Map an HSL hue (0–360) to a Martian wheel angle (0–360, 0=Red=top)
+function hslToMartianAngle(hslHue) {
+  let h = ((hslHue % 360) + 360) % 360;
+  // Wrap-around: hues near 360° (>= Red/Red-Plum boundary ≈ 352.5°) that belong
+  // in the lower half of the Red sector are treated as negative (h - 360).
+  // The wrap sentinel at [-15, -7.5] handles these.
+  if (h >= 352.5) h = h - 360; // e.g. 355° → -5°, falls between [-15,-7.5] and [0,7.5]
+  for (let i = 0; i < MARTIAN_HUES.length - 1; i++) {
+    const [h0, m0] = MARTIAN_HUES[i];
+    const [h1, m1] = MARTIAN_HUES[i + 1];
+    if (h >= h0 && h < h1) {
+      const t = (h - h0) / (h1 - h0);
+      return m0 + t * (m1 - m0);
+    }
+  }
+  return 0; // fallback
+}
+
+// Convert Martian angle (0=Red=top, clockwise) to canvas radians
+// Wheel rotation offset: -7.5° so Red segment midpoint sits at the top
+const WHEEL_OFFSET = -7.5;
+
+function martianAngleToRad(deg) {
+  return (deg + WHEEL_OFFSET - 90) * Math.PI / 180;
+}
+
+// ── State ────────────────────────────────────────────────────
+// activeTypes: Set of type strings currently shown. Default: exclude metallic
+// Filter sets follow a consistent rule across ALL filters:
+//   empty set      → no filter applied → every option shown, buttons unselected
+//   non-empty set  → filter active     → only listed options shown, buttons selected
+const activeTypes  = new Set();   // 'base' | 'layer' | 'metallic'
+// activeBrands removed of defaults — empty means all brands shown
+const activeBrands = new Set();   // 'citadel' | 'ak' | 'proacryl' | 'vmc' | 'vgc'
+// activeHues: Set of Martian hue segment indices (0–23), empty = all
+const activeHues = new Set();
+// activeSatBands: Set of saturation band keys, empty = all
+const activeSatBands = new Set();
+// activeValBands: Set of value band keys, empty = all
+const activeValBands = new Set();
+
+let highlighted  = null;
+let hoveredHarmony = null;
+let selected     = null;
+let searchQuery  = '';
+let hoveredSeg   = -1;
+let hoveredRing  = null; // VAL_RINGS entry under cursor
+let activeHarmony = null;
+let showMetallics = false;   // false = hidden by default (button unselected)
+let showAchromatics = true;  // true = shown by default (button selected)
+let darkMode = localStorage.getItem('darkMode') !== 'false'; // dark by default
+let schemeColours = []; // list of paints added to the colour scheme
+let harmonyStegs  = [];
+let harmonyPaintsCache = [];
+let harmonyBrandFilter = new Set(); // empty = no filter = all brands shown
+let harmonyValFilter   = new Set(); // empty = no filter = all value bands shown
+let harmonySatFilter   = new Set(); // empty = no filter = all saturation bands shown
+
+// Saturation bands (HSL saturation)
+const SAT_BANDS = [
+  { key:'vivid',  label:'Vivid',   min:60, max:101, color:'#a8d4f0' },
+  { key:'mid',    label:'Mid',     min:25, max:60,  color:'#7090b0' },
+  { key:'muted',  label:'Muted',   min:0,  max:25,  color:'#3a5070' },
+];
+function getSatBand(s) {
+  return SAT_BANDS.find(b => s >= b.min && s < b.max) || SAT_BANDS[2];
+}
+
+// Value bands (HSV value = brightness)
+const VAL_BANDS = [
+  { key:'bright', label:'Bright', min:70, max:101, color:'#e8e0c0' },
+  { key:'mid',    label:'Mid',    min:35, max:70,  color:'#a0a0a0' },
+  { key:'dark',   label:'Dark',   min:0,  max:35,  color:'#686868' },
+];
+function getValBand(v) {
+  return VAL_BANDS.find(b => v >= b.min && v < b.max) || VAL_BANDS[2];
+}
+
+// Martian hue segment for a paint (0–23), or -1 for achromatic
+function getMartianSegment(p) {
+  const { h, s } = p.hsl;
+  if (s < 12) return -1; // achromatic / neutrals
+  const martianDeg = hslToMartianAngle(h);
+  return Math.floor(((martianDeg % 360) + 360) / 15) % 24;
+}
+
+// Pre-compute derived fields after HSL
+function derivePaintFields(p) {
+  p.hsl     = hexToHsl(p.hex);
+  p.value   = hexToHsv(p.hex);   // brightness 0–100
+  p.satBand = getSatBand(p.hsl.s);
+  p.valBand = getValBand(p.value);
+  p.hueSeg  = getMartianSegment(p);
+}
+
+// Now safe to pre-compute — all dependencies are defined
+PAINTS.forEach(p => derivePaintFields(p));
+
+function visiblePaints() {
+  return PAINTS.filter(p => {
+    // Exclude metallics (persists across harmony changes)
+    if (!showMetallics && p.type === 'metallic') return false;
+    // Exclude achromatics
+    if (!showAchromatics && p.hueSeg < 0) return false;
+    // Brand filter — empty set means no filter (show all brands)
+    if (activeBrands.size > 0 && !activeBrands.has(p.brand)) return false;
+    // Type filter — empty set means no filter (show all types).
+    // Citadel uses base / layer / metallic; other brands use "paint" or
+    // "metallic". "paint" maps to the 'layer' (standard) bucket.
+    if (activeTypes.size > 0) {
+      let typeKey;
+      if (p.type === 'metallic')      typeKey = 'metallic';
+      else if (p.type === 'base')     typeKey = 'base';
+      else                            typeKey = 'layer'; // 'paint' / standard
+      if (!activeTypes.has(typeKey)) return false;
+    }
+    // Hue filter
+    if (activeHues.size > 0) {
+      if (p.hueSeg === -1 || !activeHues.has(p.hueSeg)) return false;
+    }
+    // Saturation filter
+    if (activeSatBands.size > 0) {
+      if (!activeSatBands.has(p.satBand.key)) return false;
+    }
+    // Value filter
+    if (activeValBands.size > 0) {
+      if (!activeValBands.has(p.valBand.key)) return false;
+    }
+    return true;
+  });
+}
+
+// Paints to actually draw on the wheel — when a harmony is active, restrict
+// the wheel to the selected paint + harmony segment paints only.
+function paintsForWheel() {
+  if (activeHarmony) {
+    const out = [];
+    if (selected) out.push(selected);
+    if (activeHarmony === 'nearest') {
+      out.push(...harmonyPaintsCache);
+    } else if (activeHarmony === 'mono') {
+      out.push(...harmonyPaintsCache);
+    } else if (harmonyStegs.length > 0) {
+      PAINTS.forEach(p => {
+        if (p.hueSeg !== -1 && harmonyStegs.includes(p.hueSeg)) out.push(p);
+      });
+    }
+    const deduped = Array.from(new Set(out));
+    // Apply harmony brand + value sub-filters (empty = no filter = show all)
+    return deduped.filter(p => {
+      if (p === selected) return true; // always show the selected paint
+      if (harmonyBrandFilter.size > 0 && !harmonyBrandFilter.has(p.brand)) return false;
+      if (harmonySatFilter.size   > 0 && !harmonySatFilter.has(p.satBand.key)) return false;
+      if (harmonyValFilter.size   > 0 && !harmonyValFilter.has(p.valBand.key)) return false;
+      return true;
+    });
+  }
+  return visiblePaints();
+}
+
+function toggleExcludeMetallic() {
+  showMetallics = !showMetallics;
+  const el = document.getElementById('fb-exclude-metallic');
+  if (el) el.classList.toggle('on', showMetallics);
+  refreshAfterFilter();
+}
+
+function toggleExcludeAchromatic() {
+  showAchromatics = !showAchromatics;
+  const el = document.getElementById('fb-exclude-achromatic');
+  if (el) el.classList.toggle('on', showAchromatics);
+  refreshAfterFilter();
+}
+
+// The val ring config buttons in the dropdown are an alias for toggleValBand
+function toggleValRingFilter(key) {
+  toggleValBand(key);
+  // Keep the config dropdown buttons in sync
+  refreshValRingButtons();
+}
+
+function refreshValRingButtons() {
+  VAL_BANDS.forEach(b => {
+    const el = document.getElementById('valring-' + b.key);
+    if (el) el.classList.toggle('on', activeValBands.has(b.key));
+  });
+}
+
+function toggleBrand(brand) {
+  if (activeBrands.has(brand)) activeBrands.delete(brand);
+  else activeBrands.add(brand);
+  refreshBrandButtons();
+  updateTypeFilterVisibility();
+  refreshAfterFilter();
+}
+
+// Brand dropdown toggle
+let brandDropdownOpen = false;
+function toggleBrandDropdown() {
+  brandDropdownOpen = !brandDropdownOpen;
+  const dd  = document.getElementById('brand-dropdown');
+  const btn = document.getElementById('brand-toggle-btn');
+  const arrow = document.getElementById('brand-arrow');
+  if (brandDropdownOpen) {
+    const rect = btn.getBoundingClientRect();
+    dd.style.top  = (rect.bottom + 4) + 'px';
+    dd.style.left = rect.left + 'px';
+    dd.style.display = 'block';
+  } else {
+    dd.style.display = 'none';
+  }
+  arrow.textContent = brandDropdownOpen ? '▲' : '▼';
+}
+
+// Close brand dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('brand-dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    brandDropdownOpen = false;
+    const dd = document.getElementById('brand-dropdown');
+    if (dd) dd.style.display = 'none';
+    const arrow = document.getElementById('brand-arrow');
+    if (arrow) arrow.textContent = '▼';
+  }
+});
+
+function refreshBrandButtons() {
+  const BRANDS = ['citadel','ak','proacryl','vmc','vgc'];
+  BRANDS.forEach(b => {
+    const opt = document.getElementById('lg-'+b);
+    if (opt) opt.classList.toggle('on', activeBrands.has(b));
+  });
+  // Update the button label and active state
+  const btn = document.getElementById('brand-toggle-btn');
+  if (!btn) return;
+  const active = BRANDS.filter(b => activeBrands.has(b));
+  if (active.length === 0) {
+    document.getElementById('brand-btn-label').textContent = 'All brands';
+    btn.classList.remove('active');
+  } else if (active.length === 1) {
+    const labels = { citadel:'Citadel', ak:'AK', proacryl:'Pro Acryl', vmc:'VMC', vgc:'VGC' };
+    document.getElementById('brand-btn-label').textContent = labels[active[0]];
+    btn.classList.add('active');
+  } else {
+    document.getElementById('brand-btn-label').textContent = `${active.length} brands`;
+    btn.classList.add('active');
+  }
+}
+
+// Type filter is only meaningful for Citadel paints.
+// Show it only when Citadel is the sole active brand filter.
+function updateTypeFilterVisibility() {
+  const citadelOnly = activeBrands.size === 1 && activeBrands.has('citadel');
+  const section = document.getElementById('type-filter-section');
+  if (!section) return;
+  section.style.display = citadelOnly ? 'block' : 'none';
+  if (!citadelOnly) {
+    // Clear any type filter when it's not applicable
+    activeTypes.clear();
+    refreshTypeButtons();
+  }
+}
+
+function toggleType(type) {
+  if (activeTypes.has(type)) activeTypes.delete(type);
+  else activeTypes.add(type);
+  refreshTypeButtons();
+  refreshAfterFilter();
+}
+
+function toggleHue(seg) {
+  if (activeHues.has(seg)) activeHues.delete(seg);
+  else activeHues.add(seg);
+  refreshHueButtons();
+  refreshAfterFilter();
+}
+
+function toggleSatBand(key) {
+  if (activeSatBands.has(key)) activeSatBands.delete(key);
+  else activeSatBands.add(key);
+  refreshSatButtons();
+  refreshAfterFilter();
+}
+
+function toggleValBand(key) {
+  if (activeValBands.has(key)) {
+    // Clicking the active band deselects it (back to no filter)
+    activeValBands.clear();
+  } else {
+    // Replace any existing selection with just this band
+    activeValBands.clear();
+    activeValBands.add(key);
+  }
+  refreshValButtons();
+  refreshAfterFilter();
+}
+
+function refreshTypeButtons() {
+  ['base','layer','metallic'].forEach(t => {
+    document.getElementById('f-'+t).classList.toggle('on', activeTypes.has(t));
+  });
+}
+
+function refreshHueButtons() {
+  document.querySelectorAll('.hbtn').forEach(btn => {
+    const seg = parseInt(btn.dataset.seg);
+    btn.classList.toggle('on', activeHues.has(seg));
+  });
+}
+
+function refreshSatButtons() {
+  SAT_BANDS.forEach(b => {
+    const el = document.getElementById('sb-'+b.key);
+    if (el) el.classList.toggle('on', activeSatBands.has(b.key));
+  });
+}
+
+function refreshValButtons() {
+  VAL_BANDS.forEach(b => {
+    const el = document.getElementById('vb-'+b.key);
+    if (el) el.classList.toggle('on', activeValBands.has(b.key));
+  });
+  refreshValRingButtons();
+}
+
+function refreshAfterFilter() {
+  const visible = visiblePaints();
+  document.getElementById('count-label').textContent = visible.length + ' paints';
+  if (selected && !visible.find(p => p.name === selected.name && p.brand === selected.brand)) {
+    selected = null;
+    document.getElementById('sel-card').style.display = 'none';
+    document.getElementById('panel-header-label').textContent = 'Select a paint';
+  }
+  draw();
+}
+
+// ── Canvas rendering ─────────────────────────────────────────
+const canvas = document.getElementById('wheel');
+const ctx    = canvas.getContext('2d');
+let W, H, CX, CY, R;
+let paintPositions = []; // {paint, x, y, r (dot radius)}
+
+// Zoom & pan state
+let zoom = 1;
+let panX = 0, panY = 0;
+const ZOOM_MIN = 1, ZOOM_MAX = 8;
+
+function applyTransform() {
+  ctx.translate(CX + panX, CY + panY);
+  ctx.scale(zoom, zoom);
+  ctx.translate(-CX, -CY);
+}
+
+// Convert screen coords (CSS px from event) to canvas-space (pre-transform) coords
+function screenToCanvas(mx, my) {
+  const rect = canvas.getBoundingClientRect();
+  const sx = (mx - rect.left) * devicePixelRatio;
+  const sy = (my - rect.top)  * devicePixelRatio;
+  // Reverse the transform: x_canvas = (sx - CX - panX) / zoom + CX
+  return {
+    x: (sx - CX - panX) / zoom + CX,
+    y: (sy - CY - panY) / zoom + CY,
+  };
+}
+
+function setZoom(newZoom, anchorX, anchorY) {
+  newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, newZoom));
+  if (anchorX !== undefined && anchorY !== undefined) {
+    // Keep the anchor point stationary in screen space while zooming
+    const factor = newZoom / zoom;
+    panX = (panX + CX - anchorX) * factor - CX + anchorX;
+    panY = (panY + CY - anchorY) * factor - CY + anchorY;
+  }
+  zoom = newZoom;
+  // Clamp pan so wheel can't drift entirely off-screen
+  const maxPan = R * (zoom - 1);
+  panX = Math.max(-maxPan, Math.min(maxPan, panX));
+  panY = Math.max(-maxPan, Math.min(maxPan, panY));
+  updateZoomLabel();
+  draw();
+}
+
+function resetView() {
+  zoom = 1; panX = 0; panY = 0;
+  updateZoomLabel();
+  draw();
+}
+
+function updateZoomLabel() {
+  const el = document.getElementById('zoom-label');
+  if (el) el.textContent = Math.round(zoom * 100) + '%';
+}
+
+function resize() {
+  const wrap = document.getElementById('canvas-wrap');
+  W = canvas.width  = wrap.clientWidth  * devicePixelRatio;
+  H = canvas.height = wrap.clientHeight * devicePixelRatio;
+  canvas.style.width  = wrap.clientWidth  + 'px';
+  canvas.style.height = wrap.clientHeight + 'px';
+  CX = W/2; CY = H/2;
+  R  = Math.min(W,H) * 0.38; // reduced from 0.44 to leave room for hue labels at top/bottom
+  draw();
+}
+
+function getPaintPos(p) {
+  const { h, s, l } = p.hsl;
+  const v = p.value; // 0–100
+
+  // True blacks / very dark near-neutrals stay at the centre.
+  // (Achromatic and very low value — we pin them rather than letting
+  // value alone place them, so they form a tight black cluster.)
+  const isBlack = s < 12 && l < 15;
+  if (isBlack) {
+    const angle = martianAngleToRad(hslToMartianAngle(h));
+    return {
+      x: CX + Math.cos(angle) * R * 0.04,
+      y: CY + Math.sin(angle) * R * 0.04,
+    };
+  }
+
+  // Radius = value (brightness), linear:
+  //   value = 100 (brightest) → outer rim
+  //   value = 0   (darkest)   → centre
+  const vNorm  = Math.min(v, 100) / 100;
+  const radius = R * (0.06 + vNorm * 0.88);
+  const angle  = martianAngleToRad(hslToMartianAngle(h));
+
+  return {
+    x: CX + Math.cos(angle) * radius,
+    y: CY + Math.sin(angle) * radius,
+  };
+}
+
+// ── Colour harmony ───────────────────────────────────────────
+// ── Colour harmony ───────────────────────────────────────────
+const HARMONY_TITLES = {
+  nearest:       'Nearest Colours',
+  mono:          'Monochromatic',
+  analogous:     'Analogous',
+  complementary: 'Complementary',
+  split:         'Split-Complementary',
+  triadic:       'Triadic',
+  tetradic:      'Tetradic',
+  square:        'Square',
+};
+
+// Harmonies that support a spread sub-option (±1, ±2 or ±3 segments)
+const SPREAD_HARMONIES = new Set(['analogous', 'split']);
+let harmonySpread = 1; // 1, 2 or 3
+
+// Given a Martian segment (0–23) and harmony type, return target segments
+function harmonySegments(seg, type, spread) {
+  const sp = spread || harmonySpread;
+  switch (type) {
+    case 'mono':
+      return [seg];
+    case 'analogous': {
+      const segs = [];
+      for (let i = 1; i <= sp; i++) {
+        segs.push((seg + i) % 24, (seg - i + 24) % 24);
+      }
+      return segs;
+    }
+    case 'complementary':
+      return [(seg + 12) % 24];
+    case 'split': {
+      const comp = (seg + 12) % 24;
+      const segs = [];
+      for (let i = 1; i <= sp; i++) {
+        segs.push((comp + i) % 24, (comp - i + 24) % 24);
+      }
+      return segs;
+    }
+    case 'triadic':
+      return [(seg + 8) % 24, (seg + 16) % 24];
+    case 'tetradic':
+      return [(seg + 6) % 24, (seg + 18) % 24];
+    case 'square':
+      return [(seg + 6) % 24, (seg + 12) % 24, (seg + 18) % 24];
+    default:
+      return [];
+  }
+}
+
+// All paints in the given Martian segments — ignores all top-level filters
+// EXCEPT showMetallics/showAchromatics which persist everywhere.
+function paintsInSegs(segs) {
+  return PAINTS.filter(p => {
+    if (!showMetallics && p.type === 'metallic') return false;
+    return segs.includes(p.hueSeg);
+  });
+}
+
+const ALL_HARMONY_BTNS = ['mono','analogous','comp','split','triadic','tetra','square'];
+
+const HBTN_TYPE_MAP = {
+  mono:'mono', analogous:'analogous',
+  complementary:'comp', split:'split', triadic:'triadic',
+  tetradic:'tetra', square:'square',
+};
+
+function setSpread(n) {
+  harmonySpread = n;
+  document.getElementById('sp-1').classList.toggle('active', n === 1);
+  document.getElementById('sp-2').classList.toggle('active', n === 2);
+  document.getElementById('sp-3').classList.toggle('active', n === 3);
+  if (activeHarmony && SPREAD_HARMONIES.has(activeHarmony)) {
+    _runHarmony(activeHarmony);
+  }
+}
+
+function setHarmony(type) {
+  if (!selected) return;
+  if (activeHarmony === type) {
+    _clearHarmonyState();
+    refreshAfterFilter();
+    return;
+  }
+
+  activeTypes.clear(); activeBrands.clear();
+  activeHues.clear(); activeSatBands.clear(); activeValBands.clear();
+  refreshTypeButtons(); refreshBrandButtons();
+  refreshSatButtons(); refreshValButtons(); refreshHueButtons();
+  updateTypeFilterVisibility();
+
+  activeHarmony = type;
+  harmonyBrandFilter = new Set(); // reset to "all" (no filter)
+  harmonyValFilter   = new Set(); // reset to "all" (no filter)
+  harmonySatFilter   = new Set(); // reset to "all" (no filter)
+  _runHarmony(type);
+}
+
+function _runHarmony(type) {
+  ALL_HARMONY_BTNS.forEach(k => {
+    const el = document.getElementById('hb-'+k);
+    if (el) el.classList.toggle('active', k === HBTN_TYPE_MAP[type]);
+  });
+
+  const spreadEl = document.getElementById('harmony-spread');
+  spreadEl.style.display = SPREAD_HARMONIES.has(type) ? 'flex' : 'none';
+
+  let paints;
+  if (type === 'mono') {
+    if (selected.hueSeg < 0) {
+      // Achromatic: match all other achromatic paints
+      harmonyStegs = [];
+      paints = PAINTS.filter(p =>
+        p.hueSeg < 0 &&
+        showMetallics || p.type !== 'metallic' &&
+        (p.name !== selected.name || p.brand !== selected.brand));
+    } else {
+      harmonyStegs = [selected.hueSeg];
+      paints = PAINTS.filter(p =>
+        p.hueSeg === selected.hueSeg &&
+        showMetallics || p.type !== 'metallic' &&
+        (p.name !== selected.name || p.brand !== selected.brand));
+    }
+  } else if (selected.hueSeg < 0) {
+    // Achromatic selected with a hue-based harmony: show all chromatic paints
+    // in the harmony segments relative to hue 0 (Red) as a fallback
+    harmonyStegs = harmonySegments(0, type);
+    paints = paintsInSegs(harmonyStegs);
+  } else {
+    harmonyStegs = harmonySegments(selected.hueSeg, type);
+    paints = paintsInSegs(harmonyStegs);
+  }
+
+  harmonyPaintsCache = paints;
+  const section = document.getElementById('harmony-section');
+  document.getElementById('harmony-title').textContent = HARMONY_TITLES[type];
+  renderHarmonyList();
+  section.style.display = 'block';
+  refreshAfterFilter();
+}
+
+function _clearHarmonyState() {
+  activeHarmony = null;
+  harmonyStegs = [];
+  harmonyPaintsCache = [];
+  const section = document.getElementById('harmony-section');
+  if (section) section.style.display = 'none';
+  const spreadEl = document.getElementById('harmony-spread');
+  if (spreadEl) spreadEl.style.display = 'none';
+  ALL_HARMONY_BTNS.forEach(k => {
+    const el = document.getElementById('hb-'+k);
+    if (el) el.classList.remove('active');
+  });
+}
+
+function clearHarmony() {
+  _clearHarmonyState();
+}
+
+// ── Harmony list rendering ────────────────────────────────────
+const HARMONY_BRAND_ORDER = ['citadel','ak','proacryl','vmc','vgc'];
+const HARMONY_BRAND_NAMES = {
+  citadel:'Citadel', ak:'AK 3rd Gen', proacryl:'Pro Acryl',
+  vmc:'Vallejo Model Color', vgc:'Vallejo Game Color',
+};
+
+const MARTIAN_HUE_NAMES_SHORT = [
+  'Red','Orange','Turmeric','Yel. Cheese','Yellow','Grn. Grape','Chartreuse',
+  'Green Pea','Green','Clover','Emerald','Malachite','Cyan','Turquoise','Azure',
+  'Royal Blue','Blue','Dioxazine','Violet','Aniline','Magenta','Pink','Prickly Pear','Red Plum'
+];
+
+function paintShapeSVG(p) {
+  if (p.brand === 'ak')
+    return `<svg width="12" height="12" viewBox="0 0 12 12" style="flex-shrink:0"><polygon points="6,1 11,6 6,11 1,6" fill="${p.hex}"/></svg>`;
+  if (p.brand === 'proacryl' || p.brand === 'fanatic')
+    return `<svg width="12" height="12" viewBox="0 0 12 12" style="flex-shrink:0"><rect x="2" y="2" width="8" height="8" fill="${p.hex}"/></svg>`;
+  if (p.brand === 'vmc')
+    return `<svg width="12" height="12" viewBox="0 0 12 12" style="flex-shrink:0"><polygon points="6,1 11,11 1,11" fill="${p.hex}"/></svg>`;
+  if (p.brand === 'vgc')
+    return `<svg width="12" height="12" viewBox="0 0 12 12" style="flex-shrink:0"><polygon points="6,11 11,1 1,1" fill="${p.hex}"/></svg>`;
+  return `<div style="width:11px;height:11px;border-radius:50%;background:${p.hex};flex-shrink:0"></div>`;
+}
+
+// ── Clear all ─────────────────────────────────────────────────
+function clearAll() {
+  // Clear filters
+  activeTypes.clear(); activeBrands.clear();
+  activeHues.clear(); activeSatBands.clear(); activeValBands.clear();
+  refreshTypeButtons(); refreshBrandButtons();
+  refreshSatButtons(); refreshValButtons(); refreshHueButtons();
+  updateTypeFilterVisibility();
+  // Clear selection, harmony, scheme
+  selected = null;
+  clearHarmony();
+  clearScheme();
+  // Reset zoom
+  resetView();
+  // Reset panel
+  document.getElementById('sel-card').style.display = 'none';
+  document.getElementById('panel-header-label').textContent = 'Select a paint';
+  closePanel();
+  document.getElementById('count-label').textContent = visiblePaints().length + ' paints';
+  draw();
+}
+
+function setHarmonyHover(name, brand) {
+  hoveredHarmony = { name, brand };
+  draw();
+}
+
+function clearHarmonyHover() {
+  hoveredHarmony = null;
+  draw();
+}
+
+function toggleHarmonyBrand(brand) {
+  if (harmonyBrandFilter.has(brand)) harmonyBrandFilter.delete(brand);
+  else harmonyBrandFilter.add(brand);
+  renderHarmonyList();
+  draw();
+}
+
+function toggleHarmonyBrandDropdown(btn) {
+  const menu = btn.nextElementSibling;
+  const open = menu.style.display !== 'none';
+  // Close all other harmony brand menus first
+  document.querySelectorAll('.harmony-brand-dd-menu').forEach(m => m.style.display = 'none');
+  menu.style.display = open ? 'none' : 'block';
+}
+
+function refreshHarmonyBrandDropdown(wrap, changedBrand) {
+  // Update opt state
+  wrap.querySelectorAll('.harmony-brand-dd-opt').forEach(opt => {
+    const brandName = opt.textContent.trim().split(/\s+\d/)[0];
+    const brand = Object.keys(HARMONY_BRAND_NAMES).find(k => HARMONY_BRAND_NAMES[k] === brandName);
+    if (brand) opt.classList.toggle('on', harmonyBrandFilter.has(brand));
+  });
+  // Update button label
+  const btn = wrap.querySelector('.harmony-brand-dd-btn');
+  const presentBrands = HARMONY_BRAND_ORDER.filter(b => harmonyPaintsCache.some(p => p.brand === b));
+  const active = presentBrands.filter(b => harmonyBrandFilter.has(b));
+  const labelText = active.length === 0 ? 'All brands'
+    : active.length === 1 ? HARMONY_BRAND_NAMES[active[0]]
+    : `${active.length} brands`;
+  btn.querySelector('span').textContent = labelText;
+  btn.classList.toggle('active', active.length > 0);
+}
+
+function toggleHarmonyVal(key) {
+  if (harmonyValFilter.has(key)) harmonyValFilter.delete(key);
+  else harmonyValFilter.add(key);
+  renderHarmonyList();
+  draw();
+}
+
+function toggleHarmonySat(key) {
+  if (harmonySatFilter.has(key)) harmonySatFilter.delete(key);
+  else harmonySatFilter.add(key);
+  renderHarmonyList();
+  draw();
+}
+
+function renderHarmonyList() {
+  const list = document.getElementById('harmony-list');
+  const paints = harmonyPaintsCache;
+
+  if (!paints || paints.length === 0) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--dimmer);font-style:italic">No paints found</div>';
+    return;
+  }
+
+  const presentBrands = HARMONY_BRAND_ORDER.filter(b => paints.some(p => p.brand === b));
+  const presentSats   = SAT_BANDS.filter(b => paints.some(p => p.satBand.key === b.key));
+  const presentVals   = VAL_BANDS.filter(b => paints.some(p => p.valBand.key === b.key));
+
+  let html = '';
+
+  // Apply all three filters simultaneously (AND condition)
+  const shown = paints.filter(p => {
+    const brandOk = harmonyBrandFilter.size === 0 || harmonyBrandFilter.has(p.brand);
+    const satOk   = harmonySatFilter.size   === 0 || harmonySatFilter.has(p.satBand.key);
+    const valOk   = harmonyValFilter.size   === 0 || harmonyValFilter.has(p.valBand.key);
+    return brandOk && satOk && valOk;
+  });
+
+  // ── Brand sub-filter — dropdown ──
+  if (presentBrands.length > 1) {
+    const activeHBrands = presentBrands.filter(b => harmonyBrandFilter.has(b));
+    const labelText = activeHBrands.length === 0
+      ? 'All brands'
+      : activeHBrands.length === 1
+        ? HARMONY_BRAND_NAMES[activeHBrands[0]]
+        : `${activeHBrands.length} brands`;
+    const isActive = activeHBrands.length > 0;
+    html += `<div class="harmony-sub-header">Brand</div>
+    <div class="harmony-brand-dd-wrap">
+      <button class="harmony-brand-dd-btn${isActive?' active':''}" onclick="toggleHarmonyBrandDropdown(this)">
+        <span>${labelText}</span><span style="font-size:9px;opacity:.6">▼</span>
+      </button>
+      <div class="harmony-brand-dd-menu" style="display:none">`;
+    presentBrands.forEach(b => {
+      const on    = harmonyBrandFilter.has(b);
+      const count = paints.filter(p =>
+        p.brand === b &&
+        (harmonySatFilter.size === 0 || harmonySatFilter.has(p.satBand.key)) &&
+        (harmonyValFilter.size === 0  || harmonyValFilter.has(p.valBand.key))
+      ).length;
+      html += `<div class="harmony-brand-dd-opt${on?' on':''}" onclick="toggleHarmonyBrand('${b}');refreshHarmonyBrandDropdown(this.closest('.harmony-brand-dd-wrap'),'${b}')">
+        ${HARMONY_BRAND_NAMES[b]} <span class="hbrand-count">${count}</span></div>`;
+    });
+    html += '</div></div>';
+  }
+
+  // ── Saturation sub-filter chips ──
+  if (presentSats.length > 1) {
+    html += '<div class="harmony-sub-header">Saturation</div>';
+    html += '<div class="harmony-brand-chips">';
+    presentSats.forEach(b => {
+      const on    = harmonySatFilter.has(b.key);
+      const count = paints.filter(p =>
+        p.satBand.key === b.key &&
+        (harmonyBrandFilter.size === 0 || harmonyBrandFilter.has(p.brand)) &&
+        (harmonyValFilter.size   === 0 || harmonyValFilter.has(p.valBand.key))
+      ).length;
+      html += `<button class="hbrand-chip${on?' on':''}" onclick="toggleHarmonySat('${b.key}')">${b.label} <span class="hbrand-count">${count}</span></button>`;
+    });
+    html += '</div>';
+  }
+
+  // ── Value sub-filter chips ──
+  if (presentVals.length > 1) {
+    html += '<div class="harmony-sub-header">Value</div>';
+    html += '<div class="harmony-brand-chips">';
+    presentVals.forEach(b => {
+      const on    = harmonyValFilter.has(b.key);
+      const count = paints.filter(p =>
+        p.valBand.key === b.key &&
+        (harmonyBrandFilter.size === 0 || harmonyBrandFilter.has(p.brand)) &&
+        (harmonySatFilter.size   === 0 || harmonySatFilter.has(p.satBand.key))
+      ).length;
+      html += `<button class="hbrand-chip${on?' on':''}" onclick="toggleHarmonyVal('${b.key}')">${b.label} <span class="hbrand-count">${count}</span></button>`;
+    });
+    html += '</div>';
+  }
+
+
+  if (shown.length === 0) {
+    html += '<div style="font-size:12px;color:var(--dimmer);font-style:italic;margin-top:6px">No paints match the active filters</div>';
+    list.innerHTML = html;
+    return;
+  }
+
+  // Group by hue, then brand within each hue, sort by value descending (high→low)
+  const byHue = {};
+  shown.forEach(p => {
+    const key = p.hueSeg >= 0 ? p.hueSeg : -1;
+    if (!byHue[key]) byHue[key] = [];
+    byHue[key].push(p);
+  });
+
+  const hueKeys = Object.keys(byHue).map(Number)
+    .sort((a, b) => (a === -1 ? 1 : b === -1 ? -1 : a - b));
+
+  hueKeys.forEach(hueKey => {
+    const hueName = hueKey >= 0 ? MARTIAN_HUE_NAMES_SHORT[hueKey] : 'Neutral';
+    html += `<div class="harmony-group-label" style="margin-top:10px">${hueName}</div>`;
+    HARMONY_BRAND_ORDER.forEach(b => {
+      if (harmonyBrandFilter.size > 0 && !harmonyBrandFilter.has(b)) return;
+      const brandGroup = byHue[hueKey].filter(p => p.brand === b)
+        .sort((a, bP) => bP.value - a.value); // descending value
+      if (brandGroup.length === 0) return;
+      html += `<div class="harmony-brand-row">${HARMONY_BRAND_NAMES[b]}</div>`;
+      html += brandGroup.map(p => {
+        const nameKey  = p.name.replace(/'/g,"\\'").replace(/!/g,"\\!");
+        const brandKey = p.brand;
+        return `<div class="nb-item scheme-addable"
+          onclick="addToScheme(PAINTS.find(q=>q.name==='${nameKey}'&&q.brand==='${brandKey}'))"
+          onmouseenter="setHarmonyHover('${nameKey}','${brandKey}')"
+          onmouseleave="clearHarmonyHover()"
+          title="Add to colour scheme">
+          ${paintShapeSVG(p)}
+          <div class="nb-name">${p.name}</div>
+          <div class="nb-meta">${p.valBand.label} ${p.satBand.label}</div>
+        </div>`;
+      }).join('');
+    });
+  });
+
+  list.innerHTML = html;
+}
+
+// ── Colour Scheme ─────────────────────────────────────────────
+function addToScheme(paint) {
+  if (!paint) return;
+  // Don't add duplicates
+  const already = schemeColours.find(p => p.name === paint.name && p.brand === paint.brand);
+  if (!already) schemeColours.push(paint);
+  renderScheme();
+}
+
+function removeFromScheme(name, brand) {
+  schemeColours = schemeColours.filter(p => !(p.name === name && p.brand === brand));
+  renderScheme();
+  draw();
+}
+
+function clearScheme() {
+  schemeColours = [];
+  renderScheme();
+  draw();
+}
+
+function renderScheme() {
+  const section  = document.getElementById('scheme-section');
+  const swatches = document.getElementById('scheme-swatches');
+  const list     = document.getElementById('scheme-list');
+
+  // Build the full scheme: selected paint first, then added colours
+  const all = [];
+  if (selected) all.push({ paint: selected, isAnchor: true });
+  schemeColours.forEach(p => {
+    if (!selected || p.name !== selected.name || p.brand !== selected.brand) {
+      all.push({ paint: p, isAnchor: false });
+    }
+  });
+
+  if (all.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  // Swatch strip
+  swatches.innerHTML = all.map(({ paint: p, isAnchor }) => {
+    const border = isAnchor ? `outline:2px solid var(--gold);outline-offset:2px;` : '';
+    const nameKey  = p.name.replace(/'/g,"\\'").replace(/!/g,"\\!");
+    const brandKey = p.brand;
+    const title    = `${p.name} (${p.brand})`;
+    return `<div class="scheme-swatch" style="background:${p.hex};${border}" title="${title}">
+      ${!isAnchor ? `<div class="swatch-remove" onclick="removeFromScheme('${nameKey}','${brandKey}')">✕</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // List
+  list.innerHTML = all.map(({ paint: p, isAnchor }) => {
+    const nameKey  = p.name.replace(/'/g,"\\'").replace(/!/g,"\\!");
+    const brandKey = p.brand;
+    const anchorMark   = isAnchor ? ' <span style="color:var(--gold);font-size:9px">●</span>' : '';
+    const brandLabel   = HARMONY_BRAND_NAMES[p.brand] || p.brand;
+    return `<div class="nb-item" style="${isAnchor?'opacity:.8':''}">
+      ${paintShapeSVG(p)}
+      <div style="flex:1;min-width:0">
+        <div class="nb-name">${p.name}${anchorMark}</div>
+        <div style="font-size:9px;color:var(--dimmer);margin-top:1px">${brandLabel}</div>
+      </div>
+      <div class="nb-meta">${p.valBand.label} ${p.satBand.label}</div>
+      ${!isAnchor ? `<div style="color:var(--dimmer);cursor:pointer;font-size:10px;margin-left:4px" onclick="removeFromScheme('${nameKey}','${brandKey}')" title="Remove">✕</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  // Fill canvas with theme background
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim() || '#f8f6f2';
+  ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  applyTransform();
+
+  // ── Background rings (hue wheel ghost) ──
+  const ringCount = 8;
+  for (let i = ringCount; i >= 1; i--) {
+    const rr = R * (i / ringCount);
+    const grad = ctx.createRadialGradient(CX, CY, 0, CX, CY, rr);
+    // Transparent radial—just faint guide rings
+    ctx.beginPath();
+    ctx.arc(CX, CY, rr, 0, Math.PI*2);
+    const isDark = document.documentElement.classList.contains('dark');
+    ctx.strokeStyle = isDark
+      ? `rgba(255,255,255,${0.015 * (ringCount-i+1)})`
+      : `rgba(0,0,0,${0.012 * (ringCount-i+1)})`;
+    ctx.lineWidth = 1 * devicePixelRatio;
+    ctx.stroke();
+  }
+
+  // ── Value ring zone highlight (one band only, based on cursor position) ──
+  if (hoveredRing) {
+    const BAND_RADII = {
+      dark:   { inner: 0,   outer: 35  },
+      mid:    { inner: 35,  outer: 70  },
+      bright: { inner: 70,  outer: 100 },
+    };
+    const band = BAND_RADII[hoveredRing];
+    if (band) {
+      const rOuter = R * (0.06 + (band.outer / 100) * 0.88);
+      const rInner = R * (0.06 + (band.inner / 100) * 0.88);
+      ctx.beginPath();
+      ctx.arc(CX, CY, rOuter, 0, Math.PI * 2);
+      ctx.arc(CX, CY, rInner, 0, Math.PI * 2, true);
+      const ringFill = getComputedStyle(document.documentElement).getPropertyValue('--ring-fill').trim();
+      ctx.fillStyle = ringFill || 'rgba(128,128,128,0.12)';
+      ctx.fill();
+    }
+  }
+
+  // ── Value-band separation rings ──
+  const ringColor = getComputedStyle(document.documentElement).getPropertyValue('--ring-color').trim();
+  [{ v: 35 }, { v: 70 }].forEach(({ v }) => {
+    const rr = R * (0.06 + (v / 100) * 0.88);
+    ctx.beginPath();
+    ctx.arc(CX, CY, rr, 0, Math.PI * 2);
+    ctx.setLineDash([6 * devicePixelRatio, 8 * devicePixelRatio]);
+    ctx.strokeStyle = ringColor || 'rgba(128,128,128,0.5)';
+    ctx.lineWidth = 2 * devicePixelRatio;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  // ── Hue wedge fills (active filter, hovered, and harmony segments) ──
+  for (let i = 0; i < 24; i++) {
+    const isActive   = activeHues.has(i);
+    const isHovered  = hoveredSeg === i;
+    const isHarmony  = harmonyStegs.includes(i);
+    if (!isActive && !isHovered && !isHarmony) continue;
+
+    const mDeg0 = i * 15;
+    const mDeg1 = (i + 1) * 15;
+    const a0 = martianAngleToRad(mDeg0);
+    const a1 = martianAngleToRad(mDeg1);
+
+    // Find HSL hue for this segment's midpoint
+    const mMid = (mDeg0 + mDeg1) / 2;
+    let hslHue = 0;
+    for (let j = 0; j < MARTIAN_HUES.length - 1; j++) {
+      const [h0, m0] = MARTIAN_HUES[j];
+      const [h1, m1] = MARTIAN_HUES[j + 1];
+      if (mMid >= m0 && mMid < m1) {
+        hslHue = h0 + ((mMid - m0) / (m1 - m0)) * (h1 - h0);
+        break;
+      }
+    }
+
+    // Filled wedge from centre to rim
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.arc(CX, CY, R * 1.08, a0, a1);
+    ctx.closePath();
+    if (isActive) {
+      ctx.fillStyle = `hsla(${hslHue},70%,45%,0.18)`;
+    } else if (isHarmony) {
+      ctx.fillStyle = `hsla(${hslHue},70%,55%,0.13)`;
+    } else {
+      ctx.fillStyle = `hsla(${hslHue},70%,55%,0.08)`;
+    }
+    ctx.fill();
+
+    // Sector divider lines for active or harmony segments
+    if (isActive || isHarmony) {
+      [a0, a1].forEach(a => {
+        ctx.beginPath();
+        ctx.moveTo(CX, CY);
+        ctx.lineTo(CX + Math.cos(a) * R * 1.1, CY + Math.sin(a) * R * 1.1);
+        ctx.strokeStyle = `hsla(${hslHue},70%,65%,${isActive ? 0.5 : 0.3})`;
+        ctx.lineWidth = 1 * devicePixelRatio;
+        ctx.stroke();
+      });
+    }
+  }
+
+  // Faint sector divider lines for all 24 hues
+  for (let i = 0; i < 24; i++) {
+    const deg = i * 15;
+    const rad = martianAngleToRad(deg);
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.lineTo(CX + Math.cos(rad)*R*1.02, CY + Math.sin(rad)*R*1.02);
+    const isDk = document.documentElement.classList.contains('dark');
+    ctx.strokeStyle = isDk ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    ctx.lineWidth = 1 * devicePixelRatio;
+    ctx.stroke();
+  }
+
+  // Hue rainbow rim — 24 Martian segments, brightness varies by active/hover/harmony state
+  for (let i = 0; i < 24; i++) {
+    const mDeg0 = i * 15;
+    const mDeg1 = (i + 1) * 15;
+    const startAngle = martianAngleToRad(mDeg0);
+    const endAngle   = martianAngleToRad(mDeg1);
+    // Use canonical hue for this segment (matches sector fill and label)
+    const hslHue = [0,30,44,52,60,75,84,97,120,140,152,165,180,195,210,222,240,255,273,283,300,315,330,345][i];
+    const isActive   = activeHues.has(i);
+    const isHovered  = hoveredSeg === i;
+    const isHarmony  = harmonyStegs.includes(i);
+    const alpha = isActive ? 0.95 : isHarmony ? 0.75 : isHovered ? 0.7 : 0.35;
+    const lightness = isActive ? 65 : isHarmony ? 62 : 55;
+    const lineW = isActive ? 13 : (isHarmony || isHovered) ? 11 : 9;
+    ctx.beginPath();
+    ctx.arc(CX, CY, R * 1.04, startAngle, endAngle);
+    ctx.strokeStyle = `hsla(${hslHue},80%,${lightness}%,${alpha})`;
+    ctx.lineWidth   = lineW * devicePixelRatio;
+    ctx.stroke();
+  }
+
+  // ── Compute & store positions ──
+  const visible = paintsForWheel();
+  paintPositions = [];
+
+  // Draw lines from selected paint to visible harmony paints (respects sub-filters)
+  if (selected && activeHarmony) {
+    const selPos = getPaintPos(selected);
+    const wheelPaints = paintsForWheel();
+    wheelPaints.forEach(p => {
+      if (p === selected) return;
+      const pPos = getPaintPos(p);
+      ctx.beginPath();
+      ctx.moveTo(selPos.x, selPos.y);
+      ctx.lineTo(pPos.x, pPos.y);
+      ctx.strokeStyle = document.documentElement.classList.contains('dark') ? 'rgba(100,170,220,0.20)' : 'rgba(26,58,122,0.18)';
+      ctx.lineWidth = 1 * devicePixelRatio;
+      ctx.stroke();
+    });
+  }
+
+  // Draw dots
+  visible.forEach(p => {
+    const pos = getPaintPos(p);
+    // Keep shapes a roughly constant size on screen as zoom changes,
+    // but allow them to shrink a bit more at high zoom so closely-packed
+    // paints separate visually.
+    const dotR = (6 * devicePixelRatio) / Math.pow(zoom, 0.85);
+
+    const isSelected      = selected && selected.name === p.name && selected.brand === p.brand;
+    const isInScheme      = !isSelected && schemeColours.some(s => s.name === p.name && s.brand === p.brand);
+    const isHarmonyHover  = hoveredHarmony && hoveredHarmony.name === p.name && hoveredHarmony.brand === p.brand;
+    const isHighlighted   = highlighted === p.name;
+    const isDimmed        = searchQuery && !isHighlighted;
+
+    const alpha = isDimmed ? 0.2 : 1;
+    ctx.globalAlpha = alpha;
+
+    // Glow for selected
+    if (isSelected) {
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, dotR * 2.5, 0, Math.PI*2);
+      ctx.fillStyle = document.documentElement.classList.contains('dark') ? 'rgba(100,170,220,0.28)' : 'rgba(26,58,122,0.18)';
+      ctx.fill();
+    }
+    // Ring glow for scheme colours
+    if (isInScheme) {
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, dotR * 2.2, 0, Math.PI*2);
+      ctx.fillStyle = document.documentElement.classList.contains('dark') ? 'rgba(100,170,220,0.18)' : 'rgba(26,58,122,0.12)';
+      ctx.fill();
+    }
+    // Bright ring for harmony-list hover
+    if (isHarmonyHover && !isSelected) {
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, dotR * 2.8, 0, Math.PI*2);
+      ctx.fillStyle = document.documentElement.classList.contains('dark') ? 'rgba(180,220,255,0.20)' : 'rgba(26,58,122,0.15)';
+      ctx.fill();
+    }
+
+    // Shape per brand:
+    //   citadel  → circle
+    //   ak       → diamond
+    //   proacryl → square
+    //   vmc      → triangle (point up)
+    //   vgc      → inverted triangle (point down)
+    //   fanatic  → square (data currently unavailable; kept for future)
+    ctx.fillStyle = p.hex;
+
+    if (p.brand === 'ak') {
+      // Diamond
+      const r = dotR * 1.25;
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y - r);
+      ctx.lineTo(pos.x + r, pos.y);
+      ctx.lineTo(pos.x, pos.y + r);
+      ctx.lineTo(pos.x - r, pos.y);
+      ctx.closePath();
+      ctx.fill();
+    } else if (p.brand === 'proacryl' || p.brand === 'fanatic') {
+      // Square
+      const r = dotR * 1.05;
+      ctx.fillRect(pos.x - r, pos.y - r, r * 2, r * 2);
+    } else if (p.brand === 'vmc') {
+      // Triangle (point up)
+      const r = dotR * 1.2;
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y - r);
+      ctx.lineTo(pos.x + r * 0.866, pos.y + r * 0.5);
+      ctx.lineTo(pos.x - r * 0.866, pos.y + r * 0.5);
+      ctx.closePath();
+      ctx.fill();
+    } else if (p.brand === 'vgc') {
+      // Inverted triangle (point down)
+      const r = dotR * 1.2;
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y + r);
+      ctx.lineTo(pos.x + r * 0.866, pos.y - r * 0.5);
+      ctx.lineTo(pos.x - r * 0.866, pos.y - r * 0.5);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      // Default: circle for Citadel
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, dotR, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // Highlight ring for search
+    if (isHighlighted && !isSelected) {
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, dotR + (3 * devicePixelRatio), 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 1.5 * devicePixelRatio;
+      ctx.stroke();
+    }
+
+    ctx.globalAlpha = 1;
+    paintPositions.push({ paint:p, x:pos.x, y:pos.y, r:dotR });
+  });
+
+  // ── Martian label data (seg index, HSL hue, display name) ──
+  const martianLabels = [
+    {seg:0,  hsl:0,   label:'Red'},         {seg:1,  hsl:30,  label:'Orange'},
+    {seg:2,  hsl:44,  label:'Turmeric'},    {seg:3,  hsl:52,  label:'Yel.Cheese'},
+    {seg:4,  hsl:60,  label:'Yellow'},      {seg:5,  hsl:75,  label:'Grn.Grape'},
+    {seg:6,  hsl:84,  label:'Chartreuse'},  {seg:7,  hsl:97,  label:'Green Pea'},
+    {seg:8,  hsl:120, label:'Green'},       {seg:9,  hsl:140, label:'Clover'},
+    {seg:10, hsl:152, label:'Emerald'},     {seg:11, hsl:165, label:'Malachite'},
+    {seg:12, hsl:180, label:'Cyan'},        {seg:13, hsl:195, label:'Turquoise'},
+    {seg:14, hsl:210, label:'Azure'},       {seg:15, hsl:222, label:'Royal Blue'},
+    {seg:16, hsl:240, label:'Blue'},        {seg:17, hsl:255, label:'Dioxazine'},
+    {seg:18, hsl:273, label:'Violet'},      {seg:19, hsl:283, label:'Aniline'},
+    {seg:20, hsl:300, label:'Magenta'},     {seg:21, hsl:315, label:'Pink'},
+    {seg:22, hsl:330, label:'Prickly Pear'},{seg:23, hsl:345, label:'Red Plum'},
+  ];
+
+  // ── Coloured sector fills — use canonical hue from martianLabels ──
+  for (let i = 0; i < 24; i++) {
+    const mDeg0 = i * 15;
+    const mDeg1 = (i + 1) * 15;
+    const a0 = martianAngleToRad(mDeg0);
+    const a1 = martianAngleToRad(mDeg1);
+    // Use the canonical hsl hue for this segment (same as label colour)
+    const hslHue = martianLabels[i].hsl;
+    const grad = ctx.createRadialGradient(CX, CY, R * 0.06, CX, CY, R * 0.94);
+    grad.addColorStop(0,   `hsla(${hslHue},90%,50%,0.00)`);
+    grad.addColorStop(0.4, `hsla(${hslHue},85%,45%,0.03)`);
+    grad.addColorStop(1,   `hsla(${hslHue},85%,48%,0.10)`);
+    ctx.beginPath();
+    ctx.moveTo(CX, CY);
+    ctx.arc(CX, CY, R * 0.96, a0, a1);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+
+  // ── Martian hue labels — rotated tangentially, always right-side-up ──
+  ctx.save();
+  const labelR = R * 1.16;
+  martianLabels.forEach(({seg, hsl, label}) => {
+    const martianDeg = seg * 15 + 7.5;
+    const rad = martianAngleToRad(martianDeg);
+    const lx = CX + Math.cos(rad) * labelR;
+    const ly = CY + Math.sin(rad) * labelR;
+    ctx.save();
+    ctx.translate(lx, ly);
+    // Tangential angle — text runs along the arc
+    let textAngle = rad + Math.PI / 2;
+    // Flip when the tangent would point left (text would be upside-down):
+    // tangent points left when sin(rad) > 0 (bottom half of wheel)
+    if (Math.sin(rad) > 0) textAngle += Math.PI;
+    ctx.rotate(textAngle);
+    ctx.font = `${9 * devicePixelRatio}px 'EB Garamond', serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = `hsla(${hsl},70%,72%,0.75)`;
+    ctx.fillText(label, 0, 0);
+    ctx.restore();
+  });
+  ctx.restore();
+
+  // Centre label
+  ctx.font = `${9 * devicePixelRatio}px 'EB Garamond', serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = document.documentElement.classList.contains('dark') ? 'rgba(100,170,220,0.30)' : 'rgba(26,58,122,0.30)';
+  ctx.fillText('Neutrals', CX, CY);
+
+  ctx.restore();
+}
+
+// ── Hit testing ──────────────────────────────────────────────
+function findPaintAt(mx, my) {
+  const { x: cx, y: cy } = screenToCanvas(mx, my);
+  let closest = null, bestD = Infinity;
+  paintPositions.forEach(({ paint, x, y, r }) => {
+    const d = Math.hypot(cx-x, cy-y);
+    const hitR = r * 2.5;
+    if (d < hitR && d < bestD) { bestD=d; closest=paint; }
+  });
+  return closest;
+}
+
+// Return ALL paints under the cursor (handles overlapping/identical-hex paints).
+// Sorted by distance from cursor, then by brand for stable ordering.
+function findAllPaintsAt(mx, my) {
+  const { x: cx, y: cy } = screenToCanvas(mx, my);
+  const matches = [];
+  paintPositions.forEach(({ paint, x, y, r }) => {
+    const d = Math.hypot(cx-x, cy-y);
+    const hitR = r * 2.5;
+    if (d < hitR) matches.push({ paint, d });
+  });
+  matches.sort((a,b) => a.d - b.d || a.paint.brand.localeCompare(b.paint.brand));
+  // De-dup by paint reference (each paint should only appear once)
+  const seen = new Set();
+  return matches.filter(m => {
+    const k = m.paint.brand + '::' + m.paint.name;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  }).map(m => m.paint);
+}
+
+// ── Value-ring tooltip hit testing ────────────────────────────
+// Returns a label string if the cursor is hovering near a value-band separator ring.
+const VAL_RINGS = [
+  { v: 35, innerLabel: '← Dark',  outerLabel: 'Mid →',    innerBand: 'dark',  outerBand: 'mid'    },
+  { v: 70, innerLabel: '← Mid',   outerLabel: 'Bright →', innerBand: 'mid',   outerBand: 'bright' },
+];
+
+function getValRingAt(mx, my) {
+  const { x: cx, y: cy } = screenToCanvas(mx, my);
+  const dx = cx - CX, dy = cy - CY;
+  const dist = Math.hypot(dx, dy);
+  for (const ring of VAL_RINGS) {
+    const rr = R * (0.06 + (ring.v / 100) * 0.88);
+    const hitZone = 10 * devicePixelRatio / zoom;
+    if (Math.abs(dist - rr) < hitZone) return ring;
+  }
+  return null;
+}
+
+function getValRingTooltipAt(mx, my) {
+  const ring = getValRingAt(mx, my);
+  if (!ring) return null;
+  return `${ring.innerLabel}  ·  ${ring.outerLabel}  — click to filter`;
+}
+function getHueSegmentAt(mx, my) {
+  const { x: cx, y: cy } = screenToCanvas(mx, my);
+  const dx = cx - CX, dy = cy - CY;
+  const dist = Math.hypot(dx, dy);
+  if (dist < R * 0.92 || dist > R * 1.18) return -1;
+  // Convert canvas angle to Martian degrees, then undo the WHEEL_OFFSET
+  let angleDeg = Math.atan2(dy, dx) * 180 / Math.PI + 90 - WHEEL_OFFSET;
+  angleDeg = ((angleDeg % 360) + 360) % 360;
+  return Math.floor(angleDeg / 15) % 24;
+}
+function getNearestColours(paint, pool, n) {
+  return pool
+    .filter(p => p.name !== paint.name)
+    .map(p => ({ paint:p, dist: colourDist(paint.hex, p.hex) }))
+    .sort((a,b) => a.dist - b.dist)
+    .slice(0, n);
+}
+
+// ── Panel updates ────────────────────────────────────────────
+const MARTIAN_HUE_NAMES = [
+  'Red','Orange','Turmeric','Yellow Cheese','Yellow','Green Grape','Chartreuse',
+  'Green Pea','Green','Clover','Emerald','Malachite','Cyan','Turquoise','Azure',
+  'Royal Blue','Blue','Dioxazine','Violet','Aniline','Magenta','Pink','Prickly Pear','Red Plum'
+];
+
+function selectPaint(paint) {
+  selected = paint;
+  // Reset harmony when selection changes
+  clearHarmony();
+  draw();
+
+  if (!paint) {
+    document.getElementById('sel-card').style.display = 'none';
+    document.getElementById('panel-header-label').textContent = 'Select a paint';
+    return;
+  }
+
+  // Auto-open panel when a paint is selected
+  openPanel();
+  document.getElementById('panel-header-label').textContent = paint.name;
+  document.getElementById('sel-card').style.display = 'block';
+  renderScheme(); // update scheme panel with new anchor
+
+  // Show harmony buttons — all types enabled for all paints
+  document.getElementById('harmony-btns').style.display = 'flex';
+
+  document.getElementById('sel-swatch').style.background = paint.hex;
+  // Detailed values as tooltip on the swatch
+  const {h,s,l} = paint.hsl;
+  document.getElementById('sel-swatch').title =
+    `${paint.hex.toUpperCase()}  ·  H ${Math.round(h)}°  S ${Math.round(s)}%  L ${Math.round(l)}%  V ${Math.round(paint.value)}%`;
+
+  document.getElementById('sel-name').textContent = paint.name;
+  const BRAND_LABELS = {
+    citadel:'Citadel', ak:'AK 3rd Gen', fanatic:'AP Fanatic',
+    proacryl:'Pro Acryl', vmc:'Vallejo Model Color', vgc:'Vallejo Game Color',
+  };
+  const BRAND_COLORS = {
+    citadel:'#c8a06b', ak:'#c0d870', fanatic:'#e8a070',
+    proacryl:'#e07070', vmc:'#7090c8', vgc:'#70c890',
+  };
+  let typeLabel;
+  if (paint.brand === 'citadel') {
+    typeLabel = paint.type.charAt(0).toUpperCase() + paint.type.slice(1);
+  } else {
+    typeLabel = BRAND_LABELS[paint.brand] || paint.brand;
+    if (paint.code) typeLabel += ' · ' + paint.code;
+  }
+  document.getElementById('sel-type').textContent = typeLabel;
+  let typeColor;
+  if (paint.brand === 'citadel') {
+    typeColor = paint.type==='base' ? '#c8a06b'
+              : paint.type==='metallic' ? '#c0c8a0' : '#7a9aaa';
+  } else {
+    typeColor = BRAND_COLORS[paint.brand] || '#c8a06b';
+  }
+  document.getElementById('sel-type').style.color = typeColor;
+
+  // Hue segment name — descriptive only
+  const hueEl = document.getElementById('sel-hue-name');
+  if (paint.hueSeg >= 0) {
+    hueEl.textContent = `Hue: ${MARTIAN_HUE_NAMES[paint.hueSeg]}`;
+    hueEl.style.color = 'var(--dim)';
+  } else {
+    hueEl.textContent = 'Hue: Neutral';
+    hueEl.style.color = 'var(--dimmer)';
+  }
+
+  // Value band — descriptive only
+  const valEl = document.getElementById('sel-val-band');
+  valEl.textContent = `Value: ${paint.valBand.label}`;
+  valEl.style.color = 'var(--dim)';
+
+  // Saturation band — descriptive only
+  const satEl = document.getElementById('sel-sat-band');
+  satEl.textContent = `Saturation: ${paint.satBand.label}`;
+  satEl.style.color = 'var(--dim)';
+}
+
+// ── Tooltip ──────────────────────────────────────────────────
+const tip = document.getElementById('tip');
+let tipPinned = false; // when true, tooltip stays open even on mouseleave
+
+function showTip(paints, mx, my) {
+  const list = Array.isArray(paints) ? paints : [paints];
+  if (list.length === 0) { hideTip(); return; }
+
+  const BRAND_LABELS = {
+    citadel:'Citadel', ak:'AK 3rd Gen', fanatic:'AP Fanatic',
+    proacryl:'Pro Acryl', vmc:'Vallejo Model Color', vgc:'Vallejo Game Color',
+  };
+
+  document.getElementById('tip-swatch').style.background = list[0].hex;
+  document.getElementById('tip-swatch').style.display = '';
+
+  const body = document.getElementById('tip-body');
+  let html = '';
+  if (list.length > 1) {
+    html += `<div class="tip-count">${list.length} paints at this point</div>`;
+  }
+  list.forEach((p, i) => {
+    const brandLabel = BRAND_LABELS[p.brand] || p.brand;
+    const typeText = p.brand === 'citadel'
+      ? `${brandLabel} · ${p.type.charAt(0).toUpperCase()+p.type.slice(1)}`
+      : brandLabel + (p.code ? ` · ${p.code}` : '');
+    const isSelected = selected && selected.name === p.name && selected.brand === p.brand;
+    const nameKey  = p.name.replace(/'/g,"\\'").replace(/!/g,"\\!");
+    const brandKey = p.brand;
+    // When multiple paints, each entry is clickable to select that paint
+    const clickAttr = list.length > 1
+      ? `onclick="tipSelectPaint(PAINTS.find(q=>q.name==='${nameKey}'&&q.brand==='${brandKey}'))" style="cursor:pointer"`
+      : '';
+    const selectedMark = isSelected ? ' <span style="color:var(--gold);font-size:9px">●</span>' : '';
+    html += `<div class="tip-entry tip-entry-selectable" ${clickAttr}>
+      <div class="tip-name">${p.name}${selectedMark}</div>
+      <div class="tip-type">${typeText}</div>
+    </div>`;
+  });
+  body.innerHTML = html;
+  // Add close button when pinned (multiple paints)
+  if (list.length > 1) {
+    const closeBtn = document.createElement('div');
+    closeBtn.style.cssText = 'position:absolute;top:6px;right:8px;cursor:pointer;color:var(--dimmer);font-size:11px;line-height:1';
+    closeBtn.textContent = '✕';
+    closeBtn.onclick = (ev) => { ev.stopPropagation(); forceHideTip(); };
+    tip.appendChild(closeBtn);
+  }
+  const first = list[0];
+  document.getElementById('tip-hex').innerHTML =
+    `${first.hex.toUpperCase()} <span style="color:var(--dimmer);margin-left:6px">V ${Math.round(first.value)}% · S ${Math.round(first.hsl.s)}%</span>`;
+  document.getElementById('tip-cycle-hint').style.display = 'none'; // replaced by clickable entries
+
+  tip.style.display = 'block';
+  const tw = tip.offsetWidth || 210;
+  const th = tip.offsetHeight || 96;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let tx = mx !== undefined ? mx + 14 : parseInt(tip.style.left) || 14;
+  let ty = mx !== undefined ? my - 20 : parseInt(tip.style.top)  || 14;
+  if (tx + tw > vw) tx = (mx !== undefined ? mx : tx) - tw - 14;
+  if (ty + th > vh) ty = vh - th - 10;
+  if (ty < 8) ty = 8;
+  tip.style.left = tx + 'px';
+  tip.style.top  = ty + 'px';
+}
+
+// Called when user clicks a paint entry inside the pinned tooltip
+function tipSelectPaint(paint) {
+  if (!paint) return;
+  selectPaint(paint);
+  // Refresh the tooltip in place to update the selected marker
+  // find all paints at the same position
+  const stacked = paintPositions
+    .filter(pp => {
+      const pos = getPaintPos(paint);
+      return Math.hypot(pp.x - pos.x, pp.y - pos.y) < (6 * devicePixelRatio / Math.pow(zoom, 0.85)) * 3;
+    })
+    .map(pp => pp.paint);
+  if (stacked.length > 0) {
+    const tx = parseInt(tip.style.left);
+    const ty = parseInt(tip.style.top);
+    showTip(stacked, undefined, undefined);
+    tip.style.left = tx + 'px';
+    tip.style.top  = ty + 'px';
+    tipPinned = true;
+  }
+}
+
+function hideTip() {
+  if (tipPinned) return; // don't hide while pinned
+  tip.style.display = 'none';
+  const swatch = document.getElementById('tip-swatch');
+  if (swatch) swatch.style.display = '';
+}
+
+function forceHideTip() {
+  tipPinned = false;
+  tip.style.display = 'none';
+  const swatch = document.getElementById('tip-swatch');
+  if (swatch) swatch.style.display = '';
+}
+
+function showRingTip(label, mx, my) {
+  // Reuse the tip element with a simple single-line label
+  document.getElementById('tip-swatch').style.background = 'transparent';
+  document.getElementById('tip-swatch').style.display = 'none';
+  document.getElementById('tip-body').innerHTML =
+    `<div class="tip-name" style="font-size:11px;letter-spacing:.1em">${label}</div>`;
+  document.getElementById('tip-hex').textContent = '';
+  document.getElementById('tip-cycle-hint').style.display = 'none';
+  tip.style.display = 'block';
+  const tw = tip.offsetWidth || 160, th = tip.offsetHeight || 36;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let tx = mx + 14, ty = my - 20;
+  if (tx + tw > vw) tx = mx - tw - 14;
+  if (ty + th > vh) ty = vh - th - 10;
+  if (ty < 8) ty = 8;
+  tip.style.left = tx + 'px';
+  tip.style.top  = ty + 'px';
+}
+
+// ── Events ───────────────────────────────────────────────────
+canvas.addEventListener('mousemove', e => {
+  if (isPanning) {
+    panX = panOrigX + (e.clientX - panStartX) * devicePixelRatio;
+    panY = panOrigY + (e.clientY - panStartY) * devicePixelRatio;
+    const maxPan = R * (zoom - 1);
+    panX = Math.max(-maxPan, Math.min(maxPan, panX));
+    panY = Math.max(-maxPan, Math.min(maxPan, panY));
+    hideTip();
+    draw();
+    return;
+  }
+  // Paint dots take priority over rim hue segments — otherwise paint dots
+  // sitting near the rim (e.g. pure whites at value=100) get swallowed by
+  // the segment hit-test and become un-hoverable.
+  const paints    = findAllPaintsAt(e.clientX, e.clientY);
+  const seg       = paints.length === 0 ? getHueSegmentAt(e.clientX, e.clientY) : -1;
+  const onRing    = (paints.length === 0 && seg === -1) ? getValRingAt(e.clientX, e.clientY) : null;
+
+  if (paints.length > 0) {
+    canvas.style.cursor = 'pointer';
+    if (hoveredSeg !== -1) { hoveredSeg = -1; draw(); }
+    if (hoveredRing) { hoveredRing = null; draw(); }
+    showTip(paints, e.clientX, e.clientY);
+  } else if (seg !== -1) {
+    canvas.style.cursor = 'pointer';
+    hideTip();
+    if (hoveredSeg !== seg) { hoveredSeg = seg; draw(); }
+    if (hoveredRing) { hoveredRing = null; draw(); }
+  } else if (onRing) {
+    // Determine which band the cursor is in relative to this ring
+    const { x: rx, y: ry } = screenToCanvas(e.clientX, e.clientY);
+    const rdist = Math.hypot(rx - CX, ry - CY);
+    const rr = R * (0.06 + (onRing.v / 100) * 0.88);
+    const bandKey = rdist < rr ? onRing.innerBand : onRing.outerBand;
+    canvas.style.cursor = 'pointer';
+    hideTip();
+    if (hoveredSeg !== -1) { hoveredSeg = -1; draw(); }
+    if (hoveredRing !== bandKey) { hoveredRing = bandKey; draw(); }
+  } else {
+    canvas.style.cursor = zoom > 1 ? 'grab' : 'default';
+    hideTip();
+    if (hoveredSeg !== -1) { hoveredSeg = -1; draw(); }
+    // Highlight value zone when hovering empty space inside the wheel
+    const { x: ex, y: ey } = screenToCanvas(e.clientX, e.clientY);
+    const edist = Math.hypot(ex - CX, ey - CY);
+    let zoneBand = null;
+    if (edist < R * 0.94) {
+      const midRing    = R * (0.06 + (35 / 100) * 0.88);
+      const brightRing = R * (0.06 + (70 / 100) * 0.88);
+      if (edist < midRing)         zoneBand = 'dark';
+      else if (edist < brightRing) zoneBand = 'mid';
+      else                         zoneBand = 'bright';
+    }
+    if (hoveredRing !== zoneBand) { hoveredRing = zoneBand; draw(); }
+  }
+});
+
+canvas.addEventListener('mouseleave', () => {
+  hideTip(); // only hides if not pinned
+  if (hoveredSeg !== -1) { hoveredSeg = -1; draw(); }
+  if (hoveredRing) { hoveredRing = null; draw(); }
+});
+
+canvas.addEventListener('click', e => {
+  // If tooltip is pinned and click is outside it, unpin and close
+  if (tipPinned && !tip.contains(e.target)) {
+    forceHideTip();
+    return;
+  }
+
+  const paints = findAllPaintsAt(e.clientX, e.clientY);
+  if (paints.length === 0) {
+    forceHideTip();
+    const seg = getHueSegmentAt(e.clientX, e.clientY);
+    if (seg !== -1) { toggleHue(seg); return; }
+    const ring = getValRingAt(e.clientX, e.clientY);
+    if (ring) {
+      const { x: cx, y: cy } = screenToCanvas(e.clientX, e.clientY);
+      const dist = Math.hypot(cx - CX, cy - CY);
+      const rr = R * (0.06 + (ring.v / 100) * 0.88);
+      const band = dist < rr ? ring.innerBand : ring.outerBand;
+      toggleValBand(band);
+      return;
+    }
+    const { x: ex, y: ey } = screenToCanvas(e.clientX, e.clientY);
+    const edist = Math.hypot(ex - CX, ey - CY);
+    if (edist < R * 1.0) {
+      const midRing    = R * (0.06 + (35 / 100) * 0.88);
+      const brightRing = R * (0.06 + (70 / 100) * 0.88);
+      let band;
+      if (edist < midRing)         band = 'dark';
+      else if (edist < brightRing) band = 'mid';
+      else                         band = 'bright';
+      toggleValBand(band);
+      return;
+    }
+    if (selected) { selected = null; clearHarmony(); selectPaint(null); }
+    return;
+  }
+
+  if (activeHarmony) {
+    const pick = paints[0];
+    if (selected && pick.name === selected.name && pick.brand === selected.brand) return;
+    addToScheme(pick);
+    return;
+  }
+
+  if (paints.length > 1) {
+    // Multiple stacked paints: select the first (or cycle if already selected)
+    // and pin the tooltip so the user can pick from the list
+    let pick = paints[0];
+    if (selected) {
+      const idx = paints.findIndex(p => p === selected);
+      if (idx >= 0) pick = paints[(idx + 1) % paints.length];
+    }
+    selectPaint(pick);
+    // Pin the tooltip showing all paints at this point
+    showTip(paints, e.clientX, e.clientY);
+    tipPinned = true;
+    return;
+  }
+
+  // Single paint: normal select/deselect, close pinned tip
+  forceHideTip();
+  const pick = paints[0];
+  if (selected && pick === selected) { selectPaint(null); return; }
+  selectPaint(pick);
+});
+
+// Touch support
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  const paints = findAllPaintsAt(t.clientX, t.clientY);
+  if (paints.length === 0) {
+    const seg = getHueSegmentAt(t.clientX, t.clientY);
+    if (seg !== -1) toggleHue(seg);
+    return;
+  }
+  let pick = paints[0];
+  if (selected) {
+    const idx = paints.findIndex(p => p === selected);
+    if (idx >= 0) {
+      if (paints.length === 1) { selectPaint(null); return; }
+      pick = paints[(idx + 1) % paints.length];
+    }
+  }
+  selectPaint(pick);
+});
+
+// Burger menu in header
+let filterDropdownOpen = false;
+function toggleFilterDropdown() {
+  filterDropdownOpen = !filterDropdownOpen;
+  const dd  = document.getElementById('filter-dropdown');
+  const btn = document.getElementById('filter-toggle-btn');
+  if (filterDropdownOpen) {
+    const rect = btn.getBoundingClientRect();
+    dd.style.top   = (rect.bottom + 6) + 'px';
+    dd.style.right = (window.innerWidth - rect.right) + 'px';
+    dd.style.display = 'flex';
+  } else {
+    dd.style.display = 'none';
+  }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('filter-dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    filterDropdownOpen = false;
+    document.getElementById('filter-dropdown').style.display = 'none';
+  }
+});
+
+// Hue panel collapse
+let hueOpen = false;
+// Right panel collapse/expand
+let panelOpen = true;
+
+function togglePanel() {
+  panelOpen ? closePanel() : openPanel();
+}
+
+function openPanel() {
+  panelOpen = true;
+  document.getElementById('panel').classList.remove('collapsed');
+  document.getElementById('panel-arrow').textContent = '◀';
+  resize();
+  setTimeout(resize, 210); // after 0.2s CSS transition completes
+}
+
+function closePanel() {
+  panelOpen = false;
+  document.getElementById('panel').classList.add('collapsed');
+  document.getElementById('panel-arrow').textContent = '▶';
+  resize();
+  setTimeout(resize, 210);
+}
+
+function toggleHuePanel() {
+  hueOpen = !hueOpen;
+  const wrap  = document.getElementById('hue-filters-wrap');
+  const arrow = document.getElementById('hue-arrow');
+  wrap.style.maxHeight = hueOpen ? wrap.scrollHeight + 'px' : '0';
+  arrow.textContent = hueOpen ? '▼' : '▶';
+}
+
+function onSearch(q) {
+  searchQuery = q.trim().toLowerCase();
+  if (searchQuery) {
+    const match = PAINTS.find(p=>p.name.toLowerCase()===searchQuery);
+    if (match) { highlighted=match.name; selectPaint(match); }
+    else {
+      const partials = PAINTS.filter(p=>p.name.toLowerCase().includes(searchQuery));
+      highlighted = partials.length===1 ? partials[0].name : null;
+      if (partials.length===1) selectPaint(partials[0]);
+    }
+  } else {
+    highlighted = null;
+  }
+  draw();
+}
+
+// Wheel zoom (anchored to cursor)
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const ax = (e.clientX - rect.left) * devicePixelRatio;
+  const ay = (e.clientY - rect.top)  * devicePixelRatio;
+  const delta = e.deltaY < 0 ? 1.15 : 1/1.15;
+  setZoom(zoom * delta, ax, ay);
+}, { passive: false });
+
+// Drag to pan
+let isPanning = false, panStartX = 0, panStartY = 0, panOrigX = 0, panOrigY = 0;
+canvas.addEventListener('mousedown', e => {
+  if (zoom <= 1) return;
+  isPanning = true;
+  panStartX = e.clientX; panStartY = e.clientY;
+  panOrigX = panX; panOrigY = panY;
+  canvas.style.cursor = 'grabbing';
+});
+window.addEventListener('mouseup', () => {
+  if (isPanning) { isPanning = false; canvas.style.cursor = 'default'; }
+});
+
+window.addEventListener('resize', resize);
+
+// Initialise buttons and draw
+refreshTypeButtons();
+refreshSatButtons();
+refreshValButtons();
+refreshBrandButtons();
+updateTypeFilterVisibility();
+openPanel(); // open by default
+document.getElementById('fb-exclude-metallic')?.classList.toggle('on', showMetallics);
+document.getElementById('fb-exclude-achromatic')?.classList.toggle('on', showAchromatics);
+refreshValRingButtons();
+document.getElementById('count-label').textContent = visiblePaints().length + ' paints';
+resize(); // sets W, H, CX, CY, R, then calls draw()
+// Apply dark/light mode after first draw (darkMode var may be defined later in script)
+setTimeout(() => { if (typeof applyDarkMode === 'function') applyDarkMode(); }, 0);
+
+// ── Dark mode ────────────────────────────────────────────────
+function applyDarkMode() {
+  document.documentElement.classList.toggle('dark', darkMode);
+  const btn = document.getElementById('darkmode-btn');
+  if (btn) btn.textContent = darkMode ? '☀' : '☾';
+  draw(); // redraw canvas with correct background
+}
+
+function toggleDarkMode() {
+  darkMode = !darkMode;
+  localStorage.setItem('darkMode', darkMode);
+  applyDarkMode();
+}
+
+// ── User Guide ─────────────────────────────────────────────
+function showGuide() {
+  document.getElementById('guide-overlay').classList.add('visible');
+  document.getElementById('guide-back-float').classList.add('visible');
+  document.getElementById('guide-overlay').scrollTop = 0;
+}
+
+function hideGuide() {
+  document.getElementById('guide-overlay').classList.remove('visible');
+  document.getElementById('guide-back-float').classList.remove('visible');
+}
+
+function showSources() {
+  document.getElementById('sources-overlay').classList.add('visible');
+  document.getElementById('sources-back-float').classList.add('visible');
+  document.getElementById('sources-overlay').scrollTop = 0;
+}
+
+function hideSources() {
+  document.getElementById('sources-overlay').classList.remove('visible');
+  document.getElementById('sources-back-float').classList.remove('visible');
+}
+
+</script>
+</body>
+</html>
