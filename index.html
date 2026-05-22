@@ -988,6 +988,15 @@
           <button class="fd-nav-btn" id="darkmode-btn" onclick="toggleDarkMode()" title="Toggle dark / light mode">☀</button>
         </div>
         <div class="fd-body">
+          <!-- Types filter (was "Include") — always visible, above brand -->
+          <div class="fd-section">
+            <div class="fd-label">Types</div>
+            <div class="filter-row">
+              <button class="fbtn on" id="fb-regular" onclick="toggleRegular()">Regular</button>
+              <button class="fbtn" id="fb-exclude-metallic" onclick="toggleExcludeMetallic()">Metallics</button>
+              <button class="fbtn" id="fb-exclude-achromatic" onclick="toggleExcludeAchromatic()">Achromatics</button>
+            </div>
+          </div>
           <!-- Mobile-only: filters that are hidden from the header on narrow screens -->
           <div class="fd-section mobile-only">
             <div class="fd-label">Brand</div>
@@ -1018,22 +1027,6 @@
               <button class="fbtn" id="mb-vr-dark" onclick="toggleValRingFilter('dark')">Dark</button>
             </div>
           </div>
-          <div class="fd-section mobile-only">
-            <div class="fd-label">Collection</div>
-            <div class="filter-row">
-              <button class="fbtn" id="mb-owned-btn" onclick="toggleOwnedOnly()">✓ Owned</button>
-              <button class="fbtn" onclick="openOwnedManager()">+ Manage</button>
-              <button class="fbtn" onclick="downloadCollection()">↓</button>
-              <button class="fbtn" onclick="document.getElementById('collection-file-input').click()">↑</button>
-            </div>
-          </div>
-          <div class="fd-section">
-            <div class="fd-label">Include</div>
-            <div class="filter-row">
-              <button class="fbtn" id="fb-exclude-metallic" onclick="toggleExcludeMetallic()">Metallics</button>
-              <button class="fbtn" id="fb-exclude-achromatic" onclick="toggleExcludeAchromatic()">Achromatics</button>
-            </div>
-          </div>
           <div class="fd-section" id="type-filter-section" style="display:none">
             <div class="fd-label">Citadel Type</div>
             <div class="filter-row">
@@ -1045,6 +1038,10 @@
           </div>
           <div class="fd-section">
             <div class="fd-label">Collection <span class="panel-sublabel" id="owned-count-label"></span></div>
+            <div class="filter-row mobile-only" style="margin-bottom:6px">
+              <button class="fbtn" id="mb-owned-btn" onclick="toggleOwnedOnly()">✓ Owned</button>
+              <button class="fbtn" onclick="openOwnedManager()">+ Manage</button>
+            </div>
             <div style="font-size:10px;color:var(--dimmer);margin-bottom:2px">File backup</div>
             <div class="filter-row">
               <button class="fbtn" onclick="downloadCollection()">Download</button>
@@ -1304,8 +1301,8 @@
     <h3>Brightness (Bright / Mid / Dark)</h3>
     <p>Filters by <strong>HSV value</strong> — how bright or dark the colour is. Bright (≥70%), Mid (35–70%), Dark (&lt;35%). This is a <strong>single-select</strong> filter: clicking one band replaces any previous choice, and clicking the active band clears it. It directly corresponds to the paint's radial position — Bright near the rim, Dark near the centre. You can also set it by clicking the value zones on the wheel itself.</p>
 
-    <h3>Include: Metallics &amp; Achromatics</h3>
-    <p>The burger menu (≡, top right) has an <strong>Include</strong> section with two toggles. <strong>Metallics</strong> is off by default — metallic paints are hidden until you switch it on. <strong>Achromatics</strong> (neutrals, near-blacks, near-whites) is on by default. These toggles persist even when a harmony is active and survive filter resets.</p>
+    <h3>Types (Regular / Metallics / Achromatics)</h3>
+    <p>The burger menu (≡, top right) has a <strong>Types</strong> section with three toggles. <strong>Regular</strong> (chromatic non-metallic paints) is on by default. <strong>Metallics</strong> is off by default — metallic paints are hidden until you switch it on. <strong>Achromatics</strong> (neutrals, near-blacks, near-whites) is on by default. These toggles persist even when a harmony is active and survive filter resets.</p>
 
     <h3>Citadel Type (Base / Layer / Metallic)</h3>
     <p>Found in the burger menu, this filter only appears when Citadel is the <strong>sole selected brand</strong>. It narrows Citadel results to Base, Layer, or Metallic paints. It has no effect on other brands.</p>
@@ -1575,7 +1572,7 @@ const PAINTS = [
   {name:"Rhinox Hide",             type:"base",  hex:"#493435", brand:"citadel"},
   {name:"Runelord Brass",          type:"metallic", hex:"#B6A89A", brand:"citadel"},
   {name:"Screamer Pink",           type:"base",  hex:"#7C1645", brand:"citadel"},
-  {name:"Screaming Bell",          type:"base",  hex:"#C16F45", brand:"citadel"},
+  {name:"Screaming Bell",          type:"metallic",hex:"#C16F45", brand:"citadel"},
   {name:"Steel Legion Drab",       type:"base",  hex:"#5E5134", brand:"citadel"},
   {name:"Stegadon Scale Green",    type:"base",  hex:"#074863", brand:"citadel"},
   {name:"The Fang",                type:"base",  hex:"#436276", brand:"citadel"},
@@ -1989,139 +1986,275 @@ const PAINTS = [
   {name:"Warm Grey", type:"paint", hex:"#98807A", brand:"proacryl", code:"MPA-064"},
   {name:"Neutral Grey", type:"paint", hex:"#808080", brand:"proacryl", code:"MPA-065"},
 
-  // ── Vallejo Model Color ──
-  {name:"White", type:"paint", hex:"#FFFFFF", brand:"vmc"},
-  {name:"Off White", type:"paint", hex:"#ECE3D0", brand:"vmc"},
-  {name:"Light Grey", type:"paint", hex:"#B8B8B8", brand:"vmc"},
-  {name:"Sky Grey", type:"paint", hex:"#C0C8C8", brand:"vmc"},
-  {name:"Cold Grey", type:"paint", hex:"#9CA0A4", brand:"vmc"},
-  {name:"Stone Grey", type:"paint", hex:"#9C9590", brand:"vmc"},
-  {name:"Neutral Grey", type:"paint", hex:"#808080", brand:"vmc"},
-  {name:"Basalt Grey", type:"paint", hex:"#4C4C4C", brand:"vmc"},
-  {name:"German Grey", type:"paint", hex:"#383840", brand:"vmc"},
-  {name:"Black Grey", type:"paint", hex:"#20242A", brand:"vmc"},
-  {name:"Black", type:"paint", hex:"#0A0A0A", brand:"vmc"},
-  {name:"Ivory", type:"paint", hex:"#EFE2C0", brand:"vmc"},
-  {name:"Pale Sand", type:"paint", hex:"#DCC890", brand:"vmc"},
-  {name:"Iraqi Sand", type:"paint", hex:"#C8B280", brand:"vmc"},
-  {name:"Dark Sand", type:"paint", hex:"#B89860", brand:"vmc"},
-  {name:"Buff", type:"paint", hex:"#C8A862", brand:"vmc"},
-  {name:"Khaki", type:"paint", hex:"#888050", brand:"vmc"},
-  {name:"Khaki Grey", type:"paint", hex:"#807868", brand:"vmc"},
-  {name:"US Tan Earth", type:"paint", hex:"#9C7848", brand:"vmc"},
-  {name:"Beige Brown", type:"paint", hex:"#8C6840", brand:"vmc"},
-  {name:"Flat Earth", type:"paint", hex:"#6C4828", brand:"vmc"},
-  {name:"Burnt Umber", type:"paint", hex:"#482018", brand:"vmc"},
-  {name:"Mahogany Brown", type:"paint", hex:"#5C2418", brand:"vmc"},
-  {name:"Chocolate Brown", type:"paint", hex:"#402010", brand:"vmc"},
-  {name:"Hull Red", type:"paint", hex:"#5A1818", brand:"vmc"},
-  {name:"Cavalry Brown", type:"paint", hex:"#8C1818", brand:"vmc"},
-  {name:"Flat Red", type:"paint", hex:"#B82020", brand:"vmc"},
-  {name:"Carmine Red", type:"paint", hex:"#9A0820", brand:"vmc"},
-  {name:"Scarlet Red", type:"paint", hex:"#C81820", brand:"vmc"},
-  {name:"Vermillion", type:"paint", hex:"#D02010", brand:"vmc"},
-  {name:"Light Orange", type:"paint", hex:"#F08828", brand:"vmc"},
-  {name:"Orange Red", type:"paint", hex:"#E84020", brand:"vmc"},
-  {name:"Light Vermillion", type:"paint", hex:"#DC4818", brand:"vmc"},
-  {name:"Hot Orange", type:"paint", hex:"#F06020", brand:"vmc"},
-  {name:"Flat Yellow", type:"paint", hex:"#F8D020", brand:"vmc"},
-  {name:"Gold Yellow", type:"paint", hex:"#F0B820", brand:"vmc"},
-  {name:"Sunblast Yellow", type:"paint", hex:"#FFE040", brand:"vmc"},
-  {name:"Lemon Yellow", type:"paint", hex:"#F8E000", brand:"vmc"},
-  {name:"Light Yellow", type:"paint", hex:"#F0E090", brand:"vmc"},
-  {name:"Deep Yellow", type:"paint", hex:"#F0A820", brand:"vmc"},
-  {name:"Yellow Olive", type:"paint", hex:"#8C7838", brand:"vmc"},
-  {name:"Olive Green", type:"paint", hex:"#586830", brand:"vmc"},
-  {name:"Russian Uniform", type:"paint", hex:"#606848", brand:"vmc"},
-  {name:"Dark Yellow", type:"paint", hex:"#B89460", brand:"vmc"},
-  {name:"Yellow Green", type:"paint", hex:"#A0B040", brand:"vmc"},
-  {name:"Park Green Flat", type:"paint", hex:"#385C30", brand:"vmc"},
-  {name:"Light Green", type:"paint", hex:"#60A040", brand:"vmc"},
-  {name:"Dark Green", type:"paint", hex:"#204828", brand:"vmc"},
-  {name:"Sap Green", type:"paint", hex:"#486030", brand:"vmc"},
-  {name:"Intermediate Green", type:"paint", hex:"#486838", brand:"vmc"},
-  {name:"Camouflage Green", type:"paint", hex:"#606848", brand:"vmc"},
-  {name:"Pastel Green", type:"paint", hex:"#A0C898", brand:"vmc"},
-  {name:"Emerald", type:"paint", hex:"#008040", brand:"vmc"},
-  {name:"Gunship Green", type:"paint", hex:"#405038", brand:"vmc"},
-  {name:"Field Blue", type:"paint", hex:"#586878", brand:"vmc"},
-  {name:"Andrea Blue", type:"paint", hex:"#1850A0", brand:"vmc"},
-  {name:"Dark Blue", type:"paint", hex:"#183868", brand:"vmc"},
-  {name:"Prussian Blue", type:"paint", hex:"#0C1840", brand:"vmc"},
-  {name:"Ultramarine", type:"paint", hex:"#203080", brand:"vmc"},
-  {name:"Royal Blue", type:"paint", hex:"#2050A0", brand:"vmc"},
-  {name:"Magic Blue", type:"paint", hex:"#2068C0", brand:"vmc"},
-  {name:"Electric Blue", type:"paint", hex:"#2890C8", brand:"vmc"},
-  {name:"Sky Blue", type:"paint", hex:"#70A8D0", brand:"vmc"},
-  {name:"Pale Blue", type:"paint", hex:"#A8C0D0", brand:"vmc"},
-  {name:"Turquoise", type:"paint", hex:"#008090", brand:"vmc"},
-  {name:"Sombre Grey", type:"paint", hex:"#5A6068", brand:"vmc"},
-  {name:"Royal Purple", type:"paint", hex:"#4A1858", brand:"vmc"},
-  {name:"Hexed Lichen", type:"paint", hex:"#604078", brand:"vmc"},
-  {name:"Squid Pink", type:"paint", hex:"#C04068", brand:"vmc"},
-  {name:"Sunny Skin Tone", type:"paint", hex:"#D89060", brand:"vmc"},
-  {name:"Salmon Rose", type:"paint", hex:"#F0A890", brand:"vmc"},
-  {name:"Medium Flesh Tone", type:"paint", hex:"#C88060", brand:"vmc"},
-  {name:"Basic Skin Tone", type:"paint", hex:"#D8A080", brand:"vmc"},
-  {name:"Light Flesh", type:"paint", hex:"#F4D0B0", brand:"vmc"},
-  {name:"Brown Sand", type:"paint", hex:"#9C7848", brand:"vmc"},
-  {name:"Flat Brown", type:"paint", hex:"#7C4828", brand:"vmc"},
-  {name:"Old Gold", type:"metallic", hex:"#A88040", brand:"vmc"},
-  {name:"Brass", type:"metallic", hex:"#B89028", brand:"vmc"},
-  {name:"Bronze", type:"metallic", hex:"#886040", brand:"vmc"},
-  {name:"Gunmetal Grey", type:"metallic", hex:"#707880", brand:"vmc"},
-  {name:"Silver", type:"metallic", hex:"#C0C0C0", brand:"vmc"},
-  {name:"Chainmail Silver", type:"metallic", hex:"#A0A0A0", brand:"vmc"},
+    // ── Vallejo Model Color (170 paints) ──
+  {name:"Sunset Red",                    type:"paint",    hex:"#C22C5F", brand:"vmc"},
+  {name:"Brown Rose",                    type:"paint",    hex:"#CF8774", brand:"vmc"},
+  {name:"Beige Red",                     type:"paint",    hex:"#C79166", brand:"vmc"},
+  {name:"German Orange",                 type:"paint",    hex:"#F05426", brand:"vmc"},
+  {name:"German Yellow",                 type:"paint",    hex:"#E8E589", brand:"vmc"},
+  {name:"Oxford Blue",                   type:"paint",    hex:"#3A465F", brand:"vmc"},
+  {name:"Blue Green",                    type:"paint",    hex:"#1A9496", brand:"vmc"},
+  {name:"Royal Blue",                    type:"paint",    hex:"#41558D", brand:"vmc"},
+  {name:"Royal Purple",                  type:"paint",    hex:"#4B2967", brand:"vmc"},
+  {name:"Blue Violet",                   type:"paint",    hex:"#795C9A", brand:"vmc"},
+  {name:"Violet Red",                    type:"paint",    hex:"#6B2946", brand:"vmc"},
+  {name:"Burnt Cadmium Red",             type:"paint",    hex:"#623535", brand:"vmc"},
+  {name:"Basic Skintone",                type:"paint",    hex:"#FBBC8C", brand:"vmc"},
+  {name:"Luftwaffe Uniform WW2",         type:"paint",    hex:"#3D474F", brand:"vmc"},
+  {name:"Scarlet",                       type:"paint",    hex:"#DA3630", brand:"vmc"},
+  {name:"Red Leather",                   type:"paint",    hex:"#93453D", brand:"vmc"},
+  {name:"Iraqi Sand",                    type:"paint",    hex:"#B89972", brand:"vmc"},
+  {name:"Off White",                     type:"paint",    hex:"#EFEEE2", brand:"vmc"},
+  {name:"German Cam. Beige WW2",         type:"paint",    hex:"#9C8D70", brand:"vmc"},
+  {name:"German Cam. Black Brown",       type:"paint",    hex:"#5B3528", brand:"vmc"},
+  {name:"Luftwaffe Cam. Green",          type:"paint",    hex:"#596B3F", brand:"vmc"},
+  {name:"German Cam. Orange Ochre",      type:"paint",    hex:"#9D7E55", brand:"vmc"},
+  {name:"German Cam. Pale Brown",        type:"paint",    hex:"#82685E", brand:"vmc"},
+  {name:"German Cam. Medium Brown",      type:"paint",    hex:"#722B2F", brand:"vmc"},
+  {name:"Lime Green",                    type:"paint",    hex:"#6FAE4E", brand:"vmc"},
+  {name:"Amaranth Red",                  type:"paint",    hex:"#CC4338", brand:"vmc"},
+  {name:"German Field Grey WW2",         type:"paint",    hex:"#595748", brand:"vmc"},
+  {name:"German Cam. Bright Green",      type:"paint",    hex:"#528944", brand:"vmc"},
+  {name:"Salmon Rose",                   type:"paint",    hex:"#F89D87", brand:"vmc"},
+  {name:"London Grey",                   type:"paint",    hex:"#4A555E", brand:"vmc"},
+  {name:"Pale Sand",                     type:"paint",    hex:"#D1C49C", brand:"vmc"},
+  {name:"Emerald",                       type:"paint",    hex:"#00906A", brand:"vmc"},
+  {name:"Ultramarine",                   type:"paint",    hex:"#3B5DA7", brand:"vmc"},
+  {name:"Light Turquoise",               type:"paint",    hex:"#0094A5", brand:"vmc"},
+  {name:"Andrea Blue",                   type:"paint",    hex:"#008DC9", brand:"vmc"},
+  {name:"Cork Brown",                    type:"paint",    hex:"#A57B63", brand:"vmc"},
+  {name:"Deep Sky Blue",                 type:"paint",    hex:"#00A6DA", brand:"vmc"},
+  {name:"Sunny Skintone",                type:"paint",    hex:"#F4B171", brand:"vmc"},
+  {name:"Mahogany Brown",                type:"paint",    hex:"#804B47", brand:"vmc"},
+  {name:"Dark Sand",                     type:"paint",    hex:"#D6B779", brand:"vmc"},
+  {name:"Medium Olive",                  type:"paint",    hex:"#226B2E", brand:"vmc"},
+  {name:"Bright Orange",                 type:"paint",    hex:"#F26833", brand:"vmc"},
+  {name:"Ochre Brown",                   type:"paint",    hex:"#A77237", brand:"vmc"},
+  {name:"Golden Olive",                  type:"paint",    hex:"#78923B", brand:"vmc"},
+  {name:"Ice Yellow",                    type:"paint",    hex:"#FEEF87", brand:"vmc"},
+  {name:"Black Red",                     type:"paint",    hex:"#5F2E39", brand:"vmc"},
+  {name:"Medium Fleshtone",              type:"paint",    hex:"#C08245", brand:"vmc"},
+  {name:"Glossy Black",                  type:"paint",    hex:"#010101", brand:"vmc"},
+  {name:"Black Grey",                    type:"paint",    hex:"#2D373A", brand:"vmc"},
+  {name:"Grey Green",                    type:"paint",    hex:"#565A60", brand:"vmc"},
+  {name:"Dark Blue Grey",                type:"paint",    hex:"#4B5751", brand:"vmc"},
+  {name:"Dark Sea Green",                type:"paint",    hex:"#2F4844", brand:"vmc"},
+  {name:"Basalt Grey",                   type:"paint",    hex:"#576860", brand:"vmc"},
+  {name:"Medium Sea Grey",               type:"paint",    hex:"#869393", brand:"vmc"},
+  {name:"Leather Brown",                 type:"paint",    hex:"#4A4639", brand:"vmc"},
+  {name:"Chocolate Brown",               type:"paint",    hex:"#5F5047", brand:"vmc"},
+  {name:"US Field Drab",                 type:"paint",    hex:"#705D43", brand:"vmc"},
+  {name:"Tan Earth",                     type:"paint",    hex:"#9C7962", brand:"vmc"},
+  {name:"Beige Brown",                   type:"paint",    hex:"#78584A", brand:"vmc"},
+  {name:"Brown Sand",                    type:"paint",    hex:"#B08064", brand:"vmc"},
+  {name:"Gold Brown",                    type:"paint",    hex:"#BA8636", brand:"vmc"},
+  {name:"Green Brown",                   type:"paint",    hex:"#8D7B55", brand:"vmc"},
+  {name:"Khaki Grey",                    type:"paint",    hex:"#8B7F5D", brand:"vmc"},
+  {name:"Yellow Green",                  type:"paint",    hex:"#91864B", brand:"vmc"},
+  {name:"Middlestone",                   type:"paint",    hex:"#9C9660", brand:"vmc"},
+  {name:"Silver Grey",                   type:"paint",    hex:"#D8DFD5", brand:"vmc"},
+  {name:"Stone Grey",                    type:"paint",    hex:"#959980", brand:"vmc"},
+  {name:"Pastel Green",                  type:"paint",    hex:"#A4BB99", brand:"vmc"},
+  {name:"Green Grey",                    type:"paint",    hex:"#827E61", brand:"vmc"},
+  {name:"Brown Violet",                  type:"paint",    hex:"#4E5D4D", brand:"vmc"},
+  {name:"Olive Grey",                    type:"paint",    hex:"#39584F", brand:"vmc"},
+  {name:"USA Olive Drab",                type:"paint",    hex:"#3B4947", brand:"vmc"},
+  {name:"Reflective Green",              type:"paint",    hex:"#496244", brand:"vmc"},
+  {name:"Intermediate Green",            type:"paint",    hex:"#49944F", brand:"vmc"},
+  {name:"Yellow Olive",                  type:"paint",    hex:"#26392E", brand:"vmc"},
+  {name:"US Dark Green",                 type:"paint",    hex:"#5B6955", brand:"vmc"},
+  {name:"Cam. Olive Green",              type:"paint",    hex:"#3C5549", brand:"vmc"},
+  {name:"Gunship Green",                 type:"paint",    hex:"#3D685E", brand:"vmc"},
+  {name:"German Cam. Extra Dark Green",  type:"paint",    hex:"#30504A", brand:"vmc"},
+  {name:"Bronce Green",                  type:"paint",    hex:"#2A534F", brand:"vmc"},
+  {name:"Dark Sea Blue",                 type:"paint",    hex:"#2A4048", brand:"vmc"},
+  {name:"Dark Prussian Blue",            type:"paint",    hex:"#192C43", brand:"vmc"},
+  {name:"French Mirage Blue",            type:"paint",    hex:"#557880", brand:"vmc"},
+  {name:"Pastel Blue",                   type:"paint",    hex:"#67859B", brand:"vmc"},
+  {name:"Azure",                         type:"paint",    hex:"#717CAD", brand:"vmc"},
+  {name:"Intermediate Blue",             type:"paint",    hex:"#607A80", brand:"vmc"},
+  {name:"Blue Grey Pale",                type:"paint",    hex:"#9EA7A5", brand:"vmc"},
+  {name:"Pale Blue",                     type:"paint",    hex:"#83B5B2", brand:"vmc"},
+  {name:"Pale Grey Blue",                type:"paint",    hex:"#BACDD0", brand:"vmc"},
+  {name:"Carmine Red",                   type:"paint",    hex:"#B73035", brand:"vmc"},
+  {name:"Vermillion",                    type:"paint",    hex:"#D22B2D", brand:"vmc"},
+  {name:"Orange Red",                    type:"paint",    hex:"#E34C26", brand:"vmc"},
+  {name:"Light Orange",                  type:"paint",    hex:"#F68627", brand:"vmc"},
+  {name:"Tan Yellow",                    type:"paint",    hex:"#B5915D", brand:"vmc"},
+  {name:"Yellow Ochre",                  type:"paint",    hex:"#C19448", brand:"vmc"},
+  {name:"Green Ochre",                   type:"paint",    hex:"#A98969", brand:"vmc"},
+  {name:"Deep Yellow",                   type:"paint",    hex:"#FFE30C", brand:"vmc"},
+  {name:"Sand Yellow",                   type:"paint",    hex:"#D7BF75", brand:"vmc"},
+  {name:"Beige",                         type:"paint",    hex:"#DBC58E", brand:"vmc"},
+  {name:"Ivory",                         type:"paint",    hex:"#EFF1D9", brand:"vmc"},
+  {name:"German Uniform",                type:"paint",    hex:"#286254", brand:"vmc"},
+  {name:"English Uniform",               type:"paint",    hex:"#715833", brand:"vmc"},
+  {name:"Uniform Green",                 type:"paint",    hex:"#577A38", brand:"vmc"},
+  {name:"Japan Uniform WW2",             type:"paint",    hex:"#998546", brand:"vmc"},
+  {name:"Russian Uniform WW2",           type:"paint",    hex:"#606D53", brand:"vmc"},
+  {name:"Blue",                          type:"paint",    hex:"#043667", brand:"vmc"},
+  {name:"Red",                           type:"paint",    hex:"#91323A", brand:"vmc"},
+  {name:"Dark Flesh",                    type:"paint",    hex:"#D9A262", brand:"vmc"},
+  {name:"Light Flesh",                   type:"paint",    hex:"#FEEDD0", brand:"vmc"},
+  {name:"Light Brown",                   type:"paint",    hex:"#BF764E", brand:"vmc"},
+  {name:"Dark Blue",                     type:"paint",    hex:"#0D5A86", brand:"vmc"},
+  {name:"Saddle Brown",                  type:"paint",    hex:"#89584F", brand:"vmc"},
+  {name:"Burnt Umber",                   type:"paint",    hex:"#665148", brand:"vmc"},
+  {name:"Light Green",                   type:"paint",    hex:"#00A850", brand:"vmc"},
+  {name:"Grey Blue",                     type:"paint",    hex:"#45708D", brand:"vmc"},
+  {name:"Old Rose",                      type:"paint",    hex:"#D47B7D", brand:"vmc"},
+  {name:"Magenta",                       type:"paint",    hex:"#A92A56", brand:"vmc"},
+  {name:"Dark Red",                      type:"paint",    hex:"#A24A46", brand:"vmc"},
+  {name:"Golden Yellow",                 type:"paint",    hex:"#F7C65E", brand:"vmc"},
+  {name:"Light Yellow",                  type:"paint",    hex:"#F7EA62", brand:"vmc"},
+  {name:"Black",                         type:"paint",    hex:"#252B31", brand:"vmc"},
+  {name:"White",                         type:"paint",    hex:"#FFFFFF", brand:"vmc"},
+  {name:"Lemon Yellow",                  type:"paint",    hex:"#FEF10E", brand:"vmc"},
+  {name:"Flat Yellow",                   type:"paint",    hex:"#FFCD25", brand:"vmc"},
+  {name:"Flat Flesh",                    type:"paint",    hex:"#D8A977", brand:"vmc"},
+  {name:"Clear Orange",                  type:"paint",    hex:"#F1552C", brand:"vmc"},
+  {name:"Flat Red",                      type:"paint",    hex:"#AA3037", brand:"vmc"},
+  {name:"Pink",                          type:"paint",    hex:"#D37497", brand:"vmc"},
+  {name:"Purple",                        type:"paint",    hex:"#834A6C", brand:"vmc"},
+  {name:"Violet",                        type:"paint",    hex:"#4B2F65", brand:"vmc"},
+  {name:"Sky Blue",                      type:"paint",    hex:"#86D6F7", brand:"vmc"},
+  {name:"Flat Blue",                     type:"paint",    hex:"#336991", brand:"vmc"},
+  {name:"Medium Blue",                   type:"paint",    hex:"#066588", brand:"vmc"},
+  {name:"Field Blue",                    type:"paint",    hex:"#436872", brand:"vmc"},
+  {name:"Prussian Blue",                 type:"paint",    hex:"#2A546E", brand:"vmc"},
+  {name:"Turquoise",                     type:"paint",    hex:"#008E9C", brand:"vmc"},
+  {name:"Olive Green",                   type:"paint",    hex:"#6A8B3A", brand:"vmc"},
+  {name:"Flat Green",                    type:"paint",    hex:"#2A6531", brand:"vmc"},
+  {name:"Park Green Flat",               type:"paint",    hex:"#008C5D", brand:"vmc"},
+  {name:"Deep Green",                    type:"paint",    hex:"#0A6B48", brand:"vmc"},
+  {name:"Light Green Blue",              type:"paint",    hex:"#6D9A95", brand:"vmc"},
+  {name:"Light Sea Grey",                type:"paint",    hex:"#97B4B5", brand:"vmc"},
+  {name:"Green Sky",                     type:"paint",    hex:"#59AD84", brand:"vmc"},
+  {name:"Military Green",                type:"paint",    hex:"#3E5848", brand:"vmc"},
+  {name:"Buff",                          type:"paint",    hex:"#D2CA9F", brand:"vmc"},
+  {name:"Desert Yellow",                 type:"paint",    hex:"#B19151", brand:"vmc"},
+  {name:"Dark Yellow",                   type:"paint",    hex:"#9D9059", brand:"vmc"},
+  {name:"German Cam. Dark Green",        type:"paint",    hex:"#2F4845", brand:"vmc"},
+  {name:"Black Green",                   type:"paint",    hex:"#19423E", brand:"vmc"},
+  {name:"Orange Brown",                  type:"paint",    hex:"#B86F44", brand:"vmc"},
+  {name:"Cavalry Brown",                 type:"paint",    hex:"#853F3D", brand:"vmc"},
+  {name:"Flat Earth",                    type:"paint",    hex:"#87643C", brand:"vmc"},
+  {name:"Flat Brown",                    type:"paint",    hex:"#764841", brand:"vmc"},
+  {name:"Hull Red",                      type:"paint",    hex:"#522724", brand:"vmc"},
+  {name:"Deck Tan",                      type:"paint",    hex:"#BEC5B3", brand:"vmc"},
+  {name:"Medium Grey",                   type:"paint",    hex:"#909B85", brand:"vmc"},
+  {name:"Khaki",                         type:"paint",    hex:"#969163", brand:"vmc"},
+  {name:"Sky Grey",                      type:"paint",    hex:"#B3B6B2", brand:"vmc"},
+  {name:"Light Grey",                    type:"paint",    hex:"#949C9A", brand:"vmc"},
+  {name:"Dark Sea Grey",                 type:"paint",    hex:"#787D7A", brand:"vmc"},
+  {name:"Neutral Grey",                  type:"paint",    hex:"#64767A", brand:"vmc"},
+  {name:"White Grey",                    type:"paint",    hex:"#EEF1EC", brand:"vmc"},
+  {name:"Dark Grey",                     type:"paint",    hex:"#233E3D", brand:"vmc"},
+  {name:"German Grey",                   type:"paint",    hex:"#192F30", brand:"vmc"},
+  {name:"Silver",                        type:"metallic", hex:"#C0C0C0", brand:"vmc"},
+  {name:"Chainmail Silver",              type:"metallic", hex:"#A0A0A0", brand:"vmc"},
+  {name:"Gunmetal Grey",                 type:"metallic", hex:"#707880", brand:"vmc"},
+  {name:"Old Gold",                      type:"metallic", hex:"#A88040", brand:"vmc"},
+  {name:"Brass",                         type:"metallic", hex:"#B89028", brand:"vmc"},
+  {name:"Bronze",                        type:"metallic", hex:"#886040", brand:"vmc"},
 
-  // ── Vallejo Game Color ──
-  {name:"Dead White", type:"paint", hex:"#F5F5F0", brand:"vgc"},
-  {name:"White Primer", type:"paint", hex:"#FFFFFF", brand:"vgc"},
-  {name:"Light Flesh", type:"paint", hex:"#F4D0B0", brand:"vgc"},
-  {name:"Elf Skintone", type:"paint", hex:"#E8B898", brand:"vgc"},
-  {name:"Bald Moon Yellow", type:"paint", hex:"#F8E840", brand:"vgc"},
-  {name:"Sunblast Yellow", type:"paint", hex:"#FED900", brand:"vgc"},
-  {name:"Gold Yellow", type:"paint", hex:"#F0B820", brand:"vgc"},
-  {name:"Orange Fire", type:"paint", hex:"#F08830", brand:"vgc"},
-  {name:"Hot Orange", type:"paint", hex:"#F46D2D", brand:"vgc"},
-  {name:"Bloody Red", type:"paint", hex:"#E83020", brand:"vgc"},
-  {name:"Scarlett Red", type:"paint", hex:"#C21920", brand:"vgc"},
-  {name:"Cavalry Brown", type:"paint", hex:"#8C1818", brand:"vgc"},
-  {name:"Warlord Purple", type:"paint", hex:"#8E1858", brand:"vgc"},
-  {name:"Hexed Lichen", type:"paint", hex:"#604078", brand:"vgc"},
-  {name:"Royal Purple", type:"paint", hex:"#401860", brand:"vgc"},
-  {name:"Nauseating Blue", type:"paint", hex:"#604898", brand:"vgc"},
-  {name:"Stormy Blue", type:"paint", hex:"#30506C", brand:"vgc"},
-  {name:"Dark Prussian Blue", type:"paint", hex:"#0E1838", brand:"vgc"},
-  {name:"Imperial Blue", type:"paint", hex:"#002051", brand:"vgc"},
-  {name:"Magic Blue", type:"paint", hex:"#2068C0", brand:"vgc"},
-  {name:"Ultramarine Blue", type:"paint", hex:"#1F56A8", brand:"vgc"},
-  {name:"Lightning Bolt Blue", type:"paint", hex:"#2890C8", brand:"vgc"},
-  {name:"Falcon Turquoise", type:"paint", hex:"#0B6874", brand:"vgc"},
-  {name:"Foul Green", type:"paint", hex:"#385C30", brand:"vgc"},
-  {name:"Jade Green", type:"paint", hex:"#488C68", brand:"vgc"},
-  {name:"Scurf Green", type:"paint", hex:"#207050", brand:"vgc"},
-  {name:"Dark Green", type:"paint", hex:"#00401E", brand:"vgc"},
-  {name:"Intermediate Green", type:"paint", hex:"#3E8059", brand:"vgc"},
-  {name:"Sick Green", type:"paint", hex:"#84A050", brand:"vgc"},
-  {name:"Goblin Green", type:"paint", hex:"#2FA56C", brand:"vgc"},
-  {name:"Scorpy Green", type:"paint", hex:"#008040", brand:"vgc"},
-  {name:"Livery Green", type:"paint", hex:"#486030", brand:"vgc"},
-  {name:"Escorpena Green", type:"paint", hex:"#385030", brand:"vgc"},
-  {name:"Camouflage Green", type:"paint", hex:"#606848", brand:"vgc"},
-  {name:"Earth", type:"paint", hex:"#907040", brand:"vgc"},
-  {name:"Bonewhite", type:"paint", hex:"#DCC890", brand:"vgc"},
-  {name:"Khaki", type:"paint", hex:"#B8A878", brand:"vgc"},
-  {name:"Dwarf Skin", type:"paint", hex:"#C68068", brand:"vgc"},
-  {name:"Tan", type:"paint", hex:"#C88040", brand:"vgc"},
-  {name:"Bronze Fleshtone", type:"paint", hex:"#B07058", brand:"vgc"},
-  {name:"Filthy Brown", type:"paint", hex:"#BF6E1D", brand:"vgc"},
-  {name:"Cobra Leather", type:"paint", hex:"#8C5828", brand:"vgc"},
-  {name:"Charred Brown", type:"paint", hex:"#5A2818", brand:"vgc"},
-  {name:"Beasty Brown", type:"paint", hex:"#604028", brand:"vgc"},
-  {name:"Parasite Brown", type:"paint", hex:"#402018", brand:"vgc"},
-  {name:"Plague Brown", type:"paint", hex:"#9C6838", brand:"vgc"},
-  {name:"Earth Brown", type:"paint", hex:"#604828", brand:"vgc"},
-  {name:"Heavy Brown", type:"paint", hex:"#402818", brand:"vgc"},
+
+    // ── Vallejo Game Color (95 paints) ──
+  {name:"Dead White",                    type:"paint",    hex:"#FFFFFF", brand:"vgc"},
+  {name:"Pale Flesh",                    type:"paint",    hex:"#F6BDB3", brand:"vgc"},
+  {name:"Elf Skintone",                  type:"paint",    hex:"#F8A070", brand:"vgc"},
+  {name:"Moon Yellow",                   type:"paint",    hex:"#FFF103", brand:"vgc"},
+  {name:"Sun Yellow",                    type:"paint",    hex:"#FFCF07", brand:"vgc"},
+  {name:"Gold Yellow",                   type:"paint",    hex:"#FDB318", brand:"vgc"},
+  {name:"Orange Fire",                   type:"paint",    hex:"#F1652E", brand:"vgc"},
+  {name:"Hot Orange",                    type:"paint",    hex:"#E43027", brand:"vgc"},
+  {name:"Bloody Red",                    type:"paint",    hex:"#BF282E", brand:"vgc"},
+  {name:"Gory Red",                      type:"paint",    hex:"#810504", brand:"vgc"},
+  {name:"Scarlet Red",                   type:"paint",    hex:"#741330", brand:"vgc"},
+  {name:"Squid Pink",                    type:"paint",    hex:"#DA7FB5", brand:"vgc"},
+  {name:"Warlord Purple",                type:"paint",    hex:"#7D1A44", brand:"vgc"},
+  {name:"Hexed Lichen",                  type:"paint",    hex:"#34274D", brand:"vgc"},
+  {name:"Royal Purple",                  type:"paint",    hex:"#23264F", brand:"vgc"},
+  {name:"Dark Blue",                     type:"paint",    hex:"#2B265D", brand:"vgc"},
+  {name:"Stormy Night",                  type:"paint",    hex:"#1F1A4F", brand:"vgc"},
+  {name:"Night Blue",                    type:"paint",    hex:"#19183F", brand:"vgc"},
+  {name:"Imperial Purple",               type:"paint",    hex:"#211A4B", brand:"vgc"},
+  {name:"Magic Blue",                    type:"paint",    hex:"#024381", brand:"vgc"},
+  {name:"Ultramarine Blue",              type:"paint",    hex:"#373592", brand:"vgc"},
+  {name:"Electric Blue",                 type:"paint",    hex:"#008CBF", brand:"vgc"},
+  {name:"Turquoise",                     type:"paint",    hex:"#03676F", brand:"vgc"},
+  {name:"Foul Green",                    type:"paint",    hex:"#239378", brand:"vgc"},
+  {name:"Jade Green",                    type:"paint",    hex:"#128379", brand:"vgc"},
+  {name:"Scurvy Green",                  type:"paint",    hex:"#09474E", brand:"vgc"},
+  {name:"Dark Green",                    type:"paint",    hex:"#083C2A", brand:"vgc"},
+  {name:"Sick Green",                    type:"paint",    hex:"#096638", brand:"vgc"},
+  {name:"Goblin Green",                  type:"paint",    hex:"#23743C", brand:"vgc"},
+  {name:"Camouflage Green",              type:"paint",    hex:"#71753A", brand:"vgc"},
+  {name:"Scorpion Green",                type:"paint",    hex:"#48B851", brand:"vgc"},
+  {name:"Livery Green",                  type:"paint",    hex:"#9ECE65", brand:"vgc"},
+  {name:"Bone White",                    type:"paint",    hex:"#E8BE86", brand:"vgc"},
+  {name:"Dead Flesh",                    type:"paint",    hex:"#BCB686", brand:"vgc"},
+  {name:"Bronze Fleshtone",              type:"paint",    hex:"#DB945C", brand:"vgc"},
+  {name:"Filthy Brown",                  type:"paint",    hex:"#F58D2B", brand:"vgc"},
+  {name:"Scrofulous Brown",              type:"paint",    hex:"#D68030", brand:"vgc"},
+  {name:"Plague Brown",                  type:"paint",    hex:"#CC9B34", brand:"vgc"},
+  {name:"Leather Brown",                 type:"paint",    hex:"#7B5D2A", brand:"vgc"},
+  {name:"Dwarf Skin",                    type:"paint",    hex:"#CC7C67", brand:"vgc"},
+  {name:"Parasite Brown",                type:"paint",    hex:"#B1481F", brand:"vgc"},
+  {name:"Beasty Brown",                  type:"paint",    hex:"#55432D", brand:"vgc"},
+  {name:"Dark Fleshtone",                type:"paint",    hex:"#4F2B26", brand:"vgc"},
+  {name:"Charred Brown",                 type:"paint",    hex:"#39343B", brand:"vgc"},
+  {name:"Ghost Grey",                    type:"paint",    hex:"#A7C5DB", brand:"vgc"},
+  {name:"Wolf Grey",                     type:"paint",    hex:"#90A2BC", brand:"vgc"},
+  {name:"Sombre Grey",                   type:"paint",    hex:"#4C5C7D", brand:"vgc"},
+  {name:"Stonewall Grey",                type:"paint",    hex:"#828E95", brand:"vgc"},
+  {name:"Cold Grey",                     type:"paint",    hex:"#54646D", brand:"vgc"},
+  {name:"Black",                         type:"paint",    hex:"#000000", brand:"vgc"},
+  {name:"Silver",                        type:"metallic", hex:"#C0C0C0", brand:"vgc"},
+  {name:"Chainmail Silver",              type:"metallic", hex:"#A0A0A0", brand:"vgc"},
+  {name:"Gunmetal Metal",                type:"metallic", hex:"#707880", brand:"vgc"},
+  {name:"Polished Gold",                 type:"metallic", hex:"#C0A040", brand:"vgc"},
+  {name:"Glorious Gold",                 type:"metallic", hex:"#A88040", brand:"vgc"},
+  {name:"Bright Bronze",                 type:"metallic", hex:"#B07840", brand:"vgc"},
+  {name:"Brassy Brass",                  type:"metallic", hex:"#B89028", brand:"vgc"},
+  {name:"Hammered Copper",               type:"metallic", hex:"#B05828", brand:"vgc"},
+  {name:"Tinny Tin",                     type:"metallic", hex:"#907040", brand:"vgc"},
+  {name:"Khaki",                         type:"paint",    hex:"#8C806D", brand:"vgc"},
+  {name:"Earth",                         type:"paint",    hex:"#6F563D", brand:"vgc"},
+  {name:"Desert Yellow",                 type:"paint",    hex:"#8E7845", brand:"vgc"},
+  {name:"Yellow Olive",                  type:"paint",    hex:"#063B2F", brand:"vgc"},
+  {name:"Terracotta",                    type:"paint",    hex:"#6B1306", brand:"vgc"},
+  {name:"Tan",                           type:"paint",    hex:"#9F4746", brand:"vgc"},
+  {name:"Cayman Green",                  type:"paint",    hex:"#285648", brand:"vgc"},
+  {name:"Smokey Ink",                    type:"paint",    hex:"#2B2325", brand:"vgc"},
+  {name:"Glacier Blue",                  type:"paint",    hex:"#ACD0EE", brand:"vgc"},
+  {name:"Verdigris",                     type:"paint",    hex:"#B3CECA", brand:"vgc"},
+  {name:"Pale Yellow",                   type:"paint",    hex:"#D5C179", brand:"vgc"},
+  {name:"Elfic Flesh",                   type:"paint",    hex:"#CDC29C", brand:"vgc"},
+  {name:"Cadmium Skin",                  type:"paint",    hex:"#FAB78A", brand:"vgc"},
+  {name:"Rosy Flesh",                    type:"paint",    hex:"#F89E84", brand:"vgc"},
+  {name:"Off White",                     type:"paint",    hex:"#F5F4DA", brand:"vgc"},
+  {name:"Steel Grey",                    type:"paint",    hex:"#64889D", brand:"vgc"},
+  {name:"Fluo Yellow",                   type:"paint",    hex:"#EEEA50", brand:"vgc"},
+  {name:"Fluo Green",                    type:"paint",    hex:"#9DCD64", brand:"vgc"},
+  {name:"Mutation Green",                type:"paint",    hex:"#296934", brand:"vgc"},
+  {name:"Scarlett Blood",                type:"paint",    hex:"#B72A38", brand:"vgc"},
+  {name:"Heavy Skintone",                type:"paint",    hex:"#AA7B62", brand:"vgc"},
+  {name:"Heavy Red",                     type:"paint",    hex:"#943238", brand:"vgc"},
+  {name:"Heavy Violet",                  type:"paint",    hex:"#4C2E65", brand:"vgc"},
+  {name:"Heavy Blue",                    type:"paint",    hex:"#29556D", brand:"vgc"},
+  {name:"Heavy Bluegrey",                type:"paint",    hex:"#9CA7A7", brand:"vgc"},
+  {name:"Heavy Grey",                    type:"paint",    hex:"#626D54", brand:"vgc"},
+  {name:"Heavy Green",                   type:"paint",    hex:"#566840", brand:"vgc"},
+  {name:"Heavy Black Green",             type:"paint",    hex:"#18433D", brand:"vgc"},
+  {name:"Heavy Warm Grey",               type:"paint",    hex:"#939066", brand:"vgc"},
+  {name:"Heavy Khaki",                   type:"paint",    hex:"#9D965D", brand:"vgc"},
+  {name:"Heavy Ochre",                   type:"paint",    hex:"#A87536", brand:"vgc"},
+  {name:"Heavy Gold Brown",              type:"paint",    hex:"#BA8636", brand:"vgc"},
+  {name:"Heavy Orange",                  type:"paint",    hex:"#EE5527", brand:"vgc"},
+  {name:"Heavy Brown",                   type:"paint",    hex:"#705D41", brand:"vgc"},
+  {name:"Heavy Sienna",                  type:"paint",    hex:"#744642", brand:"vgc"},
+  {name:"Heavy Charcoal",                type:"paint",    hex:"#1C2E2E", brand:"vgc"},
   // ── Two Thin Coats (183 paints) ──
   {name:"Berserker Red",               type:"paint",    hex:"#4D1B16", brand:"ttc"},
   {name:"Sanguine Scarlet",            type:"paint",    hex:"#961914", brand:"ttc"},
@@ -2543,31 +2676,8 @@ const PAINTS = [
   {name:"Dark Emerald",                type:"metallic", hex:"#415129", brand:"fanatic"},
   {name:"Glittering Green",            type:"metallic", hex:"#2F7E4D", brand:"fanatic"},
   {name:"Gemstone Red",                type:"metallic", hex:"#851F26", brand:"fanatic"},
-  {name:"Skull White", type:"paint", hex:"#F5F5F0", brand:"vgc"},
-  {name:"Wolf Grey", type:"paint", hex:"#A0A8B0", brand:"vgc"},
-  {name:"Ghost Grey", type:"paint", hex:"#B0B8C0", brand:"vgc"},
-  {name:"Stonewall Grey", type:"paint", hex:"#808880", brand:"vgc"},
-  {name:"Cold Grey", type:"paint", hex:"#6C7480", brand:"vgc"},
-  {name:"Sombre Grey", type:"paint", hex:"#5A6068", brand:"vgc"},
-  {name:"Wolf Grey Dark", type:"paint", hex:"#404850", brand:"vgc"},
-  {name:"Black", type:"paint", hex:"#0A0A0A", brand:"vgc"},
-  {name:"Brassy Brass", type:"metallic", hex:"#B89028", brand:"vgc"},
-  {name:"Polished Gold", type:"metallic", hex:"#C0A040", brand:"vgc"},
-  {name:"Glorious Gold", type:"metallic", hex:"#A88040", brand:"vgc"},
-  {name:"Tinny Tin", type:"metallic", hex:"#907040", brand:"vgc"},
-  {name:"Hammered Copper", type:"metallic", hex:"#B05828", brand:"vgc"},
-  {name:"Bright Bronze", type:"metallic", hex:"#B07840", brand:"vgc"},
-  {name:"Gunmetal Metal", type:"metallic", hex:"#707880", brand:"vgc"},
-  {name:"Chainmail Silver", type:"metallic", hex:"#A0A0A0", brand:"vgc"},
-  {name:"Silver", type:"metallic", hex:"#C0C0C0", brand:"vgc"},
-  {name:"Plate Mail Metal", type:"metallic", hex:"#94999D", brand:"vgc"},
-  {name:"Heavy Charcoal", type:"paint", hex:"#302828", brand:"vgc"},
-  {name:"Heavy Skintone", type:"paint", hex:"#C88860", brand:"vgc"},
-  {name:"Heavy Bluegrey", type:"paint", hex:"#5C7080", brand:"vgc"},
-  {name:"Heavy Bluegreen", type:"paint", hex:"#356060", brand:"vgc"},
-  {name:"Heavy Warmgrey", type:"paint", hex:"#8A7868", brand:"vgc"},
-  {name:"Heavy Khaki", type:"paint", hex:"#807058", brand:"vgc"},
-  {name:"Heavy Brown", type:"paint", hex:"#402818", brand:"vgc"},
+
+
 ];
 
 // ── Colour math ─────────────────────────────────────────────
@@ -2696,6 +2806,7 @@ let searchQuery  = '';
 let hoveredSeg   = -1;
 let hoveredRing  = null; // VAL_RINGS entry under cursor
 let activeHarmony = null;
+let showRegular = true;      // true = shown by default (non-metallic, non-achromatic)
 let showMetallics = false;   // false = hidden by default (button unselected)
 let showAchromatics = true;  // true = shown by default (button selected)
 let ownedOnly = false;       // true = show only paints the user owns
@@ -2775,14 +2886,31 @@ function derivePaintFields(p) {
 // Now safe to pre-compute — all dependencies are defined
 PAINTS.forEach(p => derivePaintFields(p));
 
+// Check if a paint passes the Regular/Metallic/Achromatic type filters
+function isTypeVisible(p) {
+  const isMetallic   = p.type === 'metallic';
+  const isAchromatic = !isMetallic && p.hueSeg < 0;
+  const isRegular    = !isMetallic && !isAchromatic;
+  if (isRegular    && !showRegular)    return false;
+  if (isMetallic   && !showMetallics)  return false;
+  if (isAchromatic && !showAchromatics) return false;
+  return true;
+}
+
 function visiblePaints() {
   return PAINTS.filter(p => {
     // Owned-only filter
     if (ownedOnly && !p.owned) return false;
-    // Exclude metallics (persists across harmony changes)
-    if (!showMetallics && p.type === 'metallic') return false;
-    // Exclude achromatics
-    if (!showAchromatics && p.hueSeg < 0) return false;
+
+    // Type classification: regular (chromatic non-metallic), metallic, achromatic
+    const isMetallic   = p.type === 'metallic';
+    const isAchromatic = !isMetallic && p.hueSeg < 0;
+    const isRegular    = !isMetallic && !isAchromatic;
+
+    // If none of the three type toggles are on, show nothing of that kind
+    if (isRegular    && !showRegular)    return false;
+    if (isMetallic   && !showMetallics)  return false;
+    if (isAchromatic && !showAchromatics) return false;
     // Brand filter — empty set means no filter (show all brands)
     if (activeBrands.size > 0 && !activeBrands.has(p.brand)) return false;
     // Type filter — empty set means no filter (show all types).
@@ -2824,6 +2952,7 @@ function paintsForWheel() {
     } else if (harmonyStegs.length > 0) {
       PAINTS.forEach(p => {
         if (ownedOnly && !p.owned) return;
+        if (!isTypeVisible(p)) return;
         if (p.hueSeg !== -1 && harmonyStegs.includes(p.hueSeg)) out.push(p);
       });
     }
@@ -2840,18 +2969,31 @@ function paintsForWheel() {
   return visiblePaints();
 }
 
+function toggleRegular() {
+  showRegular = !showRegular;
+  const el = document.getElementById('fb-regular');
+  if (el) el.classList.toggle('on', showRegular);
+  if (activeHarmony) _runHarmony(activeHarmony);
+  refreshAfterFilter();
+  draw();
+}
+
 function toggleExcludeMetallic() {
   showMetallics = !showMetallics;
   const el = document.getElementById('fb-exclude-metallic');
   if (el) el.classList.toggle('on', showMetallics);
+  if (activeHarmony) _runHarmony(activeHarmony);
   refreshAfterFilter();
+  draw();
 }
 
 function toggleExcludeAchromatic() {
   showAchromatics = !showAchromatics;
   const el = document.getElementById('fb-exclude-achromatic');
   if (el) el.classList.toggle('on', showAchromatics);
+  if (activeHarmony) _runHarmony(activeHarmony);
   refreshAfterFilter();
+  draw();
 }
 
 // The val ring config buttons in the dropdown are an alias for toggleValBand
@@ -3198,7 +3340,7 @@ function harmonySegments(seg, type, spread) {
 function paintsInSegs(segs) {
   return PAINTS.filter(p => {
     if (ownedOnly && !p.owned) return false;
-    if (!showMetallics && p.type === 'metallic') return false;
+    if (!isTypeVisible(p)) return false;
     return segs.includes(p.hueSeg);
   });
 }
@@ -3255,14 +3397,14 @@ function _runHarmony(type) {
       harmonyStegs = [];
       paints = PAINTS.filter(p =>
         p.hueSeg < 0 &&
-        (showMetallics || p.type !== 'metallic') &&
+        isTypeVisible(p) &&
         (!ownedOnly || p.owned) &&
         (p.name !== selected.name || p.brand !== selected.brand));
     } else {
       harmonyStegs = [selected.hueSeg];
       paints = PAINTS.filter(p =>
         p.hueSeg === selected.hueSeg &&
-        (showMetallics || p.type !== 'metallic') &&
+        isTypeVisible(p) &&
         (!ownedOnly || p.owned) &&
         (p.name !== selected.name || p.brand !== selected.brand));
     }
@@ -5012,6 +5154,7 @@ if (window.matchMedia('(max-width: 768px)').matches) {
 } else {
   openPanel();
 }
+document.getElementById('fb-regular')?.classList.toggle('on', showRegular);
 document.getElementById('fb-exclude-metallic')?.classList.toggle('on', showMetallics);
 document.getElementById('fb-exclude-achromatic')?.classList.toggle('on', showAchromatics);
 refreshValRingButtons();
