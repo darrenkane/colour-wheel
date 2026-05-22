@@ -488,10 +488,10 @@
   #tip .tip-name { font-family: 'Cinzel', serif; font-size: 12px; color: var(--text); margin-bottom: 2px; }
   #tip .tip-type { font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--dim); }
   #tip .tip-hex  { font-size: 11px; color: var(--dim); margin-top: 6px; font-family: monospace; }
-  #tip .tip-entry { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  #tip .tip-entry { padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
   #tip .tip-entry:last-child { border-bottom: none; }
-  #tip .tip-entry:first-child { padding-top: 0; }
-  #tip .tip-entry-selectable:hover { background:var(--tint); border-radius:3px; padding-left:4px; margin-left:-4px; }
+  #tip .tip-entry:first-child { padding-top: 2px; }
+  #tip .tip-entry-selectable:hover { background:var(--tint); border-radius:3px; }
   #tip .tip-count { font-size: 9px; letter-spacing: .15em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
 
   /* ── Info panel ── */
@@ -505,6 +505,9 @@
     transition: width 0.2s ease;
   }
   #panel.collapsed { width: 32px; }
+
+  /* Mobile-only sections hidden on desktop */
+  .mobile-only { display: none; }
 
   /* ═══════════════════════════════════════════════════════════════
      Mobile / narrow-screen overrides
@@ -535,6 +538,12 @@
     /* Hide the paint count on narrow screens to save space */
     .h-sub { display: none; }
 
+    /* Hide header filter groups on mobile — they move into the burger menu */
+    .mobile-hide { display: none !important; }
+
+    /* Show mobile-only burger sections */
+    .mobile-only { display: block !important; }
+
     /* Make sure burger menu stays right-aligned and visible */
     #filter-dropdown-wrap { margin-left: auto; flex-shrink: 0; }
 
@@ -553,10 +562,12 @@
       border-top: 1px solid var(--border);
       width: 100% !important;
       max-height: 60vh;
+      overflow: hidden;
       transition: max-height 0.25s ease;
     }
+    #panel:not(.collapsed) { overflow-y: auto; }
     #panel.collapsed { max-height: 38px; width: 100% !important; }
-    #panel-header { padding: 11px 14px; font-size: 10px; }
+    #panel-header { padding: 11px 14px; font-size: 10px; cursor: pointer; }
     #panel-arrow { transform: rotate(-90deg); }
     #panel.collapsed #panel-arrow { transform: rotate(90deg); }
     #panel.collapsed #panel-header-label { opacity: 1; }
@@ -611,6 +622,11 @@
     /* Disable hover-driven legend reveal (hover doesn't exist on touch) */
     #wheel-key-content { display: none; }
     #wheel-key.open #wheel-key-content { display: block; }
+
+    /* Larger tooltip entries for finger tapping */
+    #tip .tip-entry { padding: 10px 6px; min-height: 36px; }
+    #tip .tip-name { font-size: 14px; }
+    #tip .tip-type { font-size: 11px; }
 
     /* Prevent text selection on the canvas during drags */
     #canvas-wrap, canvas { -webkit-user-select: none; user-select: none; }
@@ -881,7 +897,7 @@
     </div>
 
     <!-- Brand multi-select dropdown -->
-    <div class="header-filter-group">
+    <div class="header-filter-group mobile-hide">
       <div class="header-filter-label">Brand</div>
       <div id="brand-dropdown-wrap">
         <button id="brand-toggle-btn" onclick="toggleBrandDropdown()">
@@ -926,7 +942,7 @@
     </div>
 
     <!-- Saturation filter -->
-    <div class="header-filter-group">
+    <div class="header-filter-group mobile-hide">
       <div class="header-filter-label">Saturation</div>
       <div id="header-sat-filter">
         <button class="fbtn header-sat-btn" id="sb-vivid"  onclick="toggleSatBand('vivid')">Vivid</button>
@@ -936,7 +952,7 @@
     </div>
 
     <!-- Brightness filter -->
-    <div class="header-filter-group">
+    <div class="header-filter-group mobile-hide">
       <div class="header-filter-label">Brightness</div>
       <div id="header-val-filter">
         <button class="fbtn header-sat-btn" id="valring-bright" onclick="toggleValRingFilter('bright')">Bright</button>
@@ -946,7 +962,7 @@
     </div>
 
     <!-- Owned filter + collection backup -->
-    <div class="header-filter-group">
+    <div class="header-filter-group mobile-hide">
       <div class="header-filter-label">Collection</div>
       <div style="display:flex;gap:5px;align-items:center">
         <button class="fbtn header-sat-btn" id="owned-filter-btn" onclick="toggleOwnedOnly()">✓ Owned</button>
@@ -972,6 +988,45 @@
           <button class="fd-nav-btn" id="darkmode-btn" onclick="toggleDarkMode()" title="Toggle dark / light mode">☀</button>
         </div>
         <div class="fd-body">
+          <!-- Mobile-only: filters that are hidden from the header on narrow screens -->
+          <div class="fd-section mobile-only">
+            <div class="fd-label">Brand</div>
+            <div class="filter-row" style="flex-wrap:wrap">
+              <button class="fbtn" id="mb-citadel" onclick="toggleBrand('citadel')">Citadel</button>
+              <button class="fbtn" id="mb-ak" onclick="toggleBrand('ak')">AK</button>
+              <button class="fbtn" id="mb-proacryl" onclick="toggleBrand('proacryl')">Pro Acryl</button>
+              <button class="fbtn" id="mb-vmc" onclick="toggleBrand('vmc')">VMC</button>
+              <button class="fbtn" id="mb-vgc" onclick="toggleBrand('vgc')">VGC</button>
+              <button class="fbtn" id="mb-ttc" onclick="toggleBrand('ttc')">TTC</button>
+              <button class="fbtn" id="mb-p3" onclick="toggleBrand('p3')">P3</button>
+              <button class="fbtn" id="mb-fanatic" onclick="toggleBrand('fanatic')">Fanatic</button>
+            </div>
+          </div>
+          <div class="fd-section mobile-only">
+            <div class="fd-label">Saturation</div>
+            <div class="filter-row">
+              <button class="fbtn" id="mb-sb-vivid" onclick="toggleSatBand('vivid')">Vivid</button>
+              <button class="fbtn" id="mb-sb-mid" onclick="toggleSatBand('mid')">Mid</button>
+              <button class="fbtn" id="mb-sb-muted" onclick="toggleSatBand('muted')">Muted</button>
+            </div>
+          </div>
+          <div class="fd-section mobile-only">
+            <div class="fd-label">Brightness</div>
+            <div class="filter-row">
+              <button class="fbtn" id="mb-vr-bright" onclick="toggleValRingFilter('bright')">Bright</button>
+              <button class="fbtn" id="mb-vr-mid" onclick="toggleValRingFilter('mid')">Mid</button>
+              <button class="fbtn" id="mb-vr-dark" onclick="toggleValRingFilter('dark')">Dark</button>
+            </div>
+          </div>
+          <div class="fd-section mobile-only">
+            <div class="fd-label">Collection</div>
+            <div class="filter-row">
+              <button class="fbtn" id="mb-owned-btn" onclick="toggleOwnedOnly()">✓ Owned</button>
+              <button class="fbtn" onclick="openOwnedManager()">+ Manage</button>
+              <button class="fbtn" onclick="downloadCollection()">↓</button>
+              <button class="fbtn" onclick="document.getElementById('collection-file-input').click()">↑</button>
+            </div>
+          </div>
           <div class="fd-section">
             <div class="fd-label">Include</div>
             <div class="filter-row">
@@ -1452,7 +1507,7 @@
       <button id="owned-modal-close" onclick="closeOwnedManager()" title="Close">✕</button>
     </div>
     <div id="owned-modal-controls">
-      <input type="text" id="owned-search" placeholder="Search paint name…" oninput="renderOwnedManagerList()" autocomplete="off">
+      <input type="text" id="owned-search" placeholder="Search name or hex…" oninput="renderOwnedManagerList()" autocomplete="off">
       <div id="owned-brand-dd-wrap">
         <button id="owned-brand-dd-btn" onclick="toggleOwnedBrandDropdown()">
           <span id="owned-brand-dd-label">All brands</span>
@@ -2810,6 +2865,9 @@ function refreshValRingButtons() {
   VAL_BANDS.forEach(b => {
     const el = document.getElementById('valring-' + b.key);
     if (el) el.classList.toggle('on', activeValBands.has(b.key));
+    // Mobile burger
+    const mb = document.getElementById('mb-vr-' + b.key);
+    if (mb) mb.classList.toggle('on', activeValBands.has(b.key));
   });
 }
 
@@ -2857,6 +2915,9 @@ function refreshBrandButtons() {
   BRANDS.forEach(b => {
     const opt = document.getElementById('lg-'+b);
     if (opt) opt.classList.toggle('on', activeBrands.has(b));
+    // Mobile burger brand buttons
+    const mb = document.getElementById('mb-'+b);
+    if (mb) mb.classList.toggle('on', activeBrands.has(b));
   });
   // Update the button label and active state
   const btn = document.getElementById('brand-toggle-btn');
@@ -2893,6 +2954,9 @@ function toggleOwnedOnly() {
   ownedOnly = !ownedOnly;
   const btn = document.getElementById('owned-filter-btn');
   if (btn) btn.classList.toggle('on', ownedOnly);
+  // Mobile burger owned button
+  const mb = document.getElementById('mb-owned-btn');
+  if (mb) mb.classList.toggle('on', ownedOnly);
   // Re-run active harmony so its results respect the owned filter
   if (activeHarmony) _runHarmony(activeHarmony);
   refreshAfterFilter();
@@ -2952,6 +3016,9 @@ function refreshSatButtons() {
   SAT_BANDS.forEach(b => {
     const el = document.getElementById('sb-'+b.key);
     if (el) el.classList.toggle('on', activeSatBands.has(b.key));
+    // Mobile burger
+    const mb = document.getElementById('mb-sb-'+b.key);
+    if (mb) mb.classList.toggle('on', activeSatBands.has(b.key));
   });
 }
 
@@ -3276,6 +3343,7 @@ function clearAll() {
   activeHues.clear(); activeSatBands.clear(); activeValBands.clear();
   ownedOnly = false;
   document.getElementById('owned-filter-btn')?.classList.remove('on');
+  document.getElementById('mb-owned-btn')?.classList.remove('on');
   refreshTypeButtons(); refreshBrandButtons();
   refreshSatButtons(); refreshValButtons(); refreshHueButtons();
   updateTypeFilterVisibility();
@@ -3446,7 +3514,7 @@ function renderHarmonyList() {
     return;
   }
 
-  // Group by hue, then brand within each hue, sort by value descending (high→low)
+  // Group by hue, sort by value descending (high→low) within each hue
   const byHue = {};
   shown.forEach(p => {
     const key = p.hueSeg >= 0 ? p.hueSeg : -1;
@@ -3460,26 +3528,21 @@ function renderHarmonyList() {
   hueKeys.forEach(hueKey => {
     const hueName = hueKey >= 0 ? MARTIAN_HUE_NAMES_SHORT[hueKey] : 'Neutral';
     html += `<div class="harmony-group-label" style="margin-top:10px">${hueName}</div>`;
-    HARMONY_BRAND_ORDER.forEach(b => {
-      if (activeBrands.size > 0 && !activeBrands.has(b)) return;
-      const brandGroup = byHue[hueKey].filter(p => p.brand === b)
-        .sort((a, bP) => bP.value - a.value); // descending value
-      if (brandGroup.length === 0) return;
-      html += `<div class="harmony-brand-row">${HARMONY_BRAND_NAMES[b]}</div>`;
-      html += brandGroup.map(p => {
-        const nameKey  = p.name.replace(/'/g,"\\'").replace(/!/g,"\\!");
-        const brandKey = p.brand;
-        return `<div class="nb-item scheme-addable"
-          onclick="addToScheme(PAINTS.find(q=>q.name==='${nameKey}'&&q.brand==='${brandKey}'))"
-          onmouseenter="setHarmonyHover('${nameKey}','${brandKey}')"
-          onmouseleave="clearHarmonyHover()"
-          title="Add to colour scheme">
-          ${paintShapeSVG(p)}
-          <div class="nb-name">${p.name}</div>
-          <div class="nb-meta">${p.valBand.label} ${p.satBand.label}</div>
-        </div>`;
-      }).join('');
-    });
+    const sorted = byHue[hueKey].sort((a, b) => b.value - a.value);
+    html += sorted.map(p => {
+      const nameKey  = p.name.replace(/'/g,"\\'").replace(/!/g,"\\!");
+      const brandKey = p.brand;
+      const brandLabel = HARMONY_BRAND_NAMES[p.brand] || p.brand;
+      return `<div class="nb-item scheme-addable"
+        onclick="addToScheme(PAINTS.find(q=>q.name==='${nameKey}'&&q.brand==='${brandKey}'))"
+        onmouseenter="setHarmonyHover('${nameKey}','${brandKey}')"
+        onmouseleave="clearHarmonyHover()"
+        title="Add to colour scheme">
+        ${paintShapeSVG(p)}
+        <div class="nb-name">${p.name} <span style="color:var(--dimmer);font-size:10px;font-weight:400">${brandLabel}</span></div>
+        <div class="nb-meta">${p.valBand.label} ${p.satBand.label}</div>
+      </div>`;
+    }).join('');
   });
 
   list.innerHTML = html;
@@ -4023,6 +4086,8 @@ function selectPaint(paint) {
 
   // Auto-open panel when a paint is selected
   openPanel();
+  // On mobile, close the hover tooltip to save space — the panel shows the same info
+  if (IS_TOUCH) forceHideTip();
   document.getElementById('panel-header-label').textContent = paint.name;
   document.getElementById('sel-card').style.display = 'block';
   renderScheme(); // update scheme panel with new anchor
@@ -4316,7 +4381,7 @@ function renderOwnedManagerList() {
     if (ownedMgrBrandFilter.size > 0 && !ownedMgrBrandFilter.has(p.brand)) return false;
     if (ownedOnlyView && !p.owned) return false;
     if (query) {
-      const hay = (p.name + ' ' + (p.code || '')).toLowerCase();
+      const hay = (p.name + ' ' + (p.code || '') + ' ' + p.hex).toLowerCase();
       if (!hay.includes(query)) return false;
     }
     return true;
@@ -4411,6 +4476,7 @@ const tip = document.getElementById('tip');
 let tipPinned = false; // when true, tooltip stays open even on mouseleave
 
 function showTip(paints, mx, my) {
+  cancelHideTip(); // cancel any pending grace-period hide
   const list = Array.isArray(paints) ? paints : [paints];
   if (list.length === 0) { hideTip(); return; }
 
@@ -4436,10 +4502,8 @@ function showTip(paints, mx, my) {
     const isSelected = selected && selected.name === p.name && selected.brand === p.brand;
     const nameKey  = p.name.replace(/'/g,"\\'").replace(/!/g,"\\!");
     const brandKey = p.brand;
-    // When multiple paints, each entry is clickable to select that paint
-    const clickAttr = list.length > 1
-      ? `onclick="tipSelectPaint(PAINTS.find(q=>q.name==='${nameKey}'&&q.brand==='${brandKey}'))" style="cursor:pointer"`
-      : '';
+    // Every entry is clickable to select that paint
+    const clickAttr = `onclick="tipSelectPaint(PAINTS.find(q=>q.name==='${nameKey}'&&q.brand==='${brandKey}'))" style="cursor:pointer"`;
     const selectedMark = isSelected ? ' <span style="color:var(--gold);font-size:9px">●</span>' : '';
     html += `<div class="tip-entry tip-entry-selectable" ${clickAttr}>
       <div class="tip-name">${p.name}${selectedMark}</div>
@@ -4447,14 +4511,12 @@ function showTip(paints, mx, my) {
     </div>`;
   });
   body.innerHTML = html;
-  // Add close button when pinned (multiple paints)
-  if (list.length > 1) {
-    const closeBtn = document.createElement('div');
-    closeBtn.style.cssText = 'position:absolute;top:6px;right:8px;cursor:pointer;color:var(--dimmer);font-size:11px;line-height:1';
-    closeBtn.textContent = '✕';
-    closeBtn.onclick = (ev) => { ev.stopPropagation(); forceHideTip(); };
-    tip.appendChild(closeBtn);
-  }
+  // Add close button (visible once the tooltip is pinned by clicking)
+  const closeBtn = document.createElement('div');
+  closeBtn.style.cssText = 'position:absolute;top:6px;right:8px;cursor:pointer;color:var(--dimmer);font-size:11px;line-height:1';
+  closeBtn.textContent = '✕';
+  closeBtn.onclick = (ev) => { ev.stopPropagation(); forceHideTip(); };
+  tip.appendChild(closeBtn);
   const first = list[0];
   document.getElementById('tip-hex').innerHTML =
     `${first.hex.toUpperCase()} <span style="color:var(--dimmer);margin-left:6px">V ${Math.round(first.value)}% · S ${Math.round(first.hsl.s)}%</span>`;
@@ -4476,38 +4538,41 @@ function showTip(paints, mx, my) {
 // Called when user clicks a paint entry inside the pinned tooltip
 function tipSelectPaint(paint) {
   if (!paint) return;
+  // Close the tooltip — the user has made their choice
+  forceHideTip();
   selectPaint(paint);
-  // Refresh the tooltip in place to update the selected marker
-  // find all paints at the same position
-  const stacked = paintPositions
-    .filter(pp => {
-      const pos = getPaintPos(paint);
-      return Math.hypot(pp.x - pos.x, pp.y - pos.y) < (6 * devicePixelRatio / Math.pow(zoom, 0.85)) * 3;
-    })
-    .map(pp => pp.paint);
-  if (stacked.length > 0) {
-    const tx = parseInt(tip.style.left);
-    const ty = parseInt(tip.style.top);
-    showTip(stacked, undefined, undefined);
-    tip.style.left = tx + 'px';
-    tip.style.top  = ty + 'px';
-    tipPinned = true;
-  }
 }
+
+let tipHideTimer = null;
 
 function hideTip() {
   if (tipPinned) return; // don't hide while pinned
-  tip.style.display = 'none';
-  const swatch = document.getElementById('tip-swatch');
-  if (swatch) swatch.style.display = '';
+  // Grace period: allow 1s for the mouse to reach the tooltip before hiding
+  clearTimeout(tipHideTimer);
+  tipHideTimer = setTimeout(() => {
+    if (tipPinned) return;
+    tip.style.display = 'none';
+    const swatch = document.getElementById('tip-swatch');
+    if (swatch) swatch.style.display = '';
+  }, 1000);
+}
+
+function cancelHideTip() {
+  clearTimeout(tipHideTimer);
 }
 
 function forceHideTip() {
+  clearTimeout(tipHideTimer);
   tipPinned = false;
   tip.style.display = 'none';
   const swatch = document.getElementById('tip-swatch');
   if (swatch) swatch.style.display = '';
 }
+
+// Cancel the hide timer when the mouse enters the tooltip
+tip.addEventListener('mouseenter', cancelHideTip);
+// Re-trigger hide when the mouse leaves the tooltip (unless pinned)
+tip.addEventListener('mouseleave', () => { if (!tipPinned) hideTip(); });
 
 function showRingTip(label, mx, my) {
   // Reuse the tip element with a simple single-line label
@@ -4536,10 +4601,15 @@ canvas.addEventListener('mousemove', e => {
     const maxPan = R * (zoom - 1);
     panX = Math.max(-maxPan, Math.min(maxPan, panX));
     panY = Math.max(-maxPan, Math.min(maxPan, panY));
-    hideTip();
     draw();
     return;
   }
+
+  // When the tooltip is pinned (user clicked a paint dot), freeze all
+  // tooltip and hover updates so the user can move to the tooltip and
+  // click an entry without interference.
+  if (tipPinned) return;
+
   // Paint dots take priority over rim hue segments — otherwise paint dots
   // sitting near the rim (e.g. pure whites at value=100) get swallowed by
   // the segment hit-test and become un-hoverable.
@@ -4558,7 +4628,6 @@ canvas.addEventListener('mousemove', e => {
     if (hoveredSeg !== seg) { hoveredSeg = seg; draw(); }
     if (hoveredRing) { hoveredRing = null; draw(); }
   } else if (onRing) {
-    // Determine which band the cursor is in relative to this ring
     const { x: rx, y: ry } = screenToCanvas(e.clientX, e.clientY);
     const rdist = Math.hypot(rx - CX, ry - CY);
     const rr = R * (0.06 + (onRing.v / 100) * 0.88);
@@ -4571,7 +4640,6 @@ canvas.addEventListener('mousemove', e => {
     canvas.style.cursor = zoom > 1 ? 'grab' : 'default';
     hideTip();
     if (hoveredSeg !== -1) { hoveredSeg = -1; draw(); }
-    // Highlight value zone when hovering empty space inside the wheel
     const { x: ex, y: ey } = screenToCanvas(e.clientX, e.clientY);
     const edist = Math.hypot(ex - CX, ey - CY);
     let zoneBand = null;
@@ -4636,26 +4704,19 @@ canvas.addEventListener('click', e => {
     return;
   }
 
-  if (paints.length > 1) {
-    // Multiple stacked paints: select the first (or cycle if already selected)
-    // and pin the tooltip so the user can pick from the list
-    let pick = paints[0];
-    if (selected) {
-      const idx = paints.findIndex(p => p === selected);
-      if (idx >= 0) pick = paints[(idx + 1) % paints.length];
-    }
+  // Single paint: select immediately and open panel
+  if (paints.length === 1) {
+    forceHideTip();
+    const pick = paints[0];
+    if (selected && pick === selected) { selectPaint(null); return; }
     selectPaint(pick);
-    // Pin the tooltip showing all paints at this point
-    showTip(paints, e.clientX, e.clientY);
-    tipPinned = true;
     return;
   }
 
-  // Single paint: normal select/deselect, close pinned tip
-  forceHideTip();
-  const pick = paints[0];
-  if (selected && pick === selected) { selectPaint(null); return; }
-  selectPaint(pick);
+  // Multiple stacked paints: pin the tooltip so the user can pick from the list.
+  cancelHideTip();
+  showTip(paints, e.clientX, e.clientY);
+  tipPinned = true;
 });
 
 // Touch support
@@ -4672,12 +4733,12 @@ let touchState = {
   // Tap-detection
   tapX: 0, tapY: 0, tapTime: 0,
   // Pinch
-  pinching: false, pinchStartDist: 0, pinchStartZoom: 1,
+  pinching: false, pinchOccurred: false, pinchStartDist: 0, pinchStartZoom: 1,
   pinchCenterX: 0, pinchCenterY: 0,
 };
 
 const TAP_MAX_MOVE_PX = 10;   // movement above this counts as a drag, not a tap
-const TAP_MAX_TIME_MS = 500;
+const TAP_MAX_TIME_MS = 400;
 
 function touchDist(t0, t1) {
   return Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
@@ -4692,11 +4753,13 @@ canvas.addEventListener('touchstart', e => {
     touchState.startPanY = panY;
     touchState.panning = false;
     touchState.hasMoved = false;
-    touchState.pinching = false;
+    // Only clear pinchOccurred on a fresh single-finger touch (not a leftover from pinch)
+    if (!touchState.pinching) touchState.pinchOccurred = false;
     touchState.tapTime = Date.now();
   } else if (e.touches.length === 2) {
     // Pinch start
     touchState.pinching = true;
+    touchState.pinchOccurred = true;  // Stays true until next clean single-finger start
     touchState.pinchStartDist = touchDist(e.touches[0], e.touches[1]);
     touchState.pinchStartZoom = zoom;
     const rect = canvas.getBoundingClientRect();
@@ -4739,6 +4802,8 @@ canvas.addEventListener('touchend', e => {
     if (e.touches.length < 2) touchState.pinching = false;
     return;
   }
+  // Block any tap after a pinch — the pinchOccurred flag stays until a fresh single-touch
+  if (touchState.pinchOccurred) return;
   // Treat as a tap only if movement and time are small
   if (touchState.hasMoved) {
     touchState.panning = false;
@@ -4791,23 +4856,18 @@ canvas.addEventListener('touchend', e => {
     return;
   }
 
-  if (paints.length > 1) {
-    // Multi-paint stack: pin the tooltip
-    let pick = paints[0];
-    if (selected) {
-      const idx = paints.findIndex(p => p === selected);
-      if (idx >= 0) pick = paints[(idx + 1) % paints.length];
-    }
+  // Single paint: select immediately and open panel
+  if (paints.length === 1) {
+    forceHideTip();
+    const pick = paints[0];
+    if (selected && pick === selected) { selectPaint(null); return; }
     selectPaint(pick);
-    showTip(paints, x, y);
-    tipPinned = true;
     return;
   }
 
-  forceHideTip();
-  const pick = paints[0];
-  if (selected && pick === selected) { selectPaint(null); return; }
-  selectPaint(pick);
+  // Multiple stacked paints: pin the tooltip so the user can pick from the list.
+  showTip(paints, x, y);
+  tipPinned = true;
 }, { passive: false });
 
 canvas.addEventListener('touchcancel', () => {
@@ -4871,16 +4931,24 @@ function closePanel() {
 function resizeAfterPanelTransition() {
   const panel = document.getElementById('panel');
   resize(); // immediate, in case the layout has already reflowed
-  // Intermediate frames keep the wheel sized while the sheet slides
-  requestAnimationFrame(() => requestAnimationFrame(resize));
+
+  // Run resize on several intermediate frames during the animation so the
+  // wheel and hue labels stay correctly sized as the panel slides on mobile.
+  let frameCount = 0;
+  function animFrame() {
+    resize();
+    if (++frameCount < 15) requestAnimationFrame(animFrame); // ~250ms at 60fps
+  }
+  requestAnimationFrame(animFrame);
+
   const onEnd = (e) => {
     if (e.target !== panel) return;
     panel.removeEventListener('transitionend', onEnd);
     resize();
   };
   panel.addEventListener('transitionend', onEnd);
-  // Safety net: longer than the longest CSS transition (0.25s on mobile)
-  setTimeout(() => { resize(); panel.removeEventListener('transitionend', onEnd); }, 320);
+  // Safety net: 500ms covers slow mobile transitions and jank
+  setTimeout(() => { resize(); panel.removeEventListener('transitionend', onEnd); }, 500);
 }
 
 function toggleHuePanel() {
