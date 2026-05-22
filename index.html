@@ -301,7 +301,8 @@
     border-radius:4px; padding:8px 11px; font-size:11px; color:var(--dim);
     line-height:1.7; pointer-events:none; white-space:nowrap; min-width:280px;
   }
-  #wheel-key:hover #wheel-key-content { display:block; }
+  #wheel-key:hover #wheel-key-content,
+  #wheel-key.open #wheel-key-content { display:block; }
   .key-row { display:flex; gap:4px; align-items:baseline; font-size:11px; color:var(--dim); }
   .key-term { font-family:'Cinzel',serif; font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--gold); margin-right:2px; }
 
@@ -458,6 +459,7 @@
     display: block;
     width: 100%;
     height: 100%;
+    touch-action: none;
   }
 
   /* ── Tooltip ── */
@@ -503,6 +505,116 @@
     transition: width 0.2s ease;
   }
   #panel.collapsed { width: 32px; }
+
+  /* ═══════════════════════════════════════════════════════════════
+     Mobile / narrow-screen overrides
+     ═══════════════════════════════════════════════════════════════ */
+  @media (max-width: 768px) {
+    /* App becomes a single column with header, canvas, and a bottom-sheet panel */
+    #app {
+      grid-template-rows: auto 1fr auto;
+      grid-template-columns: 1fr;
+    }
+
+    /* Header: title row + scrollable filter strip */
+    header {
+      padding: 8px 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .h-title { font-size: 14px; }
+    .h-eyebrow { font-size: 8px; letter-spacing: .25em; }
+    header > div:first-child { flex-shrink: 0; }
+
+    /* Filter groups stack into a horizontally scrollable row */
+    .header-filter-group {
+      gap: 2px;
+    }
+    .header-filter-label { font-size: 7px; }
+
+    /* Hide the paint count on narrow screens to save space */
+    .h-sub { display: none; }
+
+    /* Make sure burger menu stays right-aligned and visible */
+    #filter-dropdown-wrap { margin-left: auto; flex-shrink: 0; }
+
+    /* Bigger touch targets — minimum 36px tall buttons */
+    .fbtn { padding: 8px 12px; font-size: 11px; min-height: 36px; }
+    .header-sat-btn { padding: 6px 10px; min-height: 32px; font-size: 11px; }
+    .header-icon-btn { padding: 6px 9px; min-height: 32px; font-size: 14px; }
+    #brand-toggle-btn { padding: 6px 10px; min-height: 32px; }
+    #filter-toggle-btn { width:38px; height:38px; }
+
+    /* Side panel becomes a bottom sheet, hidden by default */
+    #panel {
+      grid-column: 1;
+      grid-row: 3;
+      border-left: none;
+      border-top: 1px solid var(--border);
+      width: 100% !important;
+      max-height: 60vh;
+      transition: max-height 0.25s ease;
+    }
+    #panel.collapsed { max-height: 38px; width: 100% !important; }
+    #panel-header { padding: 11px 14px; font-size: 10px; }
+    #panel-arrow { transform: rotate(-90deg); }
+    #panel.collapsed #panel-arrow { transform: rotate(90deg); }
+    #panel.collapsed #panel-header-label { opacity: 1; }
+
+    /* Canvas wrap takes whatever's left */
+    #canvas-wrap { min-height: 0; }
+
+    /* Zoom controls scaled for touch */
+    #zoom-controls button {
+      width: 32px; height: 32px; font-size: 16px;
+    }
+    #clear-all-btn { padding: 7px 12px; font-size: 10px; min-height: 32px; }
+
+    /* Dropdowns become full-width sheets anchored to header */
+    #filter-dropdown, #brand-dropdown {
+      width: calc(100vw - 24px);
+      max-width: 360px;
+      left: 12px !important;
+      right: 12px !important;
+    }
+
+    /* Modal: nearly full screen with breathing room */
+    #owned-modal {
+      width: 96vw;
+      max-height: 92vh;
+    }
+    #owned-modal-controls { flex-direction: column; align-items: stretch; gap: 6px; }
+    #owned-search { font-size: 14px; padding:10px 12px; }
+    #owned-brand-dd-btn { padding:10px 12px; }
+    .owned-row { padding: 12px 10px; }
+    .owned-row-swatch { width:28px; height:28px; }
+    .owned-row-check { width:28px; height:28px; }
+
+    /* Guide overlay padding */
+    #guide-content, #guide-content ~ * { padding: 24px 16px 80px; }
+    #guide-content h1 { font-size: 1.5rem; }
+    #guide-content h2 { font-size: 1.1rem; }
+    body { font-size: 15px; }
+
+    /* Disable hover-only legend; trigger on tap instead */
+    #wheel-key-trigger { cursor: pointer; }
+
+    /* Harmony spread + type buttons bigger */
+    .hbtn-harmony, .spread-btn { padding: 9px 12px; min-height: 36px; }
+
+    /* Scheme swatch strip wraps */
+    #scheme-swatches { flex-wrap: wrap; }
+  }
+
+  /* Touch-device tweaks — applied regardless of viewport size */
+  @media (pointer: coarse) {
+    /* Disable hover-driven legend reveal (hover doesn't exist on touch) */
+    #wheel-key-content { display: none; }
+    #wheel-key.open #wheel-key-content { display: block; }
+
+    /* Prevent text selection on the canvas during drags */
+    #canvas-wrap, canvas { -webkit-user-select: none; user-select: none; }
+  }
   #panel-header {
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 10px;
@@ -797,6 +909,18 @@
             <svg width="11" height="11" viewBox="0 0 14 14" style="flex-shrink:0"><polygon points="7,13 13,1 1,1" fill="var(--dim)"/></svg>
             <span>Vallejo GC</span>
           </div>
+          <div class="brand-opt" id="lg-ttc" onclick="toggleBrand('ttc')">
+            <svg width="11" height="11" viewBox="0 0 14 14" style="flex-shrink:0"><polygon points="7,1 12.3,4 12.3,10 7,13 1.7,10 1.7,4" fill="var(--dim)"/></svg>
+            <span>Two Thin Coats</span>
+          </div>
+          <div class="brand-opt" id="lg-p3" onclick="toggleBrand('p3')">
+            <svg width="11" height="11" viewBox="0 0 14 14" style="flex-shrink:0"><polygon points="7,1 13,5.5 10.7,12.5 3.3,12.5 1,5.5" fill="var(--dim)"/></svg>
+            <span>P3 Formula</span>
+          </div>
+          <div class="brand-opt" id="lg-fanatic" onclick="toggleBrand('fanatic')">
+            <svg width="11" height="11" viewBox="0 0 14 14" style="flex-shrink:0"><polygon points="7,1 9,5.5 14,5.5 10,8.5 11.5,13 7,10 2.5,13 4,8.5 0,5.5 5,5.5" fill="var(--dim)"/></svg>
+            <span>AP Fanatic</span>
+          </div>
         </div>
       </div>
     </div>
@@ -901,7 +1025,7 @@
 
     <!-- Legend hover box — bottom left of canvas -->
     <div id="wheel-key">
-      <div id="wheel-key-trigger">Legend</div>
+      <div id="wheel-key-trigger" onclick="document.getElementById('wheel-key').classList.toggle('open')">Legend</div>
       <div id="wheel-key-content">
         <div class="key-row"><span class="key-term">Radius</span> = value — dark at centre, bright at edge</div>
         <div class="key-row"><span class="key-term">Angle</span> = hue — 24 Martian segments, Red at top</div>
@@ -1024,15 +1148,6 @@
     <h3>Munsell Colour System</h3>
     <p>The decision to use HSV Value as the radial axis (dark at centre, bright at edge) is inspired by the Munsell colour model, which organises colour space with Value on the vertical axis — mirroring how miniature painters think about shadow-to-highlight transitions.</p>
 
-    <h2>Army Painter Warpaints Fanatic</h2>
-    <h3>Army Painter Official</h3>
-    <p>The official Army Painter Fanatic→Citadel conversion chart PDF was used as a data source. However, an error in extracting the data (using Citadel match names instead of Fanatic names) meant the Fanatic data was removed from the current version pending a reliable name+hex source. The Fanatic brand filter remains disabled until this can be corrected.</p>
-    <p><em>thearmypainter.com</em></p>
-
-    <h3>Mech9 Warpaints Fanatic Colour Chart</h3>
-    <p>Provided the complete list of 216 Fanatic colour names with product codes (WP3001P–WP3216P), which will be used for the future Fanatic data integration.</p>
-    <p><em>mech9.com</em></p>
-
     <h2>A note on accuracy</h2>
     <p>All hex values represent paints as photographed and digitised by community members or through manufacturer documentation. They are not spectrophotometer readings. Colour appearance in real life will vary based on primer, lighting, paint layer thickness, and viewing angle. Use this tool as a reference for comparing paints relative to each other, not as absolute colour measurements.</p>
 
@@ -1100,8 +1215,11 @@
   <section id="navigation">
     <h2><span class="guide-section-num">2.</span> Navigating the Wheel</h2>
 
-    <h3>Zoom &amp; Pan</h3>
+    <h3>Zoom &amp; Pan (desktop)</h3>
     <p>Use the <strong>mouse wheel</strong> to zoom in and out, anchored to the cursor position. At high zoom, paint dots scale down so densely-packed clusters separate visually. Hold and <strong>drag</strong> to pan when zoomed in. The <strong>+ / − / ⌂</strong> controls in the top-left of the wheel adjust zoom and reset the view.</p>
+
+    <h3>Touch gestures (mobile)</h3>
+    <p>On a phone or tablet: <strong>tap</strong> a paint dot to select it, <strong>pinch</strong> with two fingers to zoom, and <strong>drag</strong> with one finger to pan when zoomed in. Paint hit targets are larger on touch devices to make selection easier. The side panel becomes a bottom sheet — tap its header to slide it up or down.</p>
 
     <h3>Hover</h3>
     <p><strong>Hovering</strong> over any paint dot shows a tooltip with the paint name, brand, type, hex code, and Value/Saturation percentages. When multiple paints share the same hex value (and therefore the same position on the wheel), the tooltip lists all of them.</p>
@@ -1949,6 +2067,427 @@ const PAINTS = [
   {name:"Plague Brown", type:"paint", hex:"#9C6838", brand:"vgc"},
   {name:"Earth Brown", type:"paint", hex:"#604828", brand:"vgc"},
   {name:"Heavy Brown", type:"paint", hex:"#402818", brand:"vgc"},
+  // ── Two Thin Coats (183 paints) ──
+  {name:"Berserker Red",               type:"paint",    hex:"#4D1B16", brand:"ttc"},
+  {name:"Sanguine Scarlet",            type:"paint",    hex:"#961914", brand:"ttc"},
+  {name:"Demon Red",                   type:"paint",    hex:"#D21215", brand:"ttc"},
+  {name:"Dark Sun Yellow",             type:"paint",    hex:"#C48638", brand:"ttc"},
+  {name:"Skulker Yellow",              type:"paint",    hex:"#F59E02", brand:"ttc"},
+  {name:"Yellow Flame",                type:"paint",    hex:"#F8B02C", brand:"ttc"},
+  {name:"Marine Blue",                 type:"paint",    hex:"#44496F", brand:"ttc"},
+  {name:"Elysium Blue",                type:"paint",    hex:"#5179AC", brand:"ttc"},
+  {name:"Celestial Blue",              type:"paint",    hex:"#6992C0", brand:"ttc"},
+  {name:"Rust Orange",                 type:"paint",    hex:"#BA4D37", brand:"ttc"},
+  {name:"Fanatic Orange",              type:"paint",    hex:"#D94A2F", brand:"ttc"},
+  {name:"Orange Flare",                type:"paint",    hex:"#F29D7B", brand:"ttc"},
+  {name:"Wyvern Green",                type:"paint",    hex:"#404A42", brand:"ttc"},
+  {name:"Emerald Green",               type:"paint",    hex:"#3C5C43", brand:"ttc"},
+  {name:"Ethereal Green",              type:"paint",    hex:"#56802E", brand:"ttc"},
+  {name:"Amethyst Rayne",              type:"paint",    hex:"#524169", brand:"ttc"},
+  {name:"Sorceror's Cloak",            type:"paint",    hex:"#79588D", brand:"ttc"},
+  {name:"Runic Purple",                type:"paint",    hex:"#9C8CB3", brand:"ttc"},
+  {name:"Doom Death Black",            type:"paint",    hex:"#3D3937", brand:"ttc"},
+  {name:"Death Reaper",                type:"paint",    hex:"#434142", brand:"ttc"},
+  {name:"Dungeon Stone Grey",          type:"paint",    hex:"#5C5E60", brand:"ttc"},
+  {name:"Wizard Grey",                 type:"paint",    hex:"#6D6C6C", brand:"ttc"},
+  {name:"Carcharodon Grey",            type:"paint",    hex:"#959596", brand:"ttc"},
+  {name:"White Star",                  type:"paint",    hex:"#F8F9F8", brand:"ttc"},
+  {name:"Barbarian Brawn",             type:"paint",    hex:"#8F5F55", brand:"ttc"},
+  {name:"Dwarven Skin",                type:"paint",    hex:"#B07C62", brand:"ttc"},
+  {name:"Elven Skin",                  type:"paint",    hex:"#C49774", brand:"ttc"},
+  {name:"Cuirass Leather",             type:"paint",    hex:"#52433A", brand:"ttc"},
+  {name:"Boar Hide",                   type:"paint",    hex:"#73453A", brand:"ttc"},
+  {name:"Fur Cloak",                   type:"paint",    hex:"#92534E", brand:"ttc"},
+  {name:"Dragon Fang",                 type:"paint",    hex:"#9E8460", brand:"ttc"},
+  {name:"Skeleton Legion",             type:"paint",    hex:"#B0966C", brand:"ttc"},
+  {name:"Vampire Fang",                type:"paint",    hex:"#CCB899", brand:"ttc"},
+  {name:"Griffon Claw",                type:"paint",    hex:"#9F8F85", brand:"ttc"},
+  {name:"Ivory Tusk",                  type:"paint",    hex:"#D2C8C0", brand:"ttc"},
+  {name:"Trooper White",               type:"paint",    hex:"#EDEBE0", brand:"ttc"},
+  {name:"Dust Bowl",                   type:"paint",    hex:"#7E634B", brand:"ttc"},
+  {name:"Sandstone",                   type:"paint",    hex:"#927B68", brand:"ttc"},
+  {name:"Temple Stone",                type:"paint",    hex:"#A39179", brand:"ttc"},
+  {name:"Sir Coates Silver",           type:"metallic", hex:"#494A4A", brand:"ttc"},
+  {name:"Plate Armour",                type:"metallic", hex:"#757677", brand:"ttc"},
+  {name:"Mythril Blade",               type:"metallic", hex:"#818283", brand:"ttc"},
+  {name:"Spartan Bronze",              type:"metallic", hex:"#604332", brand:"ttc"},
+  {name:"Dragon's Gold",               type:"metallic", hex:"#4F442C", brand:"ttc"},
+  {name:"Glistening Gold",             type:"metallic", hex:"#5C5241", brand:"ttc"},
+  {name:"Royal Cloak",                 type:"paint",    hex:"#5B4349", brand:"ttc"},
+  {name:"Sword Hilt Burgundy",         type:"paint",    hex:"#773D4B", brand:"ttc"},
+  {name:"Glistening Gums",             type:"paint",    hex:"#995879", brand:"ttc"},
+  {name:"Cold Corpse Blue",            type:"paint",    hex:"#51555C", brand:"ttc"},
+  {name:"Wolf Grey",                   type:"paint",    hex:"#627688", brand:"ttc"},
+  {name:"Gravestone Blue",             type:"paint",    hex:"#7C8897", brand:"ttc"},
+  {name:"Scorched Earth",              type:"paint",    hex:"#5A4D49", brand:"ttc"},
+  {name:"Ancient Forest",              type:"paint",    hex:"#725B52", brand:"ttc"},
+  {name:"Wasteland Brown",             type:"paint",    hex:"#856C5C", brand:"ttc"},
+  {name:"Perisher Pink",               type:"paint",    hex:"#BA6367", brand:"ttc"},
+  {name:"Hot Pink",                    type:"paint",    hex:"#E284A6", brand:"ttc"},
+  {name:"Neo Pink",                    type:"paint",    hex:"#F3BCDA", brand:"ttc"},
+  {name:"Dread Red",                   type:"paint",    hex:"#6F3F3F", brand:"ttc"},
+  {name:"Asmodeus Red",                type:"paint",    hex:"#8E4847", brand:"ttc"},
+  {name:"Evil Eye Red",                type:"paint",    hex:"#C15E50", brand:"ttc"},
+  {name:"Sentient Turquoise",          type:"paint",    hex:"#3A84A2", brand:"ttc"},
+  {name:"Cursed Blue",                 type:"paint",    hex:"#4199B4", brand:"ttc"},
+  {name:"Ray Gun Blue",                type:"paint",    hex:"#47B0C3", brand:"ttc"},
+  {name:"Abyss Blue",                  type:"paint",    hex:"#344B67", brand:"ttc"},
+  {name:"Witching Hour Blue",          type:"paint",    hex:"#326AB4", brand:"ttc"},
+  {name:"Leviathan Blue",              type:"paint",    hex:"#3A7CBF", brand:"ttc"},
+  {name:"Orc Hide",                    type:"paint",    hex:"#7B9C69", brand:"ttc"},
+  {name:"Goblinoid Green",             type:"paint",    hex:"#8AB86A", brand:"ttc"},
+  {name:"Troll Snot Green",            type:"paint",    hex:"#9DC576", brand:"ttc"},
+  {name:"Field Grey",                  type:"paint",    hex:"#6D725E", brand:"ttc"},
+  {name:"Ranger Cloak",                type:"paint",    hex:"#7E8352", brand:"ttc"},
+  {name:"Kobold Grey",                 type:"paint",    hex:"#868B75", brand:"ttc"},
+  {name:"Fury Green",                  type:"paint",    hex:"#6C6C4C", brand:"ttc"},
+  {name:"Gung-Ho Green",               type:"paint",    hex:"#A8A264", brand:"ttc"},
+  {name:"Green Beret",                 type:"paint",    hex:"#ABAC87", brand:"ttc"},
+  {name:"Hydra Green",                 type:"paint",    hex:"#354C4E", brand:"ttc"},
+  {name:"Jade Green",                  type:"paint",    hex:"#2F7967", brand:"ttc"},
+  {name:"Ghoul Green",                 type:"paint",    hex:"#52BD97", brand:"ttc"},
+  {name:"Ashen Grey",                  type:"paint",    hex:"#4F5249", brand:"ttc"},
+  {name:"Eidolon Grey",                type:"paint",    hex:"#535549", brand:"ttc"},
+  {name:"Rodent Grey",                 type:"paint",    hex:"#707264", brand:"ttc"},
+  {name:"Noble Steed Brown",           type:"paint",    hex:"#765439", brand:"ttc"},
+  {name:"Dry Rust Brown",              type:"paint",    hex:"#B97740", brand:"ttc"},
+  {name:"Satyr Brown",                 type:"paint",    hex:"#D59658", brand:"ttc"},
+  {name:"Gyzmo Fur",                   type:"paint",    hex:"#D38A51", brand:"ttc"},
+  {name:"Manticore Ochre",             type:"paint",    hex:"#D79845", brand:"ttc"},
+  {name:"Cerberus Brown",              type:"paint",    hex:"#E0AE59", brand:"ttc"},
+  {name:"Argonaut Skin",               type:"paint",    hex:"#A78E6D", brand:"ttc"},
+  {name:"Kronos Flesh",                type:"paint",    hex:"#C09B70", brand:"ttc"},
+  {name:"Ares Flesh",                  type:"paint",    hex:"#DEC287", brand:"ttc"},
+  {name:"Druid Flesh",                 type:"paint",    hex:"#543D32", brand:"ttc"},
+  {name:"Paladin Flesh",               type:"paint",    hex:"#77564B", brand:"ttc"},
+  {name:"Bard Skin",                   type:"paint",    hex:"#946F61", brand:"ttc"},
+  {name:"Hellspawn Red",               type:"paint",    hex:"#BE3A2E", brand:"ttc"},
+  {name:"Craven Yellow",               type:"paint",    hex:"#ECEB69", brand:"ttc"},
+  {name:"Gigawatt Blue",               type:"paint",    hex:"#56B7E8", brand:"ttc"},
+  {name:"Flaming Forge Orange",        type:"paint",    hex:"#EAA545", brand:"ttc"},
+  {name:"Talisman Green",              type:"paint",    hex:"#7AC142", brand:"ttc"},
+  {name:"Amulet Purple",               type:"paint",    hex:"#BFACD3", brand:"ttc"},
+  {name:"Dwarven Iron",                type:"metallic", hex:"#91928E", brand:"ttc"},
+  {name:"Battle Axe Brass",            type:"metallic", hex:"#C09A74", brand:"ttc"},
+  {name:"Steampunk Copper",            type:"metallic", hex:"#BE673F", brand:"ttc"},
+  {name:"Overlord Brass",              type:"metallic", hex:"#B39471", brand:"ttc"},
+  {name:"Top Brass",                   type:"metallic", hex:"#EFB96D", brand:"ttc"},
+  {name:"Platinum Crown",              type:"metallic", hex:"#EDE0CA", brand:"ttc"},
+  {name:"Amphora Red",                 type:"paint",    hex:"#481F24", brand:"ttc"},
+  {name:"Emporer Red",                 type:"paint",    hex:"#9F3041", brand:"ttc"},
+  {name:"Centurion Red",               type:"paint",    hex:"#E83032", brand:"ttc"},
+  {name:"Red Rage",                    type:"paint",    hex:"#6B342B", brand:"ttc"},
+  {name:"Apocalypse Sky",              type:"paint",    hex:"#E54D40", brand:"ttc"},
+  {name:"Inferno Orange",              type:"paint",    hex:"#A68E42", brand:"ttc"},
+  {name:"Panzer Yellow",               type:"paint",    hex:"#A68E42", brand:"ttc"},
+  {name:"Flak Gun Yellow",             type:"paint",    hex:"#C7AB5C", brand:"ttc"},
+  {name:"Ambush Yellow",               type:"paint",    hex:"#E4CC74", brand:"ttc"},
+  {name:"Serpent Eye Yellow",          type:"paint",    hex:"#F5D30E", brand:"ttc"},
+  {name:"Sun Bleach Yellow",           type:"paint",    hex:"#F4E752", brand:"ttc"},
+  {name:"Twin Suns Yellow",            type:"paint",    hex:"#E5E9AF", brand:"ttc"},
+  {name:"War Master Green",            type:"paint",    hex:"#394142", brand:"ttc"},
+  {name:"Traitor Green",               type:"paint",    hex:"#2D534F", brand:"ttc"},
+  {name:"Legion Green",                type:"paint",    hex:"#276C67", brand:"ttc"},
+  {name:"Contagion Green",             type:"paint",    hex:"#8E9F7F", brand:"ttc"},
+  {name:"Zombie Rot",                  type:"paint",    hex:"#B3B87A", brand:"ttc"},
+  {name:"Pestilence Green",            type:"paint",    hex:"#D4E197", brand:"ttc"},
+  {name:"Oxidation Green",             type:"paint",    hex:"#33444D", brand:"ttc"},
+  {name:"Antiquity Green",             type:"paint",    hex:"#317F7D", brand:"ttc"},
+  {name:"Mythic Turquoise",            type:"paint",    hex:"#589E9D", brand:"ttc"},
+  {name:"Eldar Robe",                  type:"paint",    hex:"#1D5AA3", brand:"ttc"},
+  {name:"Relic Blue",                  type:"paint",    hex:"#237FBE", brand:"ttc"},
+  {name:"Seafarer Blue",               type:"paint",    hex:"#469CC8", brand:"ttc"},
+  {name:"Faust Blue",                  type:"paint",    hex:"#47525C", brand:"ttc"},
+  {name:"Shadow Blue",                 type:"paint",    hex:"#4F646C", brand:"ttc"},
+  {name:"Frost Blue",                  type:"paint",    hex:"#79979F", brand:"ttc"},
+  {name:"Von Evile Purple",            type:"paint",    hex:"#5A3764", brand:"ttc"},
+  {name:"Enchantress Purple",          type:"paint",    hex:"#5A3764", brand:"ttc"},
+  {name:"Spectral Purple",             type:"paint",    hex:"#9A5A9B", brand:"ttc"},
+  {name:"Incubus Purple",              type:"paint",    hex:"#6B6A6D", brand:"ttc"},
+  {name:"Enticing Purple",             type:"paint",    hex:"#817B8C", brand:"ttc"},
+  {name:"Decadent Purple",             type:"paint",    hex:"#C2BFD5", brand:"ttc"},
+  {name:"Scabbard Brown",              type:"paint",    hex:"#7C5E48", brand:"ttc"},
+  {name:"Boot Strap Brown",            type:"paint",    hex:"#835F44", brand:"ttc"},
+  {name:"Vambrace Brown",              type:"paint",    hex:"#9C755D", brand:"ttc"},
+  {name:"Cyber Pink",                  type:"paint",    hex:"#C64C8B", brand:"ttc"},
+  {name:"Elixir Green",                type:"paint",    hex:"#7CC78F", brand:"ttc"},
+  {name:"Solar Flare",                 type:"paint",    hex:"#F18021", brand:"ttc"},
+  {name:"Ion Blue",                    type:"paint",    hex:"#B7D8DA", brand:"ttc"},
+  {name:"Septic Green",                type:"paint",    hex:"#CBAB7B", brand:"ttc"},
+  {name:"Pale Skin",                   type:"paint",    hex:"#CBAB7B", brand:"ttc"},
+  {name:"Scarab Red",                  type:"paint",    hex:"#BB4448", brand:"ttc"},
+  {name:"Omega Blue",                  type:"paint",    hex:"#58BFBE", brand:"ttc"},
+  {name:"Enchantment Blue",            type:"paint",    hex:"#337FAE", brand:"ttc"},
+  {name:"Emporer's Purple",            type:"paint",    hex:"#836493", brand:"ttc"},
+  {name:"Carapace Green",              type:"paint",    hex:"#4F9A5A", brand:"ttc"},
+  {name:"Fire Opal",                   type:"paint",    hex:"#A56447", brand:"ttc"},
+  {name:"Ancient Gold",                type:"metallic", hex:"#6D5E3F", brand:"ttc"},
+  {name:"Doom Metal",                  type:"metallic", hex:"#686559", brand:"ttc"},
+  {name:"Chaos Bronze",                type:"metallic", hex:"#B59774", brand:"ttc"},
+  {name:"Blue Steel",                  type:"metallic", hex:"#7E8C8B", brand:"ttc"},
+  {name:"Heirloom Gold",               type:"metallic", hex:"#C8A058", brand:"ttc"},
+  {name:"Bits O' Tin",                 type:"metallic", hex:"#6D6157", brand:"ttc"},
+  {name:"Blood Red Sky",               type:"paint",    hex:"#593F32", brand:"ttc"},
+  {name:"Flayer Red",                  type:"paint",    hex:"#D94045", brand:"ttc"},
+  {name:"Diablo Red",                  type:"paint",    hex:"#E74E25", brand:"ttc"},
+  {name:"Archon Orange",               type:"paint",    hex:"#ED8433", brand:"ttc"},
+  {name:"Pustule Ochre",               type:"paint",    hex:"#E7B230", brand:"ttc"},
+  {name:"Abhorrent Ochre",             type:"paint",    hex:"#CBA633", brand:"ttc"},
+  {name:"Malign Yellow",               type:"paint",    hex:"#D2B750", brand:"ttc"},
+  {name:"Cultmaster Green",            type:"paint",    hex:"#47605C", brand:"ttc"},
+  {name:"Betrayer Green",              type:"paint",    hex:"#5E7966", brand:"ttc"},
+  {name:"Diabolical Green",            type:"paint",    hex:"#3D4224", brand:"ttc"},
+  {name:"Crypt Grey",                  type:"paint",    hex:"#99A189", brand:"ttc"},
+  {name:"Altar Ivory",                 type:"paint",    hex:"#EBE9DA", brand:"ttc"},
+  {name:"Grindhouse Orange",           type:"paint",    hex:"#B36648", brand:"ttc"},
+  {name:"Masque Flesh",                type:"paint",    hex:"#C4866D", brand:"ttc"},
+  {name:"Noir Brown",                  type:"paint",    hex:"#5A4B38", brand:"ttc"},
+  {name:"Cinderborn Brown",            type:"paint",    hex:"#997462", brand:"ttc"},
+  {name:"Dystopian Dust",              type:"paint",    hex:"#BDA599", brand:"ttc"},
+  {name:"Blight Cream",                type:"paint",    hex:"#F3E7D2", brand:"ttc"},
+  {name:"Divination White",            type:"paint",    hex:"#F8F7ED", brand:"ttc"},
+  {name:"Animus Black",                type:"paint",    hex:"#414740", brand:"ttc"},
+  {name:"Cherubic White",              type:"paint",    hex:"#FBFBF8", brand:"ttc"},
+  {name:"Old Brown Metal",             type:"metallic", hex:"#A59275", brand:"ttc"},
+  {name:"Ancient Iron",                type:"metallic", hex:"#B49679", brand:"ttc"},
+  {name:"Ironclad Silver",             type:"metallic", hex:"#A89271", brand:"ttc"},
+  // -- P3 Formula (55 paints) --
+  {name:"Sanguine Base",                 type:"paint",    hex:"#6C160F", brand:"p3"},
+  {name:"Skorne Red",                    type:"paint",    hex:"#B01F24", brand:"p3"},
+  {name:"Khador Red Base",               type:"paint",    hex:"#EE2824", brand:"p3"},
+  {name:"Khador Red Highlight",          type:"paint",    hex:"#F29042", brand:"p3"},
+  {name:"Ember Orange",                  type:"paint",    hex:"#DE8A2B", brand:"p3"},
+  {name:"Heartfire",                     type:"paint",    hex:"#F6B046", brand:"p3"},
+  {name:"Cygnus Yellow",                 type:"paint",    hex:"#F3E72E", brand:"p3"},
+  {name:"Sulfuric Yellow",               type:"paint",    hex:"#F0D233", brand:"p3"},
+  {name:"Battlefield Brown",             type:"paint",    hex:"#32251C", brand:"p3"},
+  {name:"Umbral Umber",                  type:"paint",    hex:"#260801", brand:"p3"},
+  {name:"Bloodstone",                    type:"paint",    hex:"#9E4822", brand:"p3"},
+  {name:"Bloodtracker Brown",            type:"paint",    hex:"#A66A28", brand:"p3"},
+  {name:"Bootstrap Leather",             type:"paint",    hex:"#956939", brand:"p3"},
+  {name:"Hammerfall Khaki",              type:"paint",    hex:"#C8BF98", brand:"p3"},
+  {name:"Thornwood Green",               type:"paint",    hex:"#65654B", brand:"p3"},
+  {name:"Gnarls Green",                  type:"paint",    hex:"#126232", brand:"p3"},
+  {name:"Iosan Green",                   type:"paint",    hex:"#22A854", brand:"p3"},
+  {name:"Ordic Olive",                   type:"paint",    hex:"#6E7E36", brand:"p3"},
+  {name:"Traitor Green",                 type:"paint",    hex:"#809065", brand:"p3"},
+  {name:"Wurm Green",                    type:"paint",    hex:"#8FBE40", brand:"p3"},
+  {name:"Necrotite Green",               type:"paint",    hex:"#7FC348", brand:"p3"},
+  {name:"Exile Blue",                    type:"paint",    hex:"#203367", brand:"p3"},
+  {name:"Cygnar Base Blue",              type:"paint",    hex:"#124B9B", brand:"p3"},
+  {name:"Cygnar Blue Highlight",         type:"paint",    hex:"#1F75BB", brand:"p3"},
+  {name:"Greatcoat Grey",                type:"paint",    hex:"#4D5861", brand:"p3"},
+  {name:"Ironhull Grey",                 type:"paint",    hex:"#8E969B", brand:"p3"},
+  {name:"Frostbite",                     type:"paint",    hex:"#E7F2F8", brand:"p3"},
+  {name:"Coal Black",                    type:"paint",    hex:"#005A61", brand:"p3"},
+  {name:"Trollblood Base",               type:"paint",    hex:"#13899B", brand:"p3"},
+  {name:"Meredius Blue",                 type:"paint",    hex:"#00B0B9", brand:"p3"},
+  {name:"Arcane Blue",                   type:"paint",    hex:"#7ACFD9", brand:"p3"},
+  {name:"Underbelly Blue",               type:"paint",    hex:"#C0D4DA", brand:"p3"},
+  {name:"Beaten Purple",                 type:"paint",    hex:"#552A72", brand:"p3"},
+  {name:"Murderous Magenta",             type:"paint",    hex:"#A81F5E", brand:"p3"},
+  {name:"Sanguine Highlight",            type:"paint",    hex:"#C84959", brand:"p3"},
+  {name:"Carnal Pink",                   type:"paint",    hex:"#FAE2EC", brand:"p3"},
+  {name:"Idrian Flesh",                  type:"paint",    hex:"#9B5E37", brand:"p3"},
+  {name:"Beast Hide",                    type:"paint",    hex:"#B1956B", brand:"p3"},
+  {name:"Khardic Flesh",                 type:"paint",    hex:"#CB7B5B", brand:"p3"},
+  {name:"Midlund Flesh",                 type:"paint",    hex:"#F0A983", brand:"p3"},
+  {name:"Ryn Flesh",                     type:"paint",    hex:"#FAE3D1", brand:"p3"},
+  {name:"Battledress Green",             type:"paint",    hex:"#757232", brand:"p3"},
+  {name:"Gun Corps Brown",               type:"paint",    hex:"#937D48", brand:"p3"},
+  {name:"Rucksack Tan",                  type:"paint",    hex:"#B4973F", brand:"p3"},
+  {name:"Moldy Ochre",                   type:"paint",    hex:"#DDB43E", brand:"p3"},
+  {name:"Jack Bone",                     type:"paint",    hex:"#D6D4AA", brand:"p3"},
+  {name:"Menoth White Base",             type:"paint",    hex:"#EFEFBB", brand:"p3"},
+  {name:"Menoth White Highlight",        type:"paint",    hex:"#F3F4DE", brand:"p3"},
+  {name:"Cryx Bane Base",                type:"paint",    hex:"#303924", brand:"p3"},
+  {name:"Bastion Grey",                  type:"paint",    hex:"#777965", brand:"p3"},
+  {name:"Cryx Bane Highlight",           type:"paint",    hex:"#93907D", brand:"p3"},
+  {name:"Trollblood Highlight",          type:"paint",    hex:"#BAB4A3", brand:"p3"},
+  {name:"Thrall Flesh",                  type:"paint",    hex:"#CED9AD", brand:"p3"},
+  {name:"Thamar Black",                  type:"paint",    hex:"#040707", brand:"p3"},
+  {name:"Morrow White",                  type:"paint",    hex:"#FEFBFD", brand:"p3"},
+  // -- AP Fanatic (180 paints) --
+  {name:"Matt Black",                  type:"paint",    hex:"#000000", brand:"fanatic"},
+  {name:"Deep Grey",                   type:"paint",    hex:"#595D66", brand:"fanatic"},
+  {name:"Uniform Grey",                type:"paint",    hex:"#6F737C", brand:"fanatic"},
+  {name:"Ash Grey",                    type:"paint",    hex:"#8D9194", brand:"fanatic"},
+  {name:"Company Grey",                type:"paint",    hex:"#C0C1C6", brand:"fanatic"},
+  {name:"Brigade Grey",                type:"paint",    hex:"#D5D5D7", brand:"fanatic"},
+  {name:"Castle Grey",                 type:"paint",    hex:"#9C9992", brand:"fanatic"},
+  {name:"Gargoyle Grey",               type:"paint",    hex:"#B3AC9C", brand:"fanatic"},
+  {name:"Great Hall Grey",             type:"paint",    hex:"#C6BDAE", brand:"fanatic"},
+  {name:"Worn Stone",                  type:"paint",    hex:"#CEC7B7", brand:"fanatic"},
+  {name:"Brainmatter Beige",           type:"paint",    hex:"#E9E6D7", brand:"fanatic"},
+  {name:"Matt White",                  type:"paint",    hex:"#FDFDFD", brand:"fanatic"},
+  {name:"Night Sky",                   type:"paint",    hex:"#374757", brand:"fanatic"},
+  {name:"Thunderous Blue",             type:"paint",    hex:"#365478", brand:"fanatic"},
+  {name:"Stratos Blue",                type:"paint",    hex:"#33628C", brand:"fanatic"},
+  {name:"Wolf Grey",                   type:"paint",    hex:"#5479A4", brand:"fanatic"},
+  {name:"Runic Cobalt",                type:"paint",    hex:"#7C95B3", brand:"fanatic"},
+  {name:"Frost Blue",                  type:"paint",    hex:"#A5C0DD", brand:"fanatic"},
+  {name:"Triumphant Navy",             type:"paint",    hex:"#1B2A53", brand:"fanatic"},
+  {name:"Gothic Blue",                 type:"paint",    hex:"#29386F", brand:"fanatic"},
+  {name:"Ultramarine Blue",            type:"paint",    hex:"#274486", brand:"fanatic"},
+  {name:"Alpha Blue",                  type:"paint",    hex:"#6979B5", brand:"fanatic"},
+  {name:"Baron Blue",                  type:"paint",    hex:"#8697CD", brand:"fanatic"},
+  {name:"Augur Blue",                  type:"paint",    hex:"#B0C2EA", brand:"fanatic"},
+  {name:"Imperial Navy",               type:"paint",    hex:"#003261", brand:"fanatic"},
+  {name:"Regal Blue",                  type:"paint",    hex:"#004A83", brand:"fanatic"},
+  {name:"Royal Blue",                  type:"paint",    hex:"#0055A8", brand:"fanatic"},
+  {name:"Crystal Blue",                type:"paint",    hex:"#006DBF", brand:"fanatic"},
+  {name:"Arctic Gem",                  type:"paint",    hex:"#008ECE", brand:"fanatic"},
+  {name:"Bright Sapphire",             type:"paint",    hex:"#93CCEA", brand:"fanatic"},
+  {name:"Deep Ocean Blue",             type:"paint",    hex:"#213341", brand:"fanatic"},
+  {name:"Abyssal Blue",                type:"paint",    hex:"#00506B", brand:"fanatic"},
+  {name:"Tidal Blue",                  type:"paint",    hex:"#006A94", brand:"fanatic"},
+  {name:"Phalanx Blue",                type:"paint",    hex:"#0086AC", brand:"fanatic"},
+  {name:"Shieldwall Blue",             type:"paint",    hex:"#009EC5", brand:"fanatic"},
+  {name:"Aegis Aqua",                  type:"paint",    hex:"#3FADD0", brand:"fanatic"},
+  {name:"Deep Azure",                  type:"paint",    hex:"#016877", brand:"fanatic"},
+  {name:"Hydra Turqouise",             type:"paint",    hex:"#018C93", brand:"fanatic"},
+  {name:"Turqouise Siren",             type:"paint",    hex:"#25A9AE", brand:"fanatic"},
+  {name:"Aquamarine",                  type:"paint",    hex:"#59BEC6", brand:"fanatic"},
+  {name:"Neptune Glow",                type:"paint",    hex:"#7DCCD1", brand:"fanatic"},
+  {name:"Marine Mist",                 type:"paint",    hex:"#9CD4D1", brand:"fanatic"},
+  {name:"Scarab Green",                type:"paint",    hex:"#1E3B41", brand:"fanatic"},
+  {name:"Temple Gate Teal",            type:"paint",    hex:"#005C4D", brand:"fanatic"},
+  {name:"Pharoah Guard",               type:"paint",    hex:"#00755A", brand:"fanatic"},
+  {name:"Talisman Teal",               type:"paint",    hex:"#00A585", brand:"fanatic"},
+  {name:"Aqua Alchemy",                type:"paint",    hex:"#21B59B", brand:"fanatic"},
+  {name:"Amulet Aqua",                 type:"paint",    hex:"#57CDB5", brand:"fanatic"},
+  {name:"Emerald Forest",              type:"paint",    hex:"#52AD34", brand:"fanatic"},
+  {name:"Leafy Green",                 type:"paint",    hex:"#78BB0C", brand:"fanatic"},
+  {name:"Rainforest",                  type:"paint",    hex:"#88D000", brand:"fanatic"},
+  {name:"Electric Lime",               type:"paint",    hex:"#ACD701", brand:"fanatic"},
+  {name:"Vivid Volt",                  type:"paint",    hex:"#D1E23C", brand:"fanatic"},
+  {name:"Afterglow",                   type:"paint",    hex:"#E9EF8D", brand:"fanatic"},
+  {name:"Evergreen Fog",               type:"paint",    hex:"#3D655C", brand:"fanatic"},
+  {name:"Medieval Forest",             type:"paint",    hex:"#457B6B", brand:"fanatic"},
+  {name:"Patagon Pine",                type:"paint",    hex:"#64917C", brand:"fanatic"},
+  {name:"Autumn Sage",                 type:"paint",    hex:"#75AB93", brand:"fanatic"},
+  {name:"Forest Faun",                 type:"paint",    hex:"#A4C9AA", brand:"fanatic"},
+  {name:"Mossy Green",                 type:"paint",    hex:"#B8D8B9", brand:"fanatic"},
+  {name:"Woodland Camo",               type:"paint",    hex:"#4F6347", brand:"fanatic"},
+  {name:"Army Green",                  type:"paint",    hex:"#61784A", brand:"fanatic"},
+  {name:"Camoflauge Green",            type:"paint",    hex:"#728251", brand:"fanatic"},
+  {name:"Olive Drab",                  type:"paint",    hex:"#7E9056", brand:"fanatic"},
+  {name:"Necrotic Flesh",              type:"paint",    hex:"#A1AC82", brand:"fanatic"},
+  {name:"Grotesque Green",             type:"paint",    hex:"#B6C09B", brand:"fanatic"},
+  {name:"Angel Green",                 type:"paint",    hex:"#1F3C2A", brand:"fanatic"},
+  {name:"Guardian Green",              type:"paint",    hex:"#205F42", brand:"fanatic"},
+  {name:"Greenskin",                   type:"paint",    hex:"#097239", brand:"fanatic"},
+  {name:"Eternal Hunt",                type:"paint",    hex:"#308C37", brand:"fanatic"},
+  {name:"Wild Green",                  type:"paint",    hex:"#44A244", brand:"fanatic"},
+  {name:"Ferocious Green",             type:"paint",    hex:"#75C06B", brand:"fanatic"},
+  {name:"Tundra Taupe",                type:"paint",    hex:"#53533B", brand:"fanatic"},
+  {name:"Prairie Ochre",               type:"paint",    hex:"#6F6740", brand:"fanatic"},
+  {name:"Desert Yellow",               type:"paint",    hex:"#88743F", brand:"fanatic"},
+  {name:"Wasteland Clay",              type:"paint",    hex:"#A88A4C", brand:"fanatic"},
+  {name:"Burnt Turf",                  type:"paint",    hex:"#C19C4E", brand:"fanatic"},
+  {name:"Barren Dune",                 type:"paint",    hex:"#DBBA6B", brand:"fanatic"},
+  {name:"Dusty Skull",                 type:"paint",    hex:"#928670", brand:"fanatic"},
+  {name:"Tomb King Tan",               type:"paint",    hex:"#AA9A80", brand:"fanatic"},
+  {name:"Skeleton Bone",               type:"paint",    hex:"#C1B696", brand:"fanatic"},
+  {name:"Ancient Stone",               type:"paint",    hex:"#D4C9A9", brand:"fanatic"},
+  {name:"Boney Spikes",                type:"paint",    hex:"#E9D9BF", brand:"fanatic"},
+  {name:"Pale Sand",                   type:"paint",    hex:"#F4ECD7", brand:"fanatic"},
+  {name:"Demigod Flames",              type:"paint",    hex:"#D07733", brand:"fanatic"},
+  {name:"Fiendish Yellow",             type:"paint",    hex:"#E39737", brand:"fanatic"},
+  {name:"Daemonic Yellow",             type:"paint",    hex:"#FFCA00", brand:"fanatic"},
+  {name:"Warped Yellow",               type:"paint",    hex:"#F9D134", brand:"fanatic"},
+  {name:"Space Dust",                  type:"paint",    hex:"#F8E080", brand:"fanatic"},
+  {name:"Ice Yellow",                  type:"paint",    hex:"#FDEBAB", brand:"fanatic"},
+  {name:"Molten Lava",                 type:"paint",    hex:"#E84D31", brand:"fanatic"},
+  {name:"Burning Ore",                 type:"paint",    hex:"#F35C31", brand:"fanatic"},
+  {name:"Lava Orange",                 type:"paint",    hex:"#FA7310", brand:"fanatic"},
+  {name:"Flickering Flame",            type:"paint",    hex:"#FF8B2C", brand:"fanatic"},
+  {name:"Glowing Inferno",             type:"paint",    hex:"#FFA837", brand:"fanatic"},
+  {name:"Inner Light",                 type:"paint",    hex:"#FECA52", brand:"fanatic"},
+  {name:"Resplendent Red",             type:"paint",    hex:"#972427", brand:"fanatic"},
+  {name:"Angelic Red",                 type:"paint",    hex:"#CD323A", brand:"fanatic"},
+  {name:"Legendary Red",               type:"paint",    hex:"#E6382F", brand:"fanatic"},
+  {name:"Sacred Scarlet",              type:"paint",    hex:"#EC563E", brand:"fanatic"},
+  {name:"Violent Vermillion",          type:"paint",    hex:"#F0745A", brand:"fanatic"},
+  {name:"Raging Rouge",                type:"paint",    hex:"#F28C7C", brand:"fanatic"},
+  {name:"Brigadine Brown",             type:"paint",    hex:"#443F3C", brand:"fanatic"},
+  {name:"Bootstrap Brown",             type:"paint",    hex:"#645250", brand:"fanatic"},
+  {name:"Leather Brown",               type:"paint",    hex:"#806055", brand:"fanatic"},
+  {name:"Paratrooper Tan",             type:"paint",    hex:"#9C7B6C", brand:"fanatic"},
+  {name:"Command Khaki",               type:"paint",    hex:"#B99889", brand:"fanatic"},
+  {name:"Urban Buff",                  type:"paint",    hex:"#D6B5A6", brand:"fanatic"},
+  {name:"Basalisk Red",                type:"paint",    hex:"#702738", brand:"fanatic"},
+  {name:"Wyvern Fury",                 type:"paint",    hex:"#923D48", brand:"fanatic"},
+  {name:"Dragon Red",                  type:"paint",    hex:"#94404B", brand:"fanatic"},
+  {name:"Pure Red",                    type:"paint",    hex:"#A81719", brand:"fanatic"},
+  {name:"Blood Chalice",               type:"paint",    hex:"#B33F42", brand:"fanatic"},
+  {name:"Raging Rose",                 type:"paint",    hex:"#B05453", brand:"fanatic"},
+  {name:"Oak Brown",                   type:"paint",    hex:"#524743", brand:"fanatic"},
+  {name:"Tree Ancient",                type:"paint",    hex:"#615049", brand:"fanatic"},
+  {name:"Dryad Brown",                 type:"paint",    hex:"#6E5248", brand:"fanatic"},
+  {name:"Fur Brown",                   type:"paint",    hex:"#7F5651", brand:"fanatic"},
+  {name:"Ruddy Umber",                 type:"paint",    hex:"#875448", brand:"fanatic"},
+  {name:"Buffed Hide",                 type:"paint",    hex:"#A6776F", brand:"fanatic"},
+  {name:"Terrestial Titan",            type:"paint",    hex:"#494753", brand:"fanatic"},
+  {name:"Alien Purple",                type:"paint",    hex:"#665591", brand:"fanatic"},
+  {name:"Cultist Purple",              type:"paint",    hex:"#7E69B1", brand:"fanatic"},
+  {name:"Hexed Violet",                type:"paint",    hex:"#8877AD", brand:"fanatic"},
+  {name:"Violet Coven",                type:"paint",    hex:"#9985AF", brand:"fanatic"},
+  {name:"Kraken Lavender",             type:"paint",    hex:"#B7ACBE", brand:"fanatic"},
+  {name:"Wicked Pink",                 type:"paint",    hex:"#A91269", brand:"fanatic"},
+  {name:"Impish Rouge",                type:"paint",    hex:"#BE4586", brand:"fanatic"},
+  {name:"Pixie Pink",                  type:"paint",    hex:"#C5629B", brand:"fanatic"},
+  {name:"Weird Elixer",                type:"paint",    hex:"#B77A9E", brand:"fanatic"},
+  {name:"Pink Potion",                 type:"paint",    hex:"#CA99B6", brand:"fanatic"},
+  {name:"Doomfire Drab",               type:"paint",    hex:"#C8AFC0", brand:"fanatic"},
+  {name:"Mulled Berry",                type:"paint",    hex:"#684852", brand:"fanatic"},
+  {name:"Moldy Wine",                  type:"paint",    hex:"#86485D", brand:"fanatic"},
+  {name:"Elder Flower",                type:"paint",    hex:"#A0627E", brand:"fanatic"},
+  {name:"Forbidden Fruit",             type:"paint",    hex:"#B37D92", brand:"fanatic"},
+  {name:"Figgy Pink",                  type:"paint",    hex:"#C39BAB", brand:"fanatic"},
+  {name:"Wilted Rose",                 type:"paint",    hex:"#C5ABB8", brand:"fanatic"},
+  {name:"Diabolic Plum",               type:"paint",    hex:"#5C3B6B", brand:"fanatic"},
+  {name:"Magecast Magenta",            type:"paint",    hex:"#814B99", brand:"fanatic"},
+  {name:"Warlock Magenta",             type:"paint",    hex:"#9453A2", brand:"fanatic"},
+  {name:"Spellbound Fuchia",           type:"paint",    hex:"#B1559A", brand:"fanatic"},
+  {name:"Enchanted Pink",              type:"paint",    hex:"#AB5F9B", brand:"fanatic"},
+  {name:"Diviner Light",               type:"paint",    hex:"#C890BC", brand:"fanatic"},
+  {name:"Moonstone Skin",              type:"paint",    hex:"#AD6F66", brand:"fanatic"},
+  {name:"Agate Skin",                  type:"paint",    hex:"#C67F75", brand:"fanatic"},
+  {name:"Barbarian Flesh",             type:"paint",    hex:"#C98873", brand:"fanatic"},
+  {name:"Ruby Skin",                   type:"paint",    hex:"#CE9F8A", brand:"fanatic"},
+  {name:"Opal Skin",                   type:"paint",    hex:"#E5C2B7", brand:"fanatic"},
+  {name:"Pearl Skin",                  type:"paint",    hex:"#DBC9C0", brand:"fanatic"},
+  {name:"Obsidian Skin",               type:"paint",    hex:"#56504F", brand:"fanatic"},
+  {name:"Onyx Skin",                   type:"paint",    hex:"#6C5851", brand:"fanatic"},
+  {name:"Mocca Skin",                  type:"paint",    hex:"#897164", brand:"fanatic"},
+  {name:"Amber Skin",                  type:"paint",    hex:"#A78D72", brand:"fanatic"},
+  {name:"Dorado Skin",                 type:"paint",    hex:"#C4A786", brand:"fanatic"},
+  {name:"Quartz Skin",                 type:"paint",    hex:"#D3BAA0", brand:"fanatic"},
+  {name:"Carnelian Skin",              type:"paint",    hex:"#644C4D", brand:"fanatic"},
+  {name:"Tigers Eye Skin",             type:"paint",    hex:"#8D5958", brand:"fanatic"},
+  {name:"Topaz Skin",                  type:"paint",    hex:"#A46058", brand:"fanatic"},
+  {name:"Jasper Skin",                 type:"paint",    hex:"#9C6963", brand:"fanatic"},
+  {name:"Tourmaline Skin",             type:"paint",    hex:"#A87A6E", brand:"fanatic"},
+  {name:"Leopard Stone Skin",          type:"paint",    hex:"#B99590", brand:"fanatic"},
+  {name:"Rough Iron",                  type:"metallic", hex:"#362D25", brand:"fanatic"},
+  {name:"Red Copper",                  type:"metallic", hex:"#683D3F", brand:"fanatic"},
+  {name:"Weapon Bronze",               type:"metallic", hex:"#B16716", brand:"fanatic"},
+  {name:"True Copper",                 type:"metallic", hex:"#936143", brand:"fanatic"},
+  {name:"Evil Chrome",                 type:"metallic", hex:"#7E5341", brand:"fanatic"},
+  {name:"True Brass",                  type:"metallic", hex:"#8D8479", brand:"fanatic"},
+  {name:"Tainted Gold",                type:"metallic", hex:"#6B6644", brand:"fanatic"},
+  {name:"Greedy Gold",                 type:"metallic", hex:"#AC7725", brand:"fanatic"},
+  {name:"Bright Gold",                 type:"metallic", hex:"#AE8B20", brand:"fanatic"},
+  {name:"Mithril",                     type:"metallic", hex:"#BBBDC0", brand:"fanatic"},
+  {name:"Shining Silver",              type:"metallic", hex:"#94969A", brand:"fanatic"},
+  {name:"Plate Metal",                 type:"metallic", hex:"#6A6B6F", brand:"fanatic"},
+  {name:"Gun Metal",                   type:"metallic", hex:"#505155", brand:"fanatic"},
+  {name:"Cobalt Metal",                type:"metallic", hex:"#31464A", brand:"fanatic"},
+  {name:"Death Metal",                 type:"metallic", hex:"#2A2A2A", brand:"fanatic"},
+  {name:"Dark Emerald",                type:"metallic", hex:"#415129", brand:"fanatic"},
+  {name:"Glittering Green",            type:"metallic", hex:"#2F7E4D", brand:"fanatic"},
+  {name:"Gemstone Red",                type:"metallic", hex:"#851F26", brand:"fanatic"},
   {name:"Skull White", type:"paint", hex:"#F5F5F0", brand:"vgc"},
   {name:"Wolf Grey", type:"paint", hex:"#A0A8B0", brand:"vgc"},
   {name:"Ghost Grey", type:"paint", hex:"#B0B8C0", brand:"vgc"},
@@ -2087,7 +2626,7 @@ function martianAngleToRad(deg) {
 //   non-empty set  → filter active     → only listed options shown, buttons selected
 const activeTypes  = new Set();   // 'base' | 'layer' | 'metallic'
 // activeBrands removed of defaults — empty means all brands shown
-const activeBrands = new Set();   // 'citadel' | 'ak' | 'proacryl' | 'vmc' | 'vgc'
+const activeBrands = new Set();   // 'citadel' | 'ak' | 'proacryl' | 'vmc' | 'vgc' | 'ttc' | 'p3' | 'fanatic'
 // activeHues: Set of Martian hue segment indices (0–23), empty = all
 const activeHues = new Set();
 // activeSatBands: Set of saturation band keys, empty = all
@@ -2314,7 +2853,7 @@ document.addEventListener('click', function(e) {
 });
 
 function refreshBrandButtons() {
-  const BRANDS = ['citadel','ak','proacryl','vmc','vgc'];
+  const BRANDS = ['citadel','ak','proacryl','vmc','vgc','ttc','p3','fanatic'];
   BRANDS.forEach(b => {
     const opt = document.getElementById('lg-'+b);
     if (opt) opt.classList.toggle('on', activeBrands.has(b));
@@ -2327,7 +2866,7 @@ function refreshBrandButtons() {
     document.getElementById('brand-btn-label').textContent = 'All brands';
     btn.classList.remove('active');
   } else if (active.length === 1) {
-    const labels = { citadel:'Citadel', ak:'AK', proacryl:'Pro Acryl', vmc:'VMC', vgc:'VGC' };
+    const labels = { citadel:'Citadel', ak:'AK', proacryl:'Pro Acryl', vmc:'VMC', vgc:'VGC', ttc:'TTC', p3:'P3', fanatic:'Fanatic' };
     document.getElementById('brand-btn-label').textContent = labels[active[0]];
     btn.classList.add('active');
   } else {
@@ -2697,10 +3236,13 @@ function clearHarmony() {
 }
 
 // ── Harmony list rendering ────────────────────────────────────
-const HARMONY_BRAND_ORDER = ['citadel','ak','proacryl','vmc','vgc'];
+const HARMONY_BRAND_ORDER = ['citadel','ak','proacryl','vmc','vgc','ttc','p3','fanatic'];
 const HARMONY_BRAND_NAMES = {
   citadel:'Citadel', ak:'AK 3rd Gen', proacryl:'Pro Acryl',
   vmc:'Vallejo Model Color', vgc:'Vallejo Game Color',
+  ttc:'Two Thin Coats',
+  p3:'P3 Formula',
+  fanatic:'AP Fanatic',
 };
 
 const MARTIAN_HUE_NAMES_SHORT = [
@@ -2712,12 +3254,18 @@ const MARTIAN_HUE_NAMES_SHORT = [
 function paintShapeSVG(p) {
   if (p.brand === 'ak')
     return `<svg width="12" height="12" viewBox="0 0 12 12" style="flex-shrink:0"><polygon points="6,1 11,6 6,11 1,6" fill="${p.hex}"/></svg>`;
-  if (p.brand === 'proacryl' || p.brand === 'fanatic')
+  if (p.brand === 'proacryl')
     return `<svg width="12" height="12" viewBox="0 0 12 12" style="flex-shrink:0"><rect x="2" y="2" width="8" height="8" fill="${p.hex}"/></svg>`;
   if (p.brand === 'vmc')
     return `<svg width="12" height="12" viewBox="0 0 12 12" style="flex-shrink:0"><polygon points="6,1 11,11 1,11" fill="${p.hex}"/></svg>`;
   if (p.brand === 'vgc')
     return `<svg width="12" height="12" viewBox="0 0 12 12" style="flex-shrink:0"><polygon points="6,11 11,1 1,1" fill="${p.hex}"/></svg>`;
+  if (p.brand === 'ttc')
+    return `<svg width="12" height="12" viewBox="0 0 12 12" style="flex-shrink:0"><polygon points="6,1 10.3,3 10.3,9 6,11 1.7,9 1.7,3" fill="${p.hex}"/></svg>`;
+  if (p.brand === 'p3')
+    return `<svg width="12" height="12" viewBox="0 0 12 12" style="flex-shrink:0"><polygon points="6,1 11,4.5 9.1,10.5 2.9,10.5 1,4.5" fill="${p.hex}"/></svg>`;
+  if (p.brand === 'fanatic')
+    return `<svg width="12" height="12" viewBox="0 0 12 12" style="flex-shrink:0"><polygon points="6,0.5 7.4,4.3 11.5,4.3 8.1,6.7 9.3,10.5 6,8.1 2.7,10.5 3.9,6.7 0.5,4.3 4.6,4.3" fill="${p.hex}"/></svg>`;
   return `<div style="width:11px;height:11px;border-radius:50%;background:${p.hex};flex-shrink:0"></div>`;
 }
 
@@ -3211,7 +3759,6 @@ function draw() {
     //   proacryl → square
     //   vmc      → triangle (point up)
     //   vgc      → inverted triangle (point down)
-    //   fanatic  → square (data currently unavailable; kept for future)
     ctx.fillStyle = p.hex;
 
     if (p.brand === 'ak') {
@@ -3224,7 +3771,7 @@ function draw() {
       ctx.lineTo(pos.x - r, pos.y);
       ctx.closePath();
       ctx.fill();
-    } else if (p.brand === 'proacryl' || p.brand === 'fanatic') {
+    } else if (p.brand === 'proacryl') {
       // Square
       const r = dotR * 1.05;
       ctx.fillRect(pos.x - r, pos.y - r, r * 2, r * 2);
@@ -3244,6 +3791,44 @@ function draw() {
       ctx.moveTo(pos.x, pos.y + r);
       ctx.lineTo(pos.x + r * 0.866, pos.y - r * 0.5);
       ctx.lineTo(pos.x - r * 0.866, pos.y - r * 0.5);
+      ctx.closePath();
+      ctx.fill();
+    } else if (p.brand === 'ttc') {
+      // Hexagon
+      const r = dotR * 1.15;
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = Math.PI / 3 * i - Math.PI / 6;
+        const hx = pos.x + r * Math.cos(a);
+        const hy = pos.y + r * Math.sin(a);
+        i === 0 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
+      }
+      ctx.closePath();
+      ctx.fill();
+    } else if (p.brand === 'p3') {
+      // Pentagon
+      const r = dotR * 1.15;
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const a = Math.PI * 2 / 5 * i - Math.PI / 2;
+        const px = pos.x + r * Math.cos(a);
+        const py = pos.y + r * Math.sin(a);
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+    } else if (p.brand === 'fanatic') {
+      // 5-pointed star
+      const r = dotR * 1.3;
+      const ri = r * 0.45;
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const a = Math.PI / 5 * i - Math.PI / 2;
+        const cr = i % 2 === 0 ? r : ri;
+        const sx = pos.x + cr * Math.cos(a);
+        const sy = pos.y + cr * Math.sin(a);
+        i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+      }
       ctx.closePath();
       ctx.fill();
     } else {
@@ -3354,9 +3939,11 @@ function findPaintAt(mx, my) {
 function findAllPaintsAt(mx, my) {
   const { x: cx, y: cy } = screenToCanvas(mx, my);
   const matches = [];
+  // Larger hit radius on touch devices to compensate for finger size
+  const hitMultiplier = IS_TOUCH ? 4.0 : 2.5;
   paintPositions.forEach(({ paint, x, y, r }) => {
     const d = Math.hypot(cx-x, cy-y);
-    const hitR = r * 2.5;
+    const hitR = r * hitMultiplier;
     if (d < hitR) matches.push({ paint, d });
   });
   matches.sort((a,b) => a.d - b.d || a.paint.brand.localeCompare(b.paint.brand));
@@ -3381,9 +3968,10 @@ function getValRingAt(mx, my) {
   const { x: cx, y: cy } = screenToCanvas(mx, my);
   const dx = cx - CX, dy = cy - CY;
   const dist = Math.hypot(dx, dy);
+  const baseHit = IS_TOUCH ? 22 : 10;
   for (const ring of VAL_RINGS) {
     const rr = R * (0.06 + (ring.v / 100) * 0.88);
-    const hitZone = 10 * devicePixelRatio / zoom;
+    const hitZone = baseHit * devicePixelRatio / zoom;
     if (Math.abs(dist - rr) < hitZone) return ring;
   }
   return null;
@@ -3398,8 +3986,10 @@ function getHueSegmentAt(mx, my) {
   const { x: cx, y: cy } = screenToCanvas(mx, my);
   const dx = cx - CX, dy = cy - CY;
   const dist = Math.hypot(dx, dy);
-  if (dist < R * 0.92 || dist > R * 1.18) return -1;
-  // Convert canvas angle to Martian degrees, then undo the WHEEL_OFFSET
+  // Wider rim hit zone on touch
+  const innerR = IS_TOUCH ? R * 0.88 : R * 0.92;
+  const outerR = IS_TOUCH ? R * 1.22 : R * 1.18;
+  if (dist < innerR || dist > outerR) return -1;
   let angleDeg = Math.atan2(dy, dx) * 180 / Math.PI + 90 - WHEEL_OFFSET;
   angleDeg = ((angleDeg % 360) + 360) % 360;
   return Math.floor(angleDeg / 15) % 24;
@@ -3448,12 +4038,14 @@ function selectPaint(paint) {
 
   document.getElementById('sel-name').textContent = paint.name;
   const BRAND_LABELS = {
-    citadel:'Citadel', ak:'AK 3rd Gen', fanatic:'AP Fanatic',
+    citadel:'Citadel', ak:'AK 3rd Gen',
     proacryl:'Pro Acryl', vmc:'Vallejo Model Color', vgc:'Vallejo Game Color',
+    ttc:'Two Thin Coats', p3:'P3 Formula', fanatic:'AP Fanatic',
   };
   const BRAND_COLORS = {
-    citadel:'#c8a06b', ak:'#c0d870', fanatic:'#e8a070',
+    citadel:'#c8a06b', ak:'#c0d870',
     proacryl:'#e07070', vmc:'#7090c8', vgc:'#70c890',
+    ttc:'#d0a0d0', p3:'#c0c0e0', fanatic:'#e0c080',
   };
   let typeLabel;
   if (paint.brand === 'citadel') {
@@ -3654,8 +4246,11 @@ function uploadCollection(event) {
 const OWNED_MGR_BRAND_NAMES = {
   citadel:'Citadel', ak:'AK 3rd Gen', proacryl:'Pro Acryl',
   vmc:'Vallejo Model Color', vgc:'Vallejo Game Color',
+  ttc:'Two Thin Coats',
+  p3:'P3 Formula',
+  fanatic:'AP Fanatic',
 };
-const OWNED_MGR_BRAND_ORDER = ['citadel','ak','proacryl','vmc','vgc'];
+const OWNED_MGR_BRAND_ORDER = ['citadel','ak','proacryl','vmc','vgc','ttc','p3','fanatic'];
 const ownedMgrBrandFilter = new Set();
 
 function openOwnedManager() {
@@ -3820,8 +4415,9 @@ function showTip(paints, mx, my) {
   if (list.length === 0) { hideTip(); return; }
 
   const BRAND_LABELS = {
-    citadel:'Citadel', ak:'AK 3rd Gen', fanatic:'AP Fanatic',
+    citadel:'Citadel', ak:'AK 3rd Gen',
     proacryl:'Pro Acryl', vmc:'Vallejo Model Color', vgc:'Vallejo Game Color',
+    ttc:'Two Thin Coats', p3:'P3 Formula', fanatic:'AP Fanatic',
   };
 
   document.getElementById('tip-swatch').style.background = list[0].hex;
@@ -4063,24 +4659,160 @@ canvas.addEventListener('click', e => {
 });
 
 // Touch support
-canvas.addEventListener('touchend', e => {
-  e.preventDefault();
-  const t = e.changedTouches[0];
-  const paints = findAllPaintsAt(t.clientX, t.clientY);
-  if (paints.length === 0) {
-    const seg = getHueSegmentAt(t.clientX, t.clientY);
-    if (seg !== -1) toggleHue(seg);
-    return;
+// ── Touch interaction ─────────────────────────────────────────
+// Single tap: select paint, click rim hue, click value zone — mirrors mouse click
+// One-finger drag: pan when zoomed
+// Two-finger pinch: zoom centred on the midpoint
+const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window);
+
+let touchState = {
+  // Single-touch drag
+  startX: 0, startY: 0, startPanX: 0, startPanY: 0,
+  panning: false, hasMoved: false,
+  // Tap-detection
+  tapX: 0, tapY: 0, tapTime: 0,
+  // Pinch
+  pinching: false, pinchStartDist: 0, pinchStartZoom: 1,
+  pinchCenterX: 0, pinchCenterY: 0,
+};
+
+const TAP_MAX_MOVE_PX = 10;   // movement above this counts as a drag, not a tap
+const TAP_MAX_TIME_MS = 500;
+
+function touchDist(t0, t1) {
+  return Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+}
+
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    const t = e.touches[0];
+    touchState.startX = touchState.tapX = t.clientX;
+    touchState.startY = touchState.tapY = t.clientY;
+    touchState.startPanX = panX;
+    touchState.startPanY = panY;
+    touchState.panning = false;
+    touchState.hasMoved = false;
+    touchState.pinching = false;
+    touchState.tapTime = Date.now();
+  } else if (e.touches.length === 2) {
+    // Pinch start
+    touchState.pinching = true;
+    touchState.pinchStartDist = touchDist(e.touches[0], e.touches[1]);
+    touchState.pinchStartZoom = zoom;
+    const rect = canvas.getBoundingClientRect();
+    touchState.pinchCenterX = ((e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left) * devicePixelRatio;
+    touchState.pinchCenterY = ((e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top)  * devicePixelRatio;
   }
-  let pick = paints[0];
-  if (selected) {
-    const idx = paints.findIndex(p => p === selected);
-    if (idx >= 0) {
-      if (paints.length === 1) { selectPaint(null); return; }
-      pick = paints[(idx + 1) % paints.length];
+}, { passive: true });
+
+canvas.addEventListener('touchmove', e => {
+  if (touchState.pinching && e.touches.length === 2) {
+    e.preventDefault();
+    const d = touchDist(e.touches[0], e.touches[1]);
+    if (touchState.pinchStartDist > 0) {
+      const newZoom = touchState.pinchStartZoom * (d / touchState.pinchStartDist);
+      setZoom(newZoom, touchState.pinchCenterX, touchState.pinchCenterY);
+    }
+  } else if (e.touches.length === 1 && !touchState.pinching) {
+    const t = e.touches[0];
+    const dx = t.clientX - touchState.startX;
+    const dy = t.clientY - touchState.startY;
+    if (Math.hypot(dx, dy) > TAP_MAX_MOVE_PX) {
+      touchState.hasMoved = true;
+      // Start panning if zoomed in
+      if (zoom > 1) {
+        e.preventDefault();
+        touchState.panning = true;
+        panX = touchState.startPanX + dx * devicePixelRatio;
+        panY = touchState.startPanY + dy * devicePixelRatio;
+        const maxPan = R * (zoom - 1);
+        panX = Math.max(-maxPan, Math.min(maxPan, panX));
+        panY = Math.max(-maxPan, Math.min(maxPan, panY));
+        draw();
+      }
     }
   }
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  if (touchState.pinching) {
+    if (e.touches.length < 2) touchState.pinching = false;
+    return;
+  }
+  // Treat as a tap only if movement and time are small
+  if (touchState.hasMoved) {
+    touchState.panning = false;
+    return;
+  }
+  if (Date.now() - touchState.tapTime > TAP_MAX_TIME_MS) return;
+
+  // Tap — synthesise the same logic as the mouse click handler
+  e.preventDefault();
+  const x = touchState.tapX, y = touchState.tapY;
+  const paints = findAllPaintsAt(x, y);
+
+  // Outside-tap dismisses a pinned tooltip
+  if (tipPinned && !tip.contains(e.target)) {
+    forceHideTip();
+    return;
+  }
+
+  if (paints.length === 0) {
+    const seg = getHueSegmentAt(x, y);
+    if (seg !== -1) { toggleHue(seg); return; }
+    const ring = getValRingAt(x, y);
+    if (ring) {
+      const { x: cx, y: cy } = screenToCanvas(x, y);
+      const dist = Math.hypot(cx - CX, cy - CY);
+      const rr = R * (0.06 + (ring.v / 100) * 0.88);
+      toggleValBand(dist < rr ? ring.innerBand : ring.outerBand);
+      return;
+    }
+    const { x: ex, y: ey } = screenToCanvas(x, y);
+    const edist = Math.hypot(ex - CX, ey - CY);
+    if (edist < R * 1.0) {
+      const midRing = R * (0.06 + (35 / 100) * 0.88);
+      const brightRing = R * (0.06 + (70 / 100) * 0.88);
+      let band;
+      if (edist < midRing) band = 'dark';
+      else if (edist < brightRing) band = 'mid';
+      else band = 'bright';
+      toggleValBand(band);
+      return;
+    }
+    if (selected) { selected = null; clearHarmony(); selectPaint(null); }
+    return;
+  }
+
+  if (activeHarmony) {
+    const pick = paints[0];
+    if (selected && pick.name === selected.name && pick.brand === selected.brand) return;
+    addToScheme(pick);
+    return;
+  }
+
+  if (paints.length > 1) {
+    // Multi-paint stack: pin the tooltip
+    let pick = paints[0];
+    if (selected) {
+      const idx = paints.findIndex(p => p === selected);
+      if (idx >= 0) pick = paints[(idx + 1) % paints.length];
+    }
+    selectPaint(pick);
+    showTip(paints, x, y);
+    tipPinned = true;
+    return;
+  }
+
+  forceHideTip();
+  const pick = paints[0];
+  if (selected && pick === selected) { selectPaint(null); return; }
   selectPaint(pick);
+}, { passive: false });
+
+canvas.addEventListener('touchcancel', () => {
+  touchState.panning = false;
+  touchState.pinching = false;
 });
 
 // Burger menu in header
@@ -4121,16 +4853,34 @@ function openPanel() {
   panelOpen = true;
   document.getElementById('panel').classList.remove('collapsed');
   document.getElementById('panel-arrow').textContent = '◀';
-  resize();
-  setTimeout(resize, 210); // after 0.2s CSS transition completes
+  resizeAfterPanelTransition();
 }
 
 function closePanel() {
   panelOpen = false;
   document.getElementById('panel').classList.add('collapsed');
   document.getElementById('panel-arrow').textContent = '▶';
-  resize();
-  setTimeout(resize, 210);
+  resizeAfterPanelTransition();
+}
+
+// Schedule a resize once the panel transition has settled. Listening for
+// transitionend handles the real animation completion; the timeout is a
+// safety net in case no transitionend fires (browser variation, reduced
+// motion, etc.). Multiple resize() calls during the animation also keep
+// the wheel sized correctly as the panel slides.
+function resizeAfterPanelTransition() {
+  const panel = document.getElementById('panel');
+  resize(); // immediate, in case the layout has already reflowed
+  // Intermediate frames keep the wheel sized while the sheet slides
+  requestAnimationFrame(() => requestAnimationFrame(resize));
+  const onEnd = (e) => {
+    if (e.target !== panel) return;
+    panel.removeEventListener('transitionend', onEnd);
+    resize();
+  };
+  panel.addEventListener('transitionend', onEnd);
+  // Safety net: longer than the longest CSS transition (0.25s on mobile)
+  setTimeout(() => { resize(); panel.removeEventListener('transitionend', onEnd); }, 320);
 }
 
 function toggleHuePanel() {
@@ -4188,7 +4938,12 @@ refreshSatButtons();
 refreshValButtons();
 refreshBrandButtons();
 updateTypeFilterVisibility();
-openPanel(); // open by default
+// On mobile, default to closed so the canvas has room. Desktop opens by default.
+if (window.matchMedia('(max-width: 768px)').matches) {
+  closePanel();
+} else {
+  openPanel();
+}
 document.getElementById('fb-exclude-metallic')?.classList.toggle('on', showMetallics);
 document.getElementById('fb-exclude-achromatic')?.classList.toggle('on', showAchromatics);
 refreshValRingButtons();
