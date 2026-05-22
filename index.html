@@ -607,6 +607,7 @@
     #tip .tip-entry { padding: 10px 6px; min-height: 36px; }
     #tip .tip-name { font-size: 14px; }
     #tip .tip-type { font-size: 11px; }
+    #tip { max-width: calc(100vw - 24px); }
 
     /* Prevent text selection on the canvas during drags */
     #canvas-wrap, canvas { -webkit-user-select: none; user-select: none; }
@@ -3300,6 +3301,10 @@ function addToScheme(paint) {
 function setActiveSchemeColour(paint) {
   if (!paint) return;
   selected = paint;
+  
+  // Ensure panel and card are visible
+  document.getElementById('sel-card').style.display = 'block';
+  openPanel();
   document.getElementById('panel-header-label').textContent = paint.name;
 
   // Update name/type display
@@ -3355,20 +3360,27 @@ function deactivateSchemeColour() {
 }
 
 function removeFromScheme(name, brand) {
+  const wasActive = selected && selected.name === name && selected.brand === brand;
   schemeColours = schemeColours.filter(p => !(p.name === name && p.brand === brand));
-  // If we removed the active paint, deselect it
-  if (selected && selected.name === name && selected.brand === brand) {
-    selected = null;
-    clearHarmony();
-    document.getElementById('sel-name').textContent = '';
-    document.getElementById('sel-type').textContent = '';
-    document.getElementById('sel-owned-btn').style.display = 'none';
-    document.getElementById('harmony-btns').style.display = 'none';
+
+  if (wasActive) {
+    if (schemeColours.length > 0) {
+      // Activate the next paint in the scheme
+      setActiveSchemeColour(schemeColours[0]);
+      return;
+    } else {
+      // No paints left — close the panel
+      selected = null;
+      clearHarmony();
+      document.getElementById('sel-card').style.display = 'none';
+      document.getElementById('panel-header-label').textContent = 'Select a paint';
+      closePanel();
+      draw();
+      return;
+    }
   }
-  if (schemeColours.length === 0) {
-    document.getElementById('sel-card').style.display = 'none';
-    document.getElementById('panel-header-label').textContent = 'Select a paint';
-  }
+
+  // Removed a non-active paint — just re-render
   renderScheme();
   draw();
 }
@@ -4337,10 +4349,27 @@ function showTip(paints, mx, my) {
   const tw = tip.offsetWidth || 210;
   const th = tip.offsetHeight || 96;
   const vw = window.innerWidth, vh = window.innerHeight;
-  let tx = mx !== undefined ? mx + 14 : parseInt(tip.style.left) || 14;
-  let ty = mx !== undefined ? my - 20 : parseInt(tip.style.top)  || 14;
-  if (tx + tw > vw) tx = (mx !== undefined ? mx : tx) - tw - 14;
-  if (ty + th > vh) ty = vh - th - 10;
+
+  let tx, ty;
+  if (mx !== undefined) {
+    if (IS_TOUCH) {
+      // On mobile, centre the tooltip horizontally and place above the tap point
+      tx = Math.round((vw - tw) / 2);
+      ty = my - th - 30;
+      if (ty < 8) ty = my + 30; // flip below if no room above
+    } else {
+      tx = mx + 14;
+      ty = my - 20;
+    }
+  } else {
+    tx = parseInt(tip.style.left) || 14;
+    ty = parseInt(tip.style.top)  || 14;
+  }
+
+  // Clamp to viewport edges
+  if (tx + tw > vw - 8) tx = vw - tw - 8;
+  if (tx < 8) tx = 8;
+  if (ty + th > vh - 8) ty = vh - th - 8;
   if (ty < 8) ty = 8;
   tip.style.left = tx + 'px';
   tip.style.top  = ty + 'px';
