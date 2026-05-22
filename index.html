@@ -11,20 +11,20 @@
   html.dark { --tint: rgba(100,170,220,0.08); }
 
   :root {
-    /* Light mode */
-    --bg:        #e8e8e8;   /* light grey background */
-    --bg2:       #dcdcdc;   /* slightly darker surface */
-    --panel:     #e2e2e2;   /* right panel */
-    --border:    #b8b8b8;   /* mid grey border */
+    /* Light mode — neutral grey */
+    --bg:        #e0dedc;   /* warm grey background */
+    --bg2:       #d6d4d1;   /* slightly darker surface */
+    --panel:     #dad8d5;   /* right panel */
+    --border:    #b8b5b0;   /* warm mid grey border */
     --gold:      #1a3a7a;   /* dark blue accent */
     --gold2:     #2a4a8a;
     --text:      #1a1a1a;   /* near-black */
     --dim:       #4a4a4a;   /* secondary text */
-    --dimmer:    #888888;   /* tertiary / disabled */
-    --canvas-bg: #ebebeb;
-    --ring-color: rgba(0,0,0,0.45);     /* value ring — visible on light canvas */
-    --ring-fill:  rgba(0,0,0,0.06);     /* value zone highlight */
-    --sector-fill-opacity: 0.12;
+    --dimmer:    #808080;   /* tertiary / disabled */
+    --canvas-bg: #e2e0de;
+    --ring-color: rgba(0,0,0,0.40);     /* value ring — visible on light canvas */
+    --ring-fill:  rgba(0,0,0,0.05);     /* value zone highlight */
+    --sector-fill-opacity: 0.10;
     --label-alpha: 0.85;
   }
 
@@ -379,19 +379,6 @@
   .spread-btn:hover  { border-color:var(--gold); color:var(--gold); }
   .spread-btn.active { background:rgba(var(--tint-rgb,100,170,220),0.15); border-color:var(--gold); color:var(--gold); }
   .harmony-label { font-family:'Cinzel',serif; font-size:9px; letter-spacing:.3em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; margin-top:8px; }
-  #scheme-swatches { display:flex; gap:4px; margin:6px 0 8px; flex-wrap:wrap; }
-  .scheme-swatch {
-    position:relative; width:32px; height:32px; border-radius:3px;
-    cursor:pointer; flex-shrink:0;
-    title: '';
-  }
-  .scheme-swatch .swatch-remove {
-    display:none; position:absolute; top:-5px; right:-5px;
-    width:14px; height:14px; border-radius:50%;
-    background:rgba(0,0,0,.7); color:#fff; font-size:9px;
-    line-height:14px; text-align:center; cursor:pointer;
-  }
-  .scheme-swatch:hover .swatch-remove { display:block; }
   #scheme-list { display:flex; flex-direction:column; gap:3px; }
   .scheme-addable:hover { background:var(--tint); border-radius:3px; cursor:pointer; }
   .scheme-addable:hover::after { content:' +'; color:var(--gold); font-size:10px; }
@@ -601,10 +588,6 @@
     .owned-row-swatch { width:28px; height:28px; }
     .owned-row-check { width:28px; height:28px; }
 
-    /* Guide overlay padding */
-    #guide-content, #guide-content ~ * { padding: 24px 16px 80px; }
-    #guide-content h1 { font-size: 1.5rem; }
-    #guide-content h2 { font-size: 1.1rem; }
     body { font-size: 15px; }
 
     /* Disable hover-only legend; trigger on tap instead */
@@ -612,9 +595,6 @@
 
     /* Harmony spread + type buttons bigger */
     .hbtn-harmony, .spread-btn { padding: 9px 12px; min-height: 36px; }
-
-    /* Scheme swatch strip wraps */
-    #scheme-swatches { flex-wrap: wrap; }
   }
 
   /* Touch-device tweaks — applied regardless of viewport size */
@@ -710,13 +690,24 @@
   #sel-owned-btn.owned {
     background: var(--gold); border-color: var(--gold); color: var(--bg); font-weight: 600;
   }
-  #sel-swatch {
-    width: 100%; height: 60px;
-    border-radius: 4px;
-    border: 1px solid rgba(255,255,255,.08);
-    margin-bottom: 10px;
-    cursor: help;
+  #sel-scheme-strip {
+    display: flex; gap: 3px; margin-bottom: 10px; min-height: 52px;
   }
+  #sel-scheme-strip .scheme-swatch-item {
+    flex: 1; min-width: 32px; border-radius: 4px; cursor: pointer;
+    border: 2px solid transparent; transition: all .12s;
+    position: relative;
+  }
+  #sel-scheme-strip .scheme-swatch-item.active {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px var(--gold);
+  }
+  #sel-scheme-strip .scheme-swatch-item .swatch-remove {
+    position: absolute; top: 2px; right: 3px; font-size: 9px;
+    color: rgba(0,0,0,.5); cursor: pointer; line-height: 1;
+    display: none;
+  }
+  #sel-scheme-strip .scheme-swatch-item:hover .swatch-remove { display: block; }
   #sel-name { font-family: 'Cinzel', serif; font-size: 14px; color: var(--text); margin-bottom: 4px; }
   #sel-type { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; }
   #sel-hex  { font-family: monospace; font-size: 12px; color: var(--dim); margin-bottom: 12px; }
@@ -756,135 +747,7 @@
   #search::placeholder { color: var(--dimmer); }
 
   /* ── User guide overlay ── */
-  #guide-btn {
-    margin-left: 10px; padding: 5px 13px;
-    border-radius: 3px; font-size: 11px;
-    font-family: 'Cinzel', serif; letter-spacing: .08em;
-    cursor: pointer; border: 1px solid var(--border);
-    background: var(--bg2); color: var(--dim); transition: all .15s;
-    flex-shrink: 0;
-  }
-  #guide-btn:hover { border-color: var(--gold); color: var(--gold); }
 
-  #guide-overlay, .guide-overlay-base {
-    display: none;
-    position: fixed; inset: 0; z-index: 9000;
-    background: var(--bg);
-    overflow-y: auto;
-  }
-  #guide-overlay.visible, .guide-overlay-base.visible { display: block; }
-
-  #guide-topbar {
-    position: sticky; top: 0; z-index: 10;
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 24px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  #guide-topbar-title {
-    font-family: 'Cinzel', serif; font-size: 12px;
-    letter-spacing: .3em; text-transform: uppercase; color: var(--gold);
-  }
-  #guide-back-top {
-    padding: 5px 14px; border-radius: 3px; font-size: 11px;
-    font-family: 'Cinzel', serif; letter-spacing: .08em;
-    cursor: pointer; border: 1px solid var(--border);
-    background: var(--bg2); color: var(--dim); transition: all .15s;
-  }
-  #guide-back-top:hover { border-color: var(--gold); color: var(--gold); }
-
-  #guide-back-float {
-    position: fixed; bottom: 28px; right: 28px; z-index: 9100;
-    padding: 10px 18px; border-radius: 30px; font-size: 12px;
-    font-family: 'Cinzel', serif; letter-spacing: .1em;
-    cursor: pointer; border: 1px solid var(--border);
-    background: var(--panel); color: var(--gold);
-    box-shadow: 0 4px 20px rgba(0,0,0,.5);
-    transition: all .15s; display: none;
-  }
-  #guide-back-float.visible { display: block; }
-  #guide-back-float:hover { background: var(--gold); color: var(--bg); }
-
-  /* Guide content re-scoped to avoid conflicts with wheel CSS */
-  #guide-content {
-    max-width: 780px; margin: 0 auto;
-    padding: 48px 32px 120px;
-  }
-  #guide-content h1 {
-    font-family: 'Cinzel', serif; font-size: 2.2rem; font-weight: 400;
-    color: var(--accent); letter-spacing: .03em; line-height: 1.2;
-    margin-bottom: 14px;
-  }
-  #guide-content h2 {
-    font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 400;
-    color: var(--accent); letter-spacing: .05em;
-    margin: 48px 0 6px; padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-  #guide-content h3 {
-    font-family: 'Cinzel', serif; font-size: .9rem; font-weight: 400;
-    color: var(--gold); letter-spacing: .08em; text-transform: uppercase;
-    margin: 28px 0 10px;
-  }
-  #guide-content p { margin-bottom: 1em; line-height: 1.75; color: var(--text); }
-  #guide-content p:last-child { margin-bottom: 0; }
-  #guide-content strong { color: var(--accent); font-weight: 500; }
-  #guide-content em { color: var(--dim); }
-  #guide-content a { color: var(--gold); }
-  #guide-content code {
-    font-family: 'Courier New', monospace; font-size: .85em;
-    background: var(--tint); border: 1px solid var(--border);
-    border-radius: 3px; padding: 1px 5px; color: var(--accent);
-  }
-  #guide-content ul, #guide-content ol { margin: 10px 0 10px 1.5em; color: var(--dim); }
-  #guide-content nav {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 6px; padding: 22px 26px; margin-bottom: 40px;
-  }
-  #guide-content nav ol { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 32px; font-size: 14px; }
-  #guide-content nav a { color: var(--dim); text-decoration: none; transition: color .15s; }
-  #guide-content nav a:hover { color: var(--accent); }
-  .guide-callout {
-    border-left: 3px solid var(--gold); background: var(--tint);
-    border-radius: 0 5px 5px 0; padding: 14px 18px; margin: 20px 0; font-size: .95rem;
-  }
-  .guide-callout-warn { border-color: #e0b878; background: rgba(224,184,120,0.05); }
-  .guide-callout-theory { border-color: #6090a0; background: rgba(96,144,160,0.06); }
-  .guide-callout-title {
-    font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .35em;
-    text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
-  }
-  .guide-callout-warn .guide-callout-title { color: #e0b878; }
-  .guide-callout-theory .guide-callout-title { color: #7ab0c8; }
-  .guide-callout p { margin-bottom: 6px; color: var(--dim); }
-  .guide-steps { counter-reset: gstep; margin: 16px 0; }
-  .guide-step { display: flex; gap: 14px; margin-bottom: 16px; align-items: flex-start; }
-  .guide-step-num {
-    counter-increment: gstep; width: 26px; height: 26px; border-radius: 50%;
-    border: 1px solid var(--border); background: var(--bg2);
-    font-family: 'Cinzel', serif; font-size: 11px; color: var(--gold);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
-  }
-  .guide-step-num::before { content: counter(gstep); }
-  .guide-step-body { flex: 1; }
-  .guide-step-body strong { display: block; margin-bottom: 3px; }
-  .guide-key-grid { display: grid; grid-template-columns: auto 1fr; gap: 8px 20px; font-size: .92rem; margin: 16px 0; }
-  .guide-key-term { font-family: 'Cinzel', serif; font-size: .78rem; letter-spacing: .05em; color: var(--gold); white-space: nowrap; padding-top: 2px; }
-  .guide-key-def { color: var(--dim); }
-  .guide-shape-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: .9rem; color: var(--dim); }
-  .guide-filter-demo { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
-  .guide-fbtn { padding: 4px 12px; border-radius: 3px; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: .06em; border: 1px solid var(--border); background: var(--bg2); color: var(--dimmer); display: inline-block; }
-  .guide-fbtn.on { background: var(--gold); border-color: var(--gold); color: var(--bg); font-weight: 600; }
-  .guide-eyebrow { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .4em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
-  .guide-subtitle { font-size: 1rem; color: var(--dim); font-style: italic; max-width: 520px; margin-bottom: 32px; }
-  .guide-nav-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .4em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
-  .guide-section-num { color: var(--dimmer); margin-right: 10px; font-size: 1rem; }
-  #guide-content footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); font-size: .82rem; color: var(--dimmer); text-align: center; font-style: italic; }
-  @media (max-width: 600px) {
-    #guide-content h1 { font-size: 1.7rem; }
-    #guide-content nav ol { grid-template-columns: 1fr; }
-    #guide-content { padding: 36px 18px 100px; }
-  }
 
 </style>
 </head>
@@ -961,6 +824,16 @@
       </div>
     </div>
 
+    <!-- Temperature filter -->
+    <div class="header-filter-group mobile-hide">
+      <div class="header-filter-label">Temperature</div>
+      <div id="header-temp-filter" style="display:flex;gap:5px;align-items:center">
+        <button class="fbtn header-sat-btn" id="temp-warm" onclick="toggleTemp('warm')">Warm</button>
+        <button class="fbtn header-sat-btn" id="temp-neutral" onclick="toggleTemp('neutral')">Neutral</button>
+        <button class="fbtn header-sat-btn" id="temp-cool" onclick="toggleTemp('cool')">Cool</button>
+      </div>
+    </div>
+
     <!-- Owned filter + collection backup -->
     <div class="header-filter-group mobile-hide">
       <div class="header-filter-label">Collection</div>
@@ -983,8 +856,6 @@
       </button>
       <div id="filter-dropdown" style="display:none">
         <div class="fd-nav">
-          <button class="fd-nav-btn" onclick="toggleFilterDropdown(); showGuide()">Guide</button>
-          <button class="fd-nav-btn" onclick="toggleFilterDropdown(); showSources()">Sources</button>
           <button class="fd-nav-btn" id="darkmode-btn" onclick="toggleDarkMode()" title="Toggle dark / light mode">☀</button>
         </div>
         <div class="fd-body">
@@ -1025,6 +896,14 @@
               <button class="fbtn" id="mb-vr-bright" onclick="toggleValRingFilter('bright')">Bright</button>
               <button class="fbtn" id="mb-vr-mid" onclick="toggleValRingFilter('mid')">Mid</button>
               <button class="fbtn" id="mb-vr-dark" onclick="toggleValRingFilter('dark')">Dark</button>
+            </div>
+          </div>
+          <div class="fd-section mobile-only">
+            <div class="fd-label">Temperature</div>
+            <div class="filter-row">
+              <button class="fbtn" id="mb-temp-warm" onclick="toggleTemp('warm')">Warm</button>
+              <button class="fbtn" id="mb-temp-neutral" onclick="toggleTemp('neutral')">Neutral</button>
+              <button class="fbtn" id="mb-temp-cool" onclick="toggleTemp('cool')">Cool</button>
             </div>
           </div>
           <div class="fd-section" id="type-filter-section" style="display:none">
@@ -1097,19 +976,15 @@
     <div id="selected">
       <div id="sel-empty" style="display:none"></div>
       <div id="sel-card">
-        <div id="sel-swatch" title=""></div>
+        <div id="sel-scheme-strip"></div>
         <div id="sel-name"></div>
         <div id="sel-type"></div>
-        <div id="sel-hue-name" style="margin-top:6px"></div>
-        <div id="sel-val-band"  style="margin-top:3px"></div>
-        <div id="sel-sat-band"  style="margin-top:3px"></div>
         <button id="sel-owned-btn" onclick="toggleSelectedOwned()">Add to collection</button>
-        <!-- Colour scheme: selected + added harmonious colours -->
+        <!-- Colour scheme controls -->
         <div id="scheme-section" style="display:none">
           <div class="harmony-label">Colour Scheme
             <button onclick="clearScheme()" style="float:right;background:none;border:none;color:var(--dimmer);cursor:pointer;font-size:10px;font-family:inherit;padding:0" title="Clear scheme">✕ Clear</button>
           </div>
-          <div id="scheme-swatches"></div>
           <div id="scheme-list"></div>
         </div>
         <!-- Colour harmony -->
@@ -1142,352 +1017,6 @@
   </div>
 </div>
 
-<!-- Sources Overlay -->
-<div id="sources-overlay" class="guide-overlay-base">
-  <div id="guide-topbar">
-    <span id="guide-topbar-title">Sources &amp; Acknowledgements</span>
-    <button id="guide-back-top" onclick="hideSources()">← Back to Wheel</button>
-  </div>
-  <div id="guide-content" style="max-width:680px">
-    <div class="guide-eyebrow">Miniature Painting Colour Wheel</div>
-    <h1>Sources &amp; Acknowledgements</h1>
-    <p class="guide-subtitle">Thank you to everyone who documented paint data online. This tool would not be possible without the miniature painting community's collective knowledge.</p>
-
-    <h2>Citadel Colours</h2>
-    <h3>Bolter &amp; Chainsword Community Reference</h3>
-    <p>The primary hex reference for all 152 Citadel paints. The Bolter &amp; Chainsword forum has maintained a long-running community thread where painters photograph and digitise Citadel paints and compile agreed hex values. This is the most comprehensive community-verified Citadel colour reference available.</p>
-    <p><em>bolterandchainsword.com</em></p>
-
-    <h3>Codex Chromatica</h3>
-    <p>Cross-referenced against the Bolter &amp; Chainsword values, particularly for newer paints not yet in community threads.</p>
-
-    <h3>Paintpad.app</h3>
-    <p>Additional cross-referencing of Citadel paint hex values and type classification (Base, Layer, Metallic).</p>
-    <p><em>paintpad.app</em></p>
-
-    <h2>AK Interactive 3rd Generation Acrylics</h2>
-    <h3>Scalemates</h3>
-    <p>The primary source for AK Interactive 3rd Gen hex values (AK11001–AK11212). Scalemates is a scale modelling database with independently photographed and digitised paint swatches for most major brands.</p>
-    <p><em>scalemates.com</em></p>
-
-    <h3>Scribd — AK Interactive 3rd Gen Colour Chart</h3>
-    <p>The community-shared Scribd document provided confirmation of specific hex values including Rubber Black (#2A2619) and Smoke Black (#2C2C22) that were verified against the official AK Interactive colour chart.</p>
-    <p><em>scribd.com/document/809117879/AK-Interactive-3rd-Generation-Acrylics-v0</em></p>
-
-    <h3>AK Masters / AK Interactive Official</h3>
-    <p>The official AK Interactive paint equivalence chart (Tamiya, Vallejo cross-references) was used to validate colour placement and confirm the classification of metallic paints.</p>
-    <p><em>ak-interactive.com · ak-masters.com</em></p>
-
-    <h2>Vallejo Model Color &amp; Game Color</h2>
-    <h3>Scalemates</h3>
-    <p>Primary source for Vallejo Model Color and Game Color hex values. Swatches are from published Vallejo colour charts and photographed paint comparisons.</p>
-    <p><em>scalemates.com</em></p>
-
-    <h3>Vallejo Official Paint Charts</h3>
-    <p>The official Vallejo published colour charts were used to verify metallic classifications and cross-reference with community-measured values.</p>
-    <p><em>acrylicosvallejo.com</em></p>
-
-    <h2>Monument Hobbies Pro Acryl</h2>
-    <h3>Scalemates</h3>
-    <p>Primary source for the 65 Pro Acryl paint hex values from the Monument Hobbies 22ml line.</p>
-    <p><em>scalemates.com</em></p>
-
-    <h2>Colour Theory</h2>
-    <h3>Warren Mars — The Martian Colour Wheel</h3>
-    <p>The perceptual hue remapping used throughout this tool is based on Warren Mars' Martian Colour Wheel, which adjusts standard HSL hue spacing to better reflect human perceptual experience. The 24-segment mapping with named hue sectors (Red, Orange, Turmeric, Yellow Cheese, etc.) is taken directly from his published work.</p>
-    <p><em>warrenmars.com</em></p>
-
-    <h3>Munsell Colour System</h3>
-    <p>The decision to use HSV Value as the radial axis (dark at centre, bright at edge) is inspired by the Munsell colour model, which organises colour space with Value on the vertical axis — mirroring how miniature painters think about shadow-to-highlight transitions.</p>
-
-    <h2>A note on accuracy</h2>
-    <p>All hex values represent paints as photographed and digitised by community members or through manufacturer documentation. They are not spectrophotometer readings. Colour appearance in real life will vary based on primer, lighting, paint layer thickness, and viewing angle. Use this tool as a reference for comparing paints relative to each other, not as absolute colour measurements.</p>
-
-    <footer>Miniature Painting Colour Wheel · Sources · Built with appreciation for the miniature painting community.</footer>
-  </div>
-</div>
-<button id="sources-back-float" onclick="hideSources()" style="display:none;position:fixed;bottom:28px;right:28px;z-index:9100;padding:10px 18px;border-radius:30px;font-size:12px;font-family:'Cinzel',serif;letter-spacing:.1em;cursor:pointer;border:1px solid var(--gold);background:var(--panel);color:var(--gold);box-shadow:0 4px 20px rgba(0,0,0,.5);transition:all .15s;">← Colour Wheel</button>
-
-<!-- User Guide Overlay -->
-<div id="guide-overlay">
-  <div id="guide-topbar">
-    <span id="guide-topbar-title">User Guide</span>
-    <button id="guide-back-top" onclick="hideGuide()">← Back to Wheel</button>
-  </div>
-  <div id="guide-content">
-    <div class="container">
-
-
-  <div style="background:var(--tint);border:1px solid var(--border);border-radius:5px;padding:14px 18px;margin-bottom:32px;font-size:.95rem;text-align:center;color:var(--dim);font-style:italic;">
-    This is just for fun — it may have inaccuracies. Enjoy.
-  </div>
-
-  <header class="guide-site-header">
-    <div class="guide-eyebrow">Miniature Painting Colour Wheel</div>
-    <h1>User Guide</h1>
-    <p class="guide-subtitle">How to navigate the wheel, build colour schemes, and understand the colour theory assumptions baked into the tool.</p>
-  </header>
-
-  <nav>
-    <div class="guide-nav-label">Contents</div>
-    <ol>
-      <li><a href="#overview">Overview &amp; Shapes</a></li>
-      <li><a href="#navigation">Navigating the Wheel</a></li>
-      <li><a href="#filters">Filtering Paints</a></li>
-      <li><a href="#selecting">Selecting &amp; Owning Paints</a></li>
-      <li><a href="#harmony">Harmony Filters</a></li>
-      <li><a href="#scheme">Building a Colour Scheme</a></li>
-      <li><a href="#theory">Colour Theory Assumptions</a></li>
-      <li><a href="#nuances">Known Nuances &amp; Limitations</a></li>
-    </ol>
-  </nav>
-
-  <!-- 1. Overview -->
-  <section id="overview">
-    <h2><span class="guide-section-num">1.</span> Overview</h2>
-    <p>The Miniature Painting Colour Wheel plots <strong>584 paints</strong> across five ranges — Citadel, AK Interactive 3rd Gen, Pro Acryl, Vallejo Model Color, and Vallejo Game Color — onto a single interactive canvas. Each paint's position is determined by two properties of its hex colour value:</p>
-
-    <div class="guide-key-grid">
-      <div class="guide-key-term">Angle</div>
-      <div class="guide-key-def">The paint's <strong>hue</strong>, mapped to the 24-segment Martian colour wheel. Red sits at the top; segments run clockwise through Orange, Yellow, Green, Cyan, Blue, Violet, and Magenta before returning to Red.</div>
-      <div class="guide-key-term">Radius</div>
-      <div class="guide-key-def">The paint's <strong>value</strong> (HSV brightness). Dark paints sit near the centre; bright paints sit near the outer rim. Two dashed rings mark the Dark/Mid and Mid/Bright boundaries.</div>
-    </div>
-
-    <p>Each brand is drawn with a distinct shape so you can identify it at a glance:</p>
-
-    <div class="guide-shape-row"><div class="guide-shape-icon"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#c8a06b"/></svg></div><strong>Circle</strong> — Citadel</div>
-    <div class="guide-shape-row"><div class="guide-shape-icon"><svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,1 11,6 6,11 1,6" fill="#58C1CD"/></svg></div><strong>Diamond</strong> — AK Interactive 3rd Gen</div>
-    <div class="guide-shape-row"><div class="guide-shape-icon"><svg width="12" height="12" viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" fill="#C8252F"/></svg></div><strong>Square</strong> — Pro Acryl</div>
-    <div class="guide-shape-row"><div class="guide-shape-icon"><svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,1 11,11 1,11" fill="#2050A0"/></svg></div><strong>Triangle ▲</strong> — Vallejo Model Color</div>
-    <div class="guide-shape-row"><div class="guide-shape-icon"><svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,11 11,1 1,1" fill="#2FA56C"/></svg></div><strong>Triangle ▽</strong> — Vallejo Game Color</div>
-  </section>
-
-  <!-- 2. Navigating the wheel -->
-  <section id="navigation">
-    <h2><span class="guide-section-num">2.</span> Navigating the Wheel</h2>
-
-    <h3>Zoom &amp; Pan (desktop)</h3>
-    <p>Use the <strong>mouse wheel</strong> to zoom in and out, anchored to the cursor position. At high zoom, paint dots scale down so densely-packed clusters separate visually. Hold and <strong>drag</strong> to pan when zoomed in. The <strong>+ / − / ⌂</strong> controls in the top-left of the wheel adjust zoom and reset the view.</p>
-
-    <h3>Touch gestures (mobile)</h3>
-    <p>On a phone or tablet: <strong>tap</strong> a paint dot to select it, <strong>pinch</strong> with two fingers to zoom, and <strong>drag</strong> with one finger to pan when zoomed in. Paint hit targets are larger on touch devices to make selection easier. The side panel becomes a bottom sheet — tap its header to slide it up or down.</p>
-
-    <h3>Hover</h3>
-    <p><strong>Hovering</strong> over any paint dot shows a tooltip with the paint name, brand, type, hex code, and Value/Saturation percentages. When multiple paints share the same hex value (and therefore the same position on the wheel), the tooltip lists all of them.</p>
-
-    <h3>Value zones</h3>
-    <p>Two dashed rings divide the wheel into three brightness zones — Dark (centre), Mid, and Bright (rim). Hovering inside the wheel highlights the zone under the cursor; clicking an empty area of a zone toggles that brightness filter.</p>
-
-    <h3>Rim segments</h3>
-    <p>The coloured arc around the outside is divided into 24 hue segments. Hovering a segment brightens it; clicking toggles it as a hue filter (see Section 3). Multiple segments can be active at once.</p>
-
-    <h3>Legend</h3>
-    <p>The <strong>Legend</strong> box in the bottom-left corner of the wheel reveals, on hover, what the radius and angle of the wheel represent.</p>
-  </section>
-
-  <!-- 3. Filtering -->
-  <section id="filters">
-    <h2><span class="guide-section-num">3.</span> Filtering Paints</h2>
-
-    <p>All filters follow the same rule: <strong>no buttons selected = no filter applied = everything shown</strong>. Selecting one or more options restricts the view to only paints matching those criteria. Multiple selections within a group combine with <strong>OR</strong> logic — Citadel + AK shows both. Different groups combine with <strong>AND</strong> — Citadel plus Bright shows only bright Citadel paints.</p>
-
-    <h3>Brand</h3>
-    <p>The <strong>Brand</strong> control in the header is a multi-select dropdown. Open it and tick any combination of the five ranges — Citadel, AK 3rd Gen, Pro Acryl, Vallejo Model Color, Vallejo Game Color. The button shows "All brands", a single brand name, or "N brands" depending on your selection.</p>
-
-    <h3>Saturation (Vivid / Mid / Muted)</h3>
-    <p>Filters by <strong>HSL saturation</strong> — how intense or grey the colour appears. Vivid (≥60%), Mid (25–60%), Muted (&lt;25%). Saturation is shown as a data point but does <em>not</em> drive the radial position on the wheel — that is controlled by brightness.</p>
-
-    <h3>Brightness (Bright / Mid / Dark)</h3>
-    <p>Filters by <strong>HSV value</strong> — how bright or dark the colour is. Bright (≥70%), Mid (35–70%), Dark (&lt;35%). This is a <strong>single-select</strong> filter: clicking one band replaces any previous choice, and clicking the active band clears it. It directly corresponds to the paint's radial position — Bright near the rim, Dark near the centre. You can also set it by clicking the value zones on the wheel itself.</p>
-
-    <h3>Types (Regular / Metallics / Achromatics)</h3>
-    <p>The burger menu (≡, top right) has a <strong>Types</strong> section with three toggles. <strong>Regular</strong> (chromatic non-metallic paints) is on by default. <strong>Metallics</strong> is off by default — metallic paints are hidden until you switch it on. <strong>Achromatics</strong> (neutrals, near-blacks, near-whites) is on by default. These toggles persist even when a harmony is active and survive filter resets.</p>
-
-    <h3>Citadel Type (Base / Layer / Metallic)</h3>
-    <p>Found in the burger menu, this filter only appears when Citadel is the <strong>sole selected brand</strong>. It narrows Citadel results to Base, Layer, or Metallic paints. It has no effect on other brands.</p>
-
-    <h3>Hue Segments</h3>
-    <p>Click directly on the coloured rim of the wheel to restrict the view to paints in those hue sectors. Multiple segments can be active simultaneously.</p>
-
-    <h3>Owned</h3>
-    <p>The <strong>✓ Owned</strong> button in the header's Collection group shows only paints you have marked as owned. See Section 4 for how to mark paints and manage your collection.</p>
-
-    <div class="guide-callout">
-      <div class="guide-callout-title">Filters &amp; harmony are unified</div>
-      <p>The Brand, Saturation and Brightness filters are shared between the header and the harmony panel. Changing a filter in one place is immediately reflected in the other, and starting a harmony keeps whatever filters you already had set.</p>
-    </div>
-  </section>
-
-  <!-- 4. Selecting & owning paints -->
-  <section id="selecting">
-    <h2><span class="guide-section-num">4.</span> Selecting &amp; Owning Paints</h2>
-    <p><strong>Click</strong> any paint dot on the wheel to select it. The right-hand panel shows a colour swatch, the paint name, brand and type, and descriptive Hue / Value / Saturation labels. Hover the swatch to see the exact hex code and HSL/HSV numbers.</p>
-    <p>When multiple paints share the same position (identical hex), clicking <strong>pins a tooltip</strong> listing every paint at that point — click any entry to select it. The selected paint is marked, and the tooltip stays open until you pick one or click away.</p>
-
-    <h3>Marking a paint as owned</h3>
-    <p>The selected-paint panel has an <strong>Add to collection</strong> button. Click it to mark the paint as owned (it shows "✓ In your collection"); click again to un-mark. Your collection is saved in the browser and persists between visits.</p>
-
-    <h3>The collection manager</h3>
-    <p>The <strong>+</strong> button in the header's Collection group opens a manager modal for marking many paints quickly. It has a free-text search that matches paint names, a multi-select brand dropdown, and an "Owned only" toggle. Each row has a checkbox — click anywhere on the row to toggle ownership.</p>
-
-    <h3>Backing up your collection</h3>
-    <p>Because the collection is stored only in this browser, the header's <strong>↓</strong> and <strong>↑</strong> buttons let you download your collection to a JSON file and upload it back later — useful for moving between devices or keeping a backup. The burger menu also offers a clipboard "Copy / Paste" code as a quick alternative. Importing is always additive: it merges with your existing collection and never deletes anything.</p>
-
-    <div class="guide-callout">
-      <div class="guide-callout-title">Tip</div>
-      <p>Combine the Owned filter with a harmony to see only colour schemes you can actually paint right now with the paints you have.</p>
-    </div>
-  </section>
-
-  <!-- 5. Harmony -->
-  <section id="harmony">
-    <h2><span class="guide-section-num">5.</span> Harmony Filters</h2>
-
-    <p>Once a paint is selected, eight harmony relationships become available. Each highlights one or more hue segments on the wheel and populates a list of matching paints from those segments.</p>
-
-    <div class="guide-key-grid">
-      <div class="guide-key-term">Monochromatic</div>
-      <div class="guide-key-def">Same hue segment as the selected paint — other paints that share the same base hue.</div>
-      <div class="guide-key-term">Analogous</div>
-      <div class="guide-key-def">Adjacent hue segments (±1, ±2, or ±3 either side). Controls the "spread" of how wide the neighbourhood is.</div>
-      <div class="guide-key-term">Complementary</div>
-      <div class="guide-key-def">The segment directly opposite on the wheel (+12 segments, or 180°).</div>
-      <div class="guide-key-term">Split-Comp</div>
-      <div class="guide-key-def">The segments flanking the complement (±1, ±2, or ±3 from the opposite point). A softer alternative to straight complementary.</div>
-      <div class="guide-key-term">Triadic</div>
-      <div class="guide-key-def">Two segments equally spaced at 120° intervals (+8 and +16).</div>
-      <div class="guide-key-term">Tetradic</div>
-      <div class="guide-key-def">Two segments forming a rectangle (+6 and +18). Gives four colours total including the selected and its complement.</div>
-      <div class="guide-key-term">Square</div>
-      <div class="guide-key-def">Three segments evenly spaced at 90° intervals (+6, +12, +18). Four colours total at equal spacing.</div>
-    </div>
-
-    <h3>Sub-category filters within harmony results</h3>
-    <p>The harmony results can be narrowed by <strong>Brand</strong>, <strong>Saturation</strong>, and <strong>Brightness</strong>. These are the <em>same</em> filters as the header controls — changing one updates the other. They combine with AND logic, so selecting Citadel and Bright shows only bright Citadel paints in the harmony. The wheel updates in real time, with connecting lines drawn from the anchor paint to all visible matches.</p>
-
-    <div class="guide-callout">
-      <div class="guide-callout-title">Filters carry into harmony</div>
-      <p>Whatever Brand, Saturation and Brightness filters you have set are kept when you start a harmony — they become its sub-filters. Only the hue filter clears, since the harmony defines which hue segments are relevant.</p>
-    </div>
-
-    <h3>Achromatic paints and harmony</h3>
-    <p>Paints with very low saturation (neutrals, near-blacks, near-whites) are classified as <strong>achromatic</strong> — they have no meaningful hue position and cluster near the centre of the wheel. When Monochromatic is selected for an achromatic paint, the result is all other achromatic paints. For all other harmony types, the tool uses <strong>hue segment 0 (Red) as a reference point</strong> — a practical fallback rather than a theoretically meaningful relationship.</p>
-  </section>
-
-  <!-- 6. Building a scheme -->
-  <section id="scheme">
-    <h2><span class="guide-section-num">6.</span> Building a Colour Scheme</h2>
-
-    <p>The wheel is designed to help you assemble a working paint scheme — a set of colours across base, mid, and highlight tones in harmonically related hues.</p>
-
-    <div class="guide-steps">
-      <div class="guide-step">
-        <div class="guide-step-num"></div>
-        <div class="guide-step-body">
-          <strong>Select your anchor colour</strong>
-          Click the paint you want to build a scheme around. This becomes the <em>anchor</em> — it appears at the top of the Colour Scheme panel with a gold outline in the swatch strip.
-        </div>
-      </div>
-      <div class="guide-step">
-        <div class="guide-step-num"></div>
-        <div class="guide-step-body">
-          <strong>Choose a harmony type</strong>
-          Pick the colour relationship you want — Complementary for maximum contrast, Analogous for a cohesive natural blend, Triadic for a vibrant three-colour composition, and so on.
-        </div>
-      </div>
-      <div class="guide-step">
-        <div class="guide-step-num"></div>
-        <div class="guide-step-body">
-          <strong>Narrow by value</strong>
-          Use the Value sub-filter in the harmony panel to focus on Dark, Mid, or Bright paints. For a typical miniature scheme you want one dark (shadow), one mid (base), and one bright (highlight) from each hue family.
-        </div>
-      </div>
-      <div class="guide-step">
-        <div class="guide-step-num"></div>
-        <div class="guide-step-body">
-          <strong>Add paints to the scheme</strong>
-          Hover a paint in the harmony list to see it glow on the wheel. Click it to add it to your Colour Scheme panel. You can also click paint dots directly on the wheel while a harmony is active — they are added to the scheme rather than selected as a new anchor.
-        </div>
-      </div>
-      <div class="guide-step">
-        <div class="guide-step-num"></div>
-        <div class="guide-step-body">
-          <strong>Review and refine</strong>
-          The Colour Scheme panel shows a swatch strip for a quick visual read of how the colours sit together. Each entry shows the paint name, brand, and a Bright/Mid/Dark + Vivid/Mid/Muted description. Remove any paint with the ✕ button, or clear the whole scheme to start again.
-        </div>
-      </div>
-    </div>
-
-    <div class="guide-callout">
-      <div class="guide-callout-title">Tip — cross-brand matching</div>
-      <p>The harmony system works across all brands simultaneously. You might find a Citadel base coat, a Vallejo mid-tone, and a Pro Acryl highlight all sitting in harmonically related segments — the wheel makes these cross-brand relationships visible in a way a printed chart cannot.</p>
-    </div>
-  </section>
-
-  <!-- 7. Colour theory assumptions -->
-  <section id="theory">
-    <h2><span class="guide-section-num">7.</span> Colour Theory Assumptions</h2>
-
-    <div class="guide-callout guide-callout-theory">
-      <div class="guide-callout-title">Background</div>
-      <p>The wheel is built on a set of deliberate colour theory choices. Understanding these helps you interpret the results correctly and know when to trust the tool and when to use your own judgement.</p>
-    </div>
-
-    <h3>The Martian Colour Wheel</h3>
-    <p>Standard computer colour models (HSL, RGB) space hues at equal angular intervals. But human perception is not linear — we have more perceptual resolution in some hue regions than others, and the transition between colours does not feel equally spaced. Warren Mars' <strong>Martian Colour Wheel</strong> corrects for this by remapping hue angles to match perceptual spacing. The 24 named segments (Red, Orange, Turmeric, Yellow Cheese, Yellow … through to Red Plum) are spaced to feel like equal perceptual steps rather than equal mathematical intervals.</p>
-    <p>The most significant correction is around <strong>blue</strong>, which is expanded on the Martian wheel (more segments cover the blue-violet range), and <strong>yellow-green</strong>, which is compressed (the step from yellow to green feels shorter perceptually than the HSL degree count implies). This means complementary relationships on this wheel should feel more natural and workable than those derived from a standard 180° HSL flip.</p>
-
-    <h3>Value as the radial axis</h3>
-    <p>The wheel uses <strong>HSV Value</strong> (brightness) for the radial axis — dark colours at the centre, bright colours at the rim. This is the Munsell convention and maps directly to how miniature painters think about colour: you lay down a dark base, build up to a mid-tone, then add highlights. Reading the wheel from centre to edge corresponds to reading a paint scheme from shadow to highlight.</p>
-    <p>Saturation is displayed as a data attribute and is available as a filter, but it does not affect position on the wheel. Two paints at the same radius may have very different saturation — a vivid scarlet and a grey-pink can sit at the same distance from the centre if they share the same brightness.</p>
-
-    <h3>Harmony relationships are hue-only</h3>
-    <p>The harmony system operates entirely in hue-segment space. Complementary means <em>12 segments away on the hue ring</em>. It does not consider value or saturation when selecting which segments to highlight. A very dark navy blue and a vivid sky blue both fall in the same segment and are treated as equivalent harmonically. Whether they work together in practice depends on your value and saturation matching — which is why the sub-filters in the harmony results exist.</p>
-
-    <h3>Hex values as ground truth</h3>
-    <p>All colour calculations derive from the <strong>hex colour codes</strong> assigned to each paint. These come from the Bolter &amp; Chainsword community reference, Scalemates, and manufacturer documentation. They represent the paint as photographed and digitised — not as it will appear on a miniature under specific lighting, over a given primer, or after a wash or varnish. Treat them as a <em>relative reference</em> for comparing paints to each other, not as an absolute colour measurement.</p>
-  </section>
-
-  <!-- 8. Nuances -->
-  <section id="nuances">
-    <h2><span class="guide-section-num">8.</span> Known Nuances &amp; Limitations</h2>
-
-    <h3>The achromatic classification problem</h3>
-    <p>A paint is classified as <strong>achromatic</strong> (no hue, placed at the centre) when its HSL saturation falls below 12%. This threshold works well for pure greys, blacks, and whites. However, <strong>HSL saturation collapses near the extremes of lightness</strong> — a very dark brownish-red like Rhinox Hide may read as low-saturation in HSL terms, even though it has clear reddish-brown character to the eye.</p>
-    <p>The result is that some dark paints with real hue content are misclassified as achromatic. They land at the wheel's centre rather than in their correct hue sector, and their complementary or analogous suggestions will not reflect their actual hue. <strong>If a paint lands at the centre but appears to have a visible hue, treat its harmony suggestions with caution.</strong></p>
-
-    <div class="guide-callout guide-callout-warn">
-      <div class="guide-callout-title">Affected Paints</div>
-      <p>Deeply dark paints from any brand — very dark browns, near-blacks with a hint of colour, some charcoals and dark greens — are most likely to be misclassified. If you select one and the wheel places it at the centre, its harmony results are suggestions based on a neutral reference (hue 0 / Red) rather than its actual colour character.</p>
-    </div>
-
-    <h3>Saturation and value are independent on the wheel</h3>
-    <p>Two paints in the same hue segment at the same radius can have wildly different saturation. A muted dusty blue and a vivid electric blue may sit at almost the same position if they share a similar brightness. The Value filter helps you narrow by brightness, and the Saturation filter helps you narrow by intensity — use both together for the most useful results.</p>
-
-    <h3>Harmony is not paint mixing</h3>
-    <p>The harmony relationships shown are based on colour wheel theory developed for pigments and light — they describe which hues tend to look pleasing together aesthetically. They do <em>not</em> predict what colour you will get by mixing two paints together, nor do they account for paint-specific properties like transparency, metallicity, or texture. A complementary pair in theory may still clash in practice depending on how the paints are applied.</p>
-
-    <h3>Cross-brand hex accuracy</h3>
-    <p>Citadel hex values are sourced from the community-verified Bolter &amp; Chainsword reference and cross-checked against Codex Chromatica. AK Interactive values are sourced from Scalemates with spot-checks against the official colour chart. Vallejo and Pro Acryl values are derived from published swatches and cross-references rather than spectrophotometer readings — they are representative rather than spectrometer-accurate. <strong>Expect minor positional drift</strong> of a few degrees or a few percent radius for some non-Citadel paints.</p>
-
-    <h3>The 24-segment quantisation</h3>
-    <p>Hue harmony works in whole segments — each segment spans 15° of hue arc. A paint at 14° and a paint at 16° are in adjacent segments and will never appear as Monochromatic matches, even though they are only 2° apart. Similarly, the "Complementary" of a warm orange-red might technically be a cool blue-teal, but the nearest whole segment may lean slightly in one direction or the other. The Martian remapping reduces this quantisation distortion, but it does not eliminate it entirely.</p>
-
-    <h3>Metallics and the wheel</h3>
-    <p>Metallic paints present particular challenges for colour-wheel analysis. Their visual appearance is heavily influenced by the metallic flake texture, reflectance properties, and viewing angle — none of which are captured in a hex code. The hex value of a metallic paint represents its photographed average colour, not its full reflective character. Metallic harmony suggestions are based on this average hex and should be treated as loose guidelines only. This is why metallics are excluded by default.</p>
-  </section>
-
-  <footer>
-    Miniature Painting Colour Wheel · User Guide · Colour data sourced from Bolter &amp; Chainsword, Scalemates, and manufacturer references.
-  </footer>
-
-</div>
-  </div>
-</div>
-
-<!-- Floating back-to-wheel button (shown when guide is open) -->
-<button id="guide-back-float" onclick="hideGuide()">← Colour Wheel</button>
 
 <div id="tip">
   <div class="tip-swatch" id="tip-swatch"></div>
@@ -2810,6 +2339,18 @@ let showRegular = true;      // true = shown by default (non-metallic, non-achro
 let showMetallics = false;   // false = hidden by default (button unselected)
 let showAchromatics = true;  // true = shown by default (button selected)
 let ownedOnly = false;       // true = show only paints the user owns
+
+// Warm/cool/neutral temperature filter — empty set means no filter (show all)
+const activeTemps = new Set(); // 'warm' | 'cool' | 'neutral'
+const WARM_SEGMENTS    = new Set([0,1,2,3,4,20,21,22,23]);
+const COOL_SEGMENTS    = new Set([7,8,9,10,11,12,13,14,15,16,17]);
+const NEUTRAL_SEGMENTS = new Set([5,6,18,19]); // transitional hues: Grn.Grape, Chartreuse, Violet, Aniline
+
+function getPaintTemp(p) {
+  if (p.hueSeg < 0) return 'achromatic'; // achromatics pass all temp filters
+  if (NEUTRAL_SEGMENTS.has(p.hueSeg)) return 'neutral';
+  return WARM_SEGMENTS.has(p.hueSeg) ? 'warm' : 'cool';
+}
 let darkMode = localStorage.getItem('darkMode') !== 'false'; // dark by default
 let schemeColours = []; // list of paints added to the colour scheme
 let harmonyStegs  = [];
@@ -2935,6 +2476,12 @@ function visiblePaints() {
     if (activeValBands.size > 0) {
       if (!activeValBands.has(p.valBand.key)) return false;
     }
+    // Warm/cool/neutral temperature filter
+    if (activeTemps.size > 0) {
+      const temp = getPaintTemp(p);
+      // achromatics always pass the temperature filter
+      if (temp !== 'achromatic' && !activeTemps.has(temp)) return false;
+    }
     return true;
   });
 }
@@ -2976,6 +2523,25 @@ function toggleRegular() {
   if (activeHarmony) _runHarmony(activeHarmony);
   refreshAfterFilter();
   draw();
+}
+
+function toggleTemp(key) {
+  if (activeTemps.has(key)) activeTemps.delete(key);
+  else activeTemps.add(key);
+  refreshTempButtons();
+  if (activeHarmony) { _runHarmony(activeHarmony); renderHarmonyList(); }
+  refreshAfterFilter();
+  draw();
+}
+
+function refreshTempButtons() {
+  ['warm','neutral','cool'].forEach(k => {
+    const el = document.getElementById('temp-' + k);
+    if (el) el.classList.toggle('on', activeTemps.has(k));
+    // Mobile burger
+    const mb = document.getElementById('mb-temp-' + k);
+    if (mb) mb.classList.toggle('on', activeTemps.has(k));
+  });
 }
 
 function toggleExcludeMetallic() {
@@ -3483,11 +3049,13 @@ function clearAll() {
   // Clear filters
   activeTypes.clear(); activeBrands.clear();
   activeHues.clear(); activeSatBands.clear(); activeValBands.clear();
+  activeTemps.clear();
   ownedOnly = false;
   document.getElementById('owned-filter-btn')?.classList.remove('on');
   document.getElementById('mb-owned-btn')?.classList.remove('on');
   refreshTypeButtons(); refreshBrandButtons();
   refreshSatButtons(); refreshValButtons(); refreshHueButtons();
+  refreshTempButtons();
   updateTypeFilterVisibility();
   // Clear selection, harmony, scheme
   selected = null;
@@ -3566,6 +3134,12 @@ function toggleHarmonySat(key) {
   draw();
 }
 
+function toggleHarmonyTemp(key) {
+  // Unified with the header temperature filter
+  toggleTemp(key);
+  if (activeHarmony) renderHarmonyList();
+}
+
 function renderHarmonyList() {
   const list = document.getElementById('harmony-list');
   const paints = harmonyPaintsCache;
@@ -3586,7 +3160,8 @@ function renderHarmonyList() {
     const brandOk = activeBrands.size === 0 || activeBrands.has(p.brand);
     const satOk   = activeSatBands.size   === 0 || activeSatBands.has(p.satBand.key);
     const valOk   = activeValBands.size   === 0 || activeValBands.has(p.valBand.key);
-    return brandOk && satOk && valOk;
+    const tempOk  = activeTemps.size === 0 || getPaintTemp(p) === 'achromatic' || activeTemps.has(getPaintTemp(p));
+    return brandOk && satOk && valOk && tempOk;
   });
 
   // ── Brand sub-filter — dropdown ──
@@ -3649,6 +3224,28 @@ function renderHarmonyList() {
     html += '</div>';
   }
 
+  // Temperature sub-filter
+  const warmCount    = paints.filter(p => getPaintTemp(p) === 'warm').length;
+  const neutralCount = paints.filter(p => getPaintTemp(p) === 'neutral').length;
+  const coolCount    = paints.filter(p => getPaintTemp(p) === 'cool').length;
+  if (warmCount > 0 || neutralCount > 0 || coolCount > 0) {
+    html += '<div class="harmony-sub-header">Temperature</div>';
+    html += '<div class="harmony-brand-chips">';
+    if (warmCount > 0) {
+      const on = activeTemps.has('warm');
+      html += `<button class="hbrand-chip${on?' on':''}" onclick="toggleHarmonyTemp('warm')">Warm <span class="hbrand-count">${warmCount}</span></button>`;
+    }
+    if (neutralCount > 0) {
+      const on = activeTemps.has('neutral');
+      html += `<button class="hbrand-chip${on?' on':''}" onclick="toggleHarmonyTemp('neutral')">Neutral <span class="hbrand-count">${neutralCount}</span></button>`;
+    }
+    if (coolCount > 0) {
+      const on = activeTemps.has('cool');
+      html += `<button class="hbrand-chip${on?' on':''}" onclick="toggleHarmonyTemp('cool')">Cool <span class="hbrand-count">${coolCount}</span></button>`;
+    }
+    html += '</div>';
+  }
+
 
   if (shown.length === 0) {
     html += '<div style="font-size:12px;color:var(--dimmer);font-style:italic;margin-top:6px">No paints match the active filters</div>';
@@ -3697,64 +3294,155 @@ function addToScheme(paint) {
   const already = schemeColours.find(p => p.name === paint.name && p.brand === paint.brand);
   if (!already) schemeColours.push(paint);
   renderScheme();
+  draw();
+}
+
+function setActiveSchemeColour(paint) {
+  if (!paint) return;
+  selected = paint;
+  document.getElementById('panel-header-label').textContent = paint.name;
+
+  // Update name/type display
+  const BRAND_LABELS = {
+    citadel:'Citadel', ak:'AK 3rd Gen',
+    proacryl:'Pro Acryl', vmc:'Vallejo Model Color', vgc:'Vallejo Game Color',
+    ttc:'Two Thin Coats', p3:'P3 Formula', fanatic:'AP Fanatic',
+  };
+  const BRAND_COLORS = {
+    citadel:'#c8a06b', ak:'#c0d870',
+    proacryl:'#e07070', vmc:'#7090c8', vgc:'#70c890',
+    ttc:'#d0a0d0', p3:'#c0c0e0', fanatic:'#e0c080',
+  };
+  document.getElementById('sel-name').textContent = paint.name;
+  let typeLabel;
+  if (paint.brand === 'citadel') {
+    typeLabel = paint.type.charAt(0).toUpperCase() + paint.type.slice(1);
+  } else {
+    typeLabel = BRAND_LABELS[paint.brand] || paint.brand;
+    if (paint.code) typeLabel += ' · ' + paint.code;
+  }
+  document.getElementById('sel-type').textContent = typeLabel;
+  let typeColor;
+  if (paint.brand === 'citadel') {
+    typeColor = paint.type==='base' ? '#c8a06b'
+              : paint.type==='metallic' ? '#c0c8a0' : '#7a9aaa';
+  } else {
+    typeColor = BRAND_COLORS[paint.brand] || '#c8a06b';
+  }
+  document.getElementById('sel-type').style.color = typeColor;
+
+  document.getElementById('sel-owned-btn').style.display = '';
+  document.getElementById('harmony-btns').style.display = 'flex';
+  refreshOwnedButton();
+  renderScheme();
+
+  // Re-run harmony with the new active colour
+  if (activeHarmony) _runHarmony(activeHarmony);
+  draw();
+}
+
+function deactivateSchemeColour() {
+  selected = null;
+  clearHarmony();
+  document.getElementById('sel-name').textContent = schemeColours.length + ' paints in scheme';
+  document.getElementById('sel-type').textContent = 'Tap a swatch to set active';
+  document.getElementById('sel-type').style.color = 'var(--dimmer)';
+  document.getElementById('sel-owned-btn').style.display = 'none';
+  document.getElementById('harmony-btns').style.display = 'none';
+  document.getElementById('panel-header-label').textContent = schemeColours.length + ' paints in scheme';
+  renderScheme();
+  draw();
 }
 
 function removeFromScheme(name, brand) {
   schemeColours = schemeColours.filter(p => !(p.name === name && p.brand === brand));
+  // If we removed the active paint, deselect it
+  if (selected && selected.name === name && selected.brand === brand) {
+    selected = null;
+    clearHarmony();
+    document.getElementById('sel-name').textContent = '';
+    document.getElementById('sel-type').textContent = '';
+    document.getElementById('sel-owned-btn').style.display = 'none';
+    document.getElementById('harmony-btns').style.display = 'none';
+  }
+  if (schemeColours.length === 0) {
+    document.getElementById('sel-card').style.display = 'none';
+    document.getElementById('panel-header-label').textContent = 'Select a paint';
+  }
   renderScheme();
   draw();
 }
 
 function clearScheme() {
   schemeColours = [];
+  selected = null;
+  clearHarmony();
+  document.getElementById('sel-name').textContent = '';
+  document.getElementById('sel-type').textContent = '';
+  document.getElementById('sel-owned-btn').style.display = 'none';
+  document.getElementById('harmony-btns').style.display = 'none';
   renderScheme();
   draw();
 }
 
 function renderScheme() {
+  const strip    = document.getElementById('sel-scheme-strip');
   const section  = document.getElementById('scheme-section');
-  const swatches = document.getElementById('scheme-swatches');
   const list     = document.getElementById('scheme-list');
 
-  // Build the full scheme: selected paint first, then added colours
-  const all = [];
-  if (selected) all.push({ paint: selected, isAnchor: true });
-  schemeColours.forEach(p => {
-    if (!selected || p.name !== selected.name || p.brand !== selected.brand) {
-      all.push({ paint: p, isAnchor: false });
-    }
-  });
+  if (schemeColours.length === 0) {
+    strip.innerHTML = '';
+    section.style.display = 'none';
+    return;
+  }
 
-  if (all.length === 0) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-
-  // Swatch strip
-  swatches.innerHTML = all.map(({ paint: p, isAnchor }) => {
-    const border = isAnchor ? `outline:2px solid var(--gold);outline-offset:2px;` : '';
+  // Render the swatch strip
+  strip.innerHTML = schemeColours.map(p => {
+    const isActive = selected && p.name === selected.name && p.brand === selected.brand;
     const nameKey  = p.name.replace(/'/g,"\\'").replace(/!/g,"\\!");
     const brandKey = p.brand;
-    const title    = `${p.name} (${p.brand})`;
-    return `<div class="scheme-swatch" style="background:${p.hex};${border}" title="${title}">
-      ${!isAnchor ? `<div class="swatch-remove" onclick="removeFromScheme('${nameKey}','${brandKey}')">✕</div>` : ''}
+    const title    = `${p.name} (${HARMONY_BRAND_NAMES[p.brand] || p.brand})`;
+    const removeBtn = schemeColours.length > 1
+      ? `<div class="swatch-remove" onclick="event.stopPropagation();removeFromScheme('${nameKey}','${brandKey}')">✕</div>`
+      : '';
+    // Clicking active swatch deselects; clicking inactive sets it active
+    const clickAction = isActive
+      ? `deactivateSchemeColour()`
+      : `setActiveSchemeColour(PAINTS.find(q=>q.name==='${nameKey}'&&q.brand==='${brandKey}'))`;
+    return `<div class="scheme-swatch-item${isActive?' active':''}"
+      style="background:${p.hex}"
+      title="${title}"
+      onclick="${clickAction}">
+      ${removeBtn}
     </div>`;
   }).join('');
 
-  // List
-  list.innerHTML = all.map(({ paint: p, isAnchor }) => {
-    const nameKey  = p.name.replace(/'/g,"\\'").replace(/!/g,"\\!");
-    const brandKey = p.brand;
-    const anchorMark   = isAnchor ? ' <span style="color:var(--gold);font-size:9px">●</span>' : '';
-    const brandLabel   = HARMONY_BRAND_NAMES[p.brand] || p.brand;
-    return `<div class="nb-item" style="${isAnchor?'opacity:.8':''}">
-      ${paintShapeSVG(p)}
-      <div style="flex:1;min-width:0">
-        <div class="nb-name">${p.name}${anchorMark}</div>
-        <div style="font-size:9px;color:var(--dimmer);margin-top:1px">${brandLabel}</div>
-      </div>
-      <div class="nb-meta">${p.valBand.label} ${p.satBand.label}</div>
-      ${!isAnchor ? `<div style="color:var(--dimmer);cursor:pointer;font-size:10px;margin-left:4px" onclick="removeFromScheme('${nameKey}','${brandKey}')" title="Remove">✕</div>` : ''}
-    </div>`;
-  }).join('');
+  // Show scheme section (list) when 2+ colours
+  if (schemeColours.length > 1) {
+    section.style.display = 'block';
+    list.innerHTML = schemeColours.map(p => {
+      const isActive   = selected && p.name === selected.name && p.brand === selected.brand;
+      const nameKey    = p.name.replace(/'/g,"\\'").replace(/!/g,"\\!");
+      const brandKey   = p.brand;
+      const brandLabel = HARMONY_BRAND_NAMES[p.brand] || p.brand;
+      const activeMark = isActive ? ' <span style="color:var(--gold);font-size:9px">●</span>' : '';
+      const clickAction = isActive
+        ? `deactivateSchemeColour()`
+        : `setActiveSchemeColour(PAINTS.find(q=>q.name==='${nameKey}'&&q.brand==='${brandKey}'))`;
+      return `<div class="nb-item" style="cursor:pointer;${isActive?'background:var(--tint);border-radius:4px':''}"
+        onclick="${clickAction}">
+        ${paintShapeSVG(p)}
+        <div style="flex:1;min-width:0">
+          <div class="nb-name">${p.name}${activeMark}</div>
+          <div style="font-size:9px;color:var(--dimmer);margin-top:1px">${brandLabel}</div>
+        </div>
+        <div class="nb-meta">${p.hex.toUpperCase()}</div>
+        <div style="color:var(--dimmer);cursor:pointer;font-size:10px;margin-left:4px" onclick="event.stopPropagation();removeFromScheme('${nameKey}','${brandKey}')" title="Remove">✕</div>
+      </div>`;
+    }).join('');
+  } else {
+    section.style.display = 'none';
+  }
 }
 
 function draw() {
@@ -4215,84 +3903,65 @@ const MARTIAN_HUE_NAMES = [
 ];
 
 function selectPaint(paint) {
-  selected = paint;
-  // Reset harmony when selection changes
-  clearHarmony();
-  draw();
-
   if (!paint) {
+    // Deselecting — don't touch the scheme, just clear active
+    selected = null;
+    clearHarmony();
     document.getElementById('sel-card').style.display = 'none';
     document.getElementById('panel-header-label').textContent = 'Select a paint';
+    draw();
     return;
   }
 
-  // Auto-open panel when a paint is selected
+  // Add to scheme (no-op if already there)
+  const already = schemeColours.find(p => p.name === paint.name && p.brand === paint.brand);
+  const wasEmpty = schemeColours.length === 0;
+  if (!already) schemeColours.push(paint);
+
+  // If the scheme was empty, make this the active colour automatically
+  if (wasEmpty) {
+    openPanel();
+    if (IS_TOUCH) forceHideTip();
+    setActiveSchemeColour(paint);
+    return;
+  }
+
+  // Auto-open panel when a paint is added
   openPanel();
-  // On mobile, close the hover tooltip to save space — the panel shows the same info
+  // On mobile, close the hover tooltip to save space
   if (IS_TOUCH) forceHideTip();
-  document.getElementById('panel-header-label').textContent = paint.name;
+
   document.getElementById('sel-card').style.display = 'block';
-  renderScheme(); // update scheme panel with new anchor
-
-  // Show harmony buttons — all types enabled for all paints
   document.getElementById('harmony-btns').style.display = 'flex';
+  document.getElementById('sel-owned-btn').style.display = '';
 
-  document.getElementById('sel-swatch').style.background = paint.hex;
-  // Detailed values as tooltip on the swatch
-  const {h,s,l} = paint.hsl;
-  document.getElementById('sel-swatch').title =
-    `${paint.hex.toUpperCase()}  ·  H ${Math.round(h)}°  S ${Math.round(s)}%  L ${Math.round(l)}%  V ${Math.round(paint.value)}%`;
+  // Update the panel header to show the scheme count
+  document.getElementById('panel-header-label').textContent =
+    schemeColours.length === 1 ? paint.name : `${schemeColours.length} paints in scheme`;
 
-  document.getElementById('sel-name').textContent = paint.name;
-  const BRAND_LABELS = {
-    citadel:'Citadel', ak:'AK 3rd Gen',
-    proacryl:'Pro Acryl', vmc:'Vallejo Model Color', vgc:'Vallejo Game Color',
-    ttc:'Two Thin Coats', p3:'P3 Formula', fanatic:'AP Fanatic',
-  };
-  const BRAND_COLORS = {
-    citadel:'#c8a06b', ak:'#c0d870',
-    proacryl:'#e07070', vmc:'#7090c8', vgc:'#70c890',
-    ttc:'#d0a0d0', p3:'#c0c0e0', fanatic:'#e0c080',
-  };
-  let typeLabel;
-  if (paint.brand === 'citadel') {
-    typeLabel = paint.type.charAt(0).toUpperCase() + paint.type.slice(1);
-  } else {
-    typeLabel = BRAND_LABELS[paint.brand] || paint.brand;
-    if (paint.code) typeLabel += ' · ' + paint.code;
-  }
-  document.getElementById('sel-type').textContent = typeLabel;
-  let typeColor;
-  if (paint.brand === 'citadel') {
-    typeColor = paint.type==='base' ? '#c8a06b'
-              : paint.type==='metallic' ? '#c0c8a0' : '#7a9aaa';
-  } else {
-    typeColor = BRAND_COLORS[paint.brand] || '#c8a06b';
-  }
-  document.getElementById('sel-type').style.color = typeColor;
-
-  // Hue segment name — descriptive only
-  const hueEl = document.getElementById('sel-hue-name');
-  if (paint.hueSeg >= 0) {
-    hueEl.textContent = `Hue: ${MARTIAN_HUE_NAMES[paint.hueSeg]}`;
-    hueEl.style.color = 'var(--dim)';
-  } else {
-    hueEl.textContent = 'Hue: Neutral';
-    hueEl.style.color = 'var(--dimmer)';
+  // If there's no active colour yet, show the paint name but don't set it as active
+  if (!selected) {
+    document.getElementById('sel-name').textContent = paint.name;
+    const BRAND_LABELS = {
+      citadel:'Citadel', ak:'AK 3rd Gen',
+      proacryl:'Pro Acryl', vmc:'Vallejo Model Color', vgc:'Vallejo Game Color',
+      ttc:'Two Thin Coats', p3:'P3 Formula', fanatic:'AP Fanatic',
+    };
+    let typeLabel;
+    if (paint.brand === 'citadel') {
+      typeLabel = paint.type.charAt(0).toUpperCase() + paint.type.slice(1);
+    } else {
+      typeLabel = BRAND_LABELS[paint.brand] || paint.brand;
+      if (paint.code) typeLabel += ' · ' + paint.code;
+    }
+    document.getElementById('sel-type').textContent = typeLabel;
+    document.getElementById('sel-type').style.color = 'var(--dim)';
+    // Hide harmony buttons since no active colour
+    document.getElementById('harmony-btns').style.display = 'none';
   }
 
-  // Value band — descriptive only
-  const valEl = document.getElementById('sel-val-band');
-  valEl.textContent = `Value: ${paint.valBand.label}`;
-  valEl.style.color = 'var(--dim)';
-
-  // Saturation band — descriptive only
-  const satEl = document.getElementById('sel-sat-band');
-  satEl.textContent = `Saturation: ${paint.satBand.label}`;
-  satEl.style.color = 'var(--dim)';
-
-  // Owned button state
-  refreshOwnedButton();
+  renderScheme();
+  draw();
 }
 
 function refreshOwnedButton() {
@@ -5179,27 +4848,6 @@ function toggleDarkMode() {
 }
 
 // ── User Guide ─────────────────────────────────────────────
-function showGuide() {
-  document.getElementById('guide-overlay').classList.add('visible');
-  document.getElementById('guide-back-float').classList.add('visible');
-  document.getElementById('guide-overlay').scrollTop = 0;
-}
-
-function hideGuide() {
-  document.getElementById('guide-overlay').classList.remove('visible');
-  document.getElementById('guide-back-float').classList.remove('visible');
-}
-
-function showSources() {
-  document.getElementById('sources-overlay').classList.add('visible');
-  document.getElementById('sources-back-float').classList.add('visible');
-  document.getElementById('sources-overlay').scrollTop = 0;
-}
-
-function hideSources() {
-  document.getElementById('sources-overlay').classList.remove('visible');
-  document.getElementById('sources-back-float').classList.remove('visible');
-}
 
 </script>
 </body>
