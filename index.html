@@ -452,7 +452,7 @@
   /* ── Tooltip ── */
   #tip {
     position: fixed;
-    pointer-events: auto; /* always interactive so close button works */
+    pointer-events: auto;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 4px;
@@ -462,8 +462,9 @@
     display: none;
     z-index: 100;
     max-width: 230px;
+    max-height: 60vh;
+    overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0,0,0,.6);
-    position: fixed; /* keep fixed for positioning */
   }
   #tip .tip-swatch {
     width: 100%;
@@ -595,6 +596,36 @@
 
     /* Harmony spread + type buttons bigger */
     .hbtn-harmony, .spread-btn { padding: 9px 12px; min-height: 36px; }
+
+    /* ── Bottom panel mobile sizing ── */
+    #sel-scheme-strip { min-height: 56px; gap: 4px; }
+    #sel-scheme-strip .scheme-swatch-item .swatch-remove {
+      display: block; /* always show on touch — no hover */
+      font-size: 14px; top: 4px; right: 5px;
+      width: 24px; height: 24px; line-height: 24px; text-align: center;
+      background: rgba(0,0,0,.45); border-radius: 50%; color: #fff;
+    }
+    #sel-name { font-size: 16px; margin-bottom: 6px; }
+    #sel-type { font-size: 12px; margin-bottom: 8px; }
+    #sel-owned-btn { padding: 10px 14px; font-size: 12px; min-height: 40px; }
+    .harmony-label { font-size: 11px; margin-top: 12px; margin-bottom: 8px; }
+    .harmony-label button { font-size: 12px !important; padding: 4px 8px !important; }
+    #harmony-btns { gap: 6px; }
+    .hbtn-harmony { font-size: 12px; }
+    .nb-item { gap: 10px; padding: 8px 4px; }
+    .nb-name { font-size: 14px; }
+    .nb-meta { font-size: 11px; }
+    /* Remove buttons in scheme list */
+    .nb-item > div:last-child { font-size: 16px !important; padding: 4px; min-width: 28px; min-height: 28px; display: flex; align-items: center; justify-content: center; }
+    /* Harmony sub-filter chips */
+    .hbrand-chip { padding: 8px 12px; font-size: 12px; min-height: 36px; }
+    .harmony-sub-header { font-size: 10px; margin-top: 10px; }
+    .harmony-group-label { font-size: 12px; }
+    .harmony-brand-dd-btn { padding: 9px 12px; font-size: 12px; }
+    #panel-body { padding: 10px 14px; }
+    /* Spread buttons */
+    #harmony-spread { gap: 6px; }
+    .spread-btn { font-size: 12px; }
   }
 
   /* Touch-device tweaks — applied regardless of viewport size */
@@ -607,7 +638,7 @@
     #tip .tip-entry { padding: 10px 6px; min-height: 36px; }
     #tip .tip-name { font-size: 14px; }
     #tip .tip-type { font-size: 11px; }
-    #tip { max-width: calc(100vw - 24px); }
+    #tip { max-width: calc(100vw - 24px); max-height: 45vh; }
 
     /* Prevent text selection on the canvas during drags */
     #canvas-wrap, canvas { -webkit-user-select: none; user-select: none; }
